@@ -513,9 +513,64 @@
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 9999px; }
+        /* Preferencia de dispositivo y adaptación móvil */
+        body.mobile-mode { overflow: hidden; }
+        body.mobile-mode #gameScreen { height: 100dvh; min-height: 100dvh; }
+        body.mobile-mode #gameScreen > header { min-height: 48px; padding: 5px 7px; gap: 4px; }
+        body.mobile-mode #gameScreen > header button { padding: 6px 8px; font-size: 11px; }
+        body.mobile-mode #gameArenaMain { min-height: 0; padding: 2px; }
+        body.mobile-mode #tableOval3D { width: 96vw; height: 46vh; border-width: 7px; }
+        body.mobile-mode #centerDirectionRing { width: min(54vw, 230px); height: min(54vw, 230px); }
+        body.mobile-mode #localHandContainer { max-width: 100vw; overflow-x: auto; overflow-y: visible; padding: 5px 8px 12px; scrollbar-width: none; }
+        body.mobile-mode .uno-card { border-radius: 9px; padding: 3px; }
+        body.mobile-mode .uno-card-inner { border-radius: 6px; }
+        body.mobile-mode .hand-card-playable { animation: none; }
+        body.mobile-mode .uno-card-glare { display: none; }
+        body.mobile-mode #vfxCanvas { opacity: .55; }
+        body.mobile-mode .spin-cw, body.mobile-mode .spin-ccw { animation-duration: 32s; }
+        body.mobile-mode .animate-screen-shake { animation-duration: .22s; }
+        @media (max-width: 767px) {
+            body.mobile-mode #gameScreen > header { flex-wrap: nowrap; }
+            body.mobile-mode #turnStatusBanner { font-size: 10px; padding: 4px 7px; max-width: 34vw; }
+            body.mobile-mode #hudModePill { font-size: 9px; padding: 4px 6px; }
+            body.mobile-mode #drawDeckWrapper .uno-card { width: 58px !important; }
+            body.mobile-mode #centerDirectionRing { opacity: .45; }
+            body.mobile-mode #gameArenaMain { align-items: center; }
+            body.mobile-mode #opponentsLayer { transform: scale(.86); transform-origin: center; }
+            body.mobile-mode #localHandContainer .uno-card { width: 58px !important; }
+            body.mobile-mode #localHandContainer { gap: 0; }
+            body.mobile-mode #chatDrawer { width: min(92vw, 360px); }
+        }
+        @media (max-height: 500px) and (max-width: 900px) {
+            body.mobile-mode #gameScreen > header { min-height: 38px; }
+            body.mobile-mode #gameArenaMain { flex: 1 1 auto; }
+            body.mobile-mode #localHandContainer .uno-card { width: 48px !important; }
+            body.mobile-mode #tableOval3D { height: 70vh; }
+        }
+        body.mobile-mode.reduce-effects *, body.mobile-mode.reduce-effects *::before, body.mobile-mode.reduce-effects *::after {
+            scroll-behavior: auto !important;
+        }
     </style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
+    <div id="deviceSetupModal" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-5">
+        <div class="w-full max-w-md rounded-3xl border border-amber-300/30 bg-zinc-950 p-6 text-center shadow-2xl">
+            <div class="text-4xl mb-3">🎮</div>
+            <h2 class="font-uno text-3xl text-amber-300 mb-2">¿Dónde vas a jugar?</h2>
+            <p class="text-sm text-zinc-300 mb-6">Elegí tu dispositivo. Podés cambiarlo más adelante desde los ajustes.</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button id="deviceModePC" class="rounded-2xl border border-white/15 bg-zinc-900 hover:bg-zinc-800 p-5 text-white font-extrabold">
+                    <span class="block text-4xl mb-2">🖥️</span>PC
+                    <span class="block text-[10px] text-zinc-400 font-medium mt-1">Diseño normal</span>
+                </button>
+                <button id="deviceModeMobile" class="rounded-2xl border border-amber-400/40 bg-amber-400/10 hover:bg-amber-400/20 p-5 text-white font-extrabold">
+                    <span class="block text-4xl mb-2">📱</span>MÓVIL
+                    <span class="block text-[10px] text-zinc-400 font-medium mt-1">Se adapta a la pantalla</span>
+                </button>
+            </div>
+            <p class="text-[10px] text-zinc-500 mt-4">La adaptación funciona en vertical y horizontal.</p>
+        </div>
+    </div>
 
     <!-- Notificación / Toast elegante (sin alert()) -->
     <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex flex-col items-center gap-2 pointer-events-none w-full max-w-md px-4"></div>
@@ -563,6 +618,7 @@
                     <button id="btnOpenRulesHome" class="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-amber-300 transition-colors cursor-pointer">
                         📜 Reglas
                     </button>
+                    <button id="btnChangeDeviceMode" class="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-zinc-200">🖥️/📱</button>
                     <span id="onlineStatusBadge" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/70 border border-emerald-500/30 text-xs font-semibold text-emerald-300">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span>En Línea</span>
@@ -1707,20 +1763,26 @@
         }
         function createChaosDeckBatch(size) {
             const deck = [];
-            for (let i = 0; i < (size || 180); i++) {
-                const roll = Math.random(); let special = null;
-                if (roll < 0.0002) special = 'chaos_draw99';
-                else if (roll < 0.012) special = 'chaos_draw20';
-                else if (roll < 0.032) special = 'chaos_draw10';
-                else if (roll < 0.052) special = 'chaos_double_skip';
-                else if (roll < 0.067) special = 'chaos_swap';
-                else if (roll < 0.082) special = 'chaos_everyone5';
-                else if (roll < 0.097) special = 'chaos_steal2';
-                else if (roll < 0.112) special = 'chaos_reverse_all';
-                else if (roll < 0.127) special = 'chaos_shield';
-                if (special) deck.push(createChaosCard(special, COLORS[Math.floor(Math.random() * COLORS.length)], 'chaos'));
-                else {
-                    const color = COLORS[Math.floor(Math.random() * COLORS.length)]; const pick = Math.random();
+            const specialRolls = [
+                [0.0002, 'chaos_draw99'], [0.002, 'chaos_draw200'], [0.006, 'chaos_draw50'],
+                [0.020, 'chaos_draw30'], [0.050, 'chaos_draw10'], [0.070, 'chaos_double_skip'],
+                [0.085, 'chaos_swap'], [0.100, 'chaos_everyone5'], [0.115, 'chaos_steal2'],
+                [0.130, 'chaos_reverse_all'], [0.145, 'chaos_shield'], [0.160, 'chaos_mystery'],
+                [0.175, 'chaos_everyone3'], [0.190, 'chaos_steal3'], [0.205, 'chaos_skip_all'],
+                [0.220, 'chaos_double_turn'], [0.235, 'chaos_hand_shuffle'], [0.250, 'chaos_give3'],
+                [0.265, 'chaos_roulette']
+            ];
+            for (let i = 0; i < (size || 240); i++) {
+                const roll = Math.random();
+                const specialEntry = specialRolls.find(([limit]) => roll < limit);
+                if (specialEntry) {
+                    const value = specialEntry[1];
+                    // El +99 es comodín: además de sumar 99, permite elegir el color.
+                    const color = value === 'chaos_draw99' ? 'wild' : COLORS[Math.floor(Math.random() * COLORS.length)];
+                    deck.push(createChaosCard(value, color, 'chaos'));
+                } else {
+                    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+                    const pick = Math.random();
                     if (pick < 0.64) deck.push(createChaosCard(String(Math.floor(Math.random() * 10)), color, 'number'));
                     else if (pick < 0.76) deck.push(createChaosCard('draw2', color, 'action'));
                     else if (pick < 0.88) deck.push(createChaosCard('skip', color, 'action'));
@@ -1763,6 +1825,7 @@
                     <div class="w-5 h-7 sm:w-6 sm:h-8 rounded border-2 border-black bg-white shadow transform translate-x-1.5 -translate-y-1 flex items-center justify-center font-uno font-black text-xs text-black">+2</div>
                 </div>`;
             }
+            if (value === 'chaos_mystery') return `<svg class="${size}" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="27" fill="#fff" stroke="#111827" stroke-width="4"/><path d="M23 23c1-8 17-10 20 0 2 7-10 9-10 17" stroke="#111827" stroke-width="6" stroke-linecap="round"/><circle cx="33" cy="49" r="3.5" fill="#111827"/></svg>`;
             if (value === 'wild') {
                 return `<svg class="${size} rounded-full border border-black/40 shadow-sm" viewBox="0 0 32 32">
                     <path d="M16 16 L16 0 A16 16 0 0 1 32 16 Z" fill="#2563eb"/>
@@ -1780,7 +1843,7 @@
                     <span class="absolute w-4 h-6 rounded-sm bg-rose-600 border border-black translate-x-2.5 -translate-y-0.5 rotate-12"></span>
                 </div>`;
             }
-            const chaosLabels = { chaos_draw10: '+10', chaos_draw20: '+20', chaos_draw99: '+99', chaos_double_skip: '⛔×2', chaos_swap: 'CAMBIO', chaos_everyone5: 'TODOS +5', chaos_steal2: 'ROBAR 2', chaos_reverse_all: '↔', chaos_shield: 'ESCUDO' };
+            const chaosLabels = { chaos_draw10: '+10', chaos_draw20: '+20', chaos_draw30: '+30', chaos_draw50: '+50', chaos_draw99: '+99', chaos_draw200: '+200', chaos_double_skip: '⛔×2', chaos_swap: 'CAMBIO', chaos_everyone5: 'TODOS +5', chaos_everyone3: 'TODOS +3', chaos_steal2: 'ROBAR 2', chaos_steal3: 'ROBAR 3', chaos_reverse_all: '↔', chaos_shield: 'ESCUDO', chaos_mystery: '?', chaos_skip_all: 'SALTA TODOS', chaos_double_turn: 'OTRA VEZ', chaos_hand_shuffle: 'MEZCLAR', chaos_give3: 'DAME 3', chaos_roulette: 'RULETA' };
             if (chaosLabels[value]) {
                 const label = chaosLabels[value]; const sizeClass = isCorner ? 'text-[8px] sm:text-[9px]' : (label.length > 5 ? 'text-xs sm:text-sm' : 'text-2xl sm:text-3xl');
                 return '<span class="font-uno font-black ' + sizeClass + ' text-center leading-tight px-0.5">' + label + '</span>';
@@ -1840,12 +1903,17 @@
 
             resize() {
                 if (!this.canvas) return;
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
+                const dpr = document.body.classList.contains('mobile-mode') ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
+                this.canvas.width = Math.round(window.innerWidth * dpr);
+                this.canvas.height = Math.round(window.innerHeight * dpr);
+                this.canvas.style.width = window.innerWidth + 'px';
+                this.canvas.style.height = window.innerHeight + 'px';
+                if (this.ctx) this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
 
             initAmbientDust() {
-                for (let i = 0; i < 36; i++) {
+                const dustCount = document.body.classList.contains('mobile-mode') ? 10 : 36;
+                for (let i = 0; i < dustCount; i++) {
                     this.ambientDust.push({
                         x: Math.random() * window.innerWidth,
                         y: Math.random() * window.innerHeight,
@@ -2131,17 +2199,29 @@
         const state = {
             playerName: localStorage.getItem('uno_player_name') || `Jugador_${Math.floor(100 + Math.random() * 899)}`,
             playerAvatar: savedAvatarCfg,
-            roomCode: null,
-            hostId: null,
-            isOnline: false,
-            unsubscribeRoom: null,
-            room: null,
-            pendingWildCardId: null,
-            drawnPlayableCardId: null,
-            comboChain: null, // { mode: 'mirror' | 'straight', direction: null | 1 | -1, lastCard: Card }
-            lastTurnId: null,
-            lastRenderedDiscardId: null
+            roomCode: null, hostId: null, isOnline: false, unsubscribeRoom: null, room: null,
+            pendingWildCardId: null, drawnPlayableCardId: null, pendingMysteryCardId: null,
+            comboChain: null, lastTurnId: null, lastRenderedDiscardId: null,
+            deviceMode: localStorage.getItem('uno_device_mode') || ''
         };
+
+        function applyDeviceMode(mode) {
+            state.deviceMode = mode === 'mobile' ? 'mobile' : 'pc';
+            document.body.classList.toggle('mobile-mode', state.deviceMode === 'mobile');
+            document.body.classList.toggle('reduce-effects', state.deviceMode === 'mobile');
+            try { localStorage.setItem('uno_device_mode', state.deviceMode); } catch (e) {}
+            const setup = document.getElementById('deviceSetupModal');
+            if (setup) setup.classList.add('hidden');
+            if (vfx && typeof vfx.resize === 'function') vfx.resize();
+        }
+        function showDeviceSetup(force = false) {
+            const modal = document.getElementById('deviceSetupModal');
+            if (!modal) return;
+            if (force || !state.deviceMode) modal.classList.remove('hidden');
+            else applyDeviceMode(state.deviceMode);
+        }
+        document.getElementById('deviceModePC').onclick = () => applyDeviceMode('pc');
+        document.getElementById('deviceModeMobile').onclick = () => applyDeviceMode('mobile');
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
@@ -2224,7 +2304,7 @@
         function drawCardsFromDeck(room, count) {
             const drawn = [];
             for (let i = 0; i < count; i++) {
-                if ((!room.drawPile || room.drawPile.length === 0) && room.gameMode === 'chaos') room.drawPile = createChaosDeckBatch(180);
+                if ((!room.drawPile || room.drawPile.length === 0) && room.gameMode === 'chaos') room.drawPile = createChaosDeckBatch(300);
                 if (!room.drawPile || room.drawPile.length === 0) {
                     if (room.discardPile && room.discardPile.length > 1) {
                         const top = room.discardPile.pop();
@@ -2241,6 +2321,49 @@
             return drawn;
         }
 
+        function openMysteryCardPicker(seatIndex, cardId) {
+            const old = document.getElementById('mysteryCardPicker');
+            if (old) old.remove();
+            const colors = ['red','yellow','green','blue'];
+            const colorNames = { red:'Rojo', yellow:'Amarillo', green:'Verde', blue:'Azul' };
+            const colorClasses = { red:'bg-rose-600', yellow:'bg-yellow-400 text-black', green:'bg-emerald-600', blue:'bg-blue-600' };
+            const choices = [];
+            for (const color of colors) {
+                for (let n = 0; n <= 9; n++) choices.push({ value:String(n), color, type:'number', label:n+' '+colorNames[color] });
+                for (const [value,label] of [['draw2','+2'],['skip','Bloqueo'],['reverse','Reversa']]) choices.push({ value, color, type:'action', label:label+' '+colorNames[color] });
+            }
+            for (const color of colors) {
+                choices.push({ value:'wild', color:'wild', type:'wild', chosenColor:color, label:'Comodín → '+colorNames[color] });
+                choices.push({ value:'wild_draw4', color:'wild', type:'wild', chosenColor:color, label:'+4 → '+colorNames[color] });
+            }
+            const chaosChoices = [
+                ['chaos_draw10','+10'],['chaos_draw20','+20'],['chaos_draw30','+30'],['chaos_draw50','+50'],
+                ['chaos_draw200','+200'],['chaos_double_skip','Bloqueo doble'],['chaos_swap','Cambio de manos'],
+                ['chaos_everyone5','Todos +5'],['chaos_everyone3','Todos +3'],['chaos_steal2','Robar 2'],
+                ['chaos_steal3','Robar 3'],['chaos_reverse_all','Reversa global'],['chaos_shield','Escudo'],
+                ['chaos_skip_all','Salta todos'],['chaos_double_turn','Turno extra'],['chaos_hand_shuffle','Mezclar manos'],
+                ['chaos_give3','Dame 3'],['chaos_roulette','Ruleta']
+            ];
+            chaosChoices.forEach(([value,label]) => colors.forEach(color => choices.push({value,color,type:'chaos',label:label+' · '+colorNames[color]})));
+            const modal = document.createElement('div');
+            modal.id = 'mysteryCardPicker';
+            modal.className = 'fixed inset-0 z-[190] bg-black/85 backdrop-blur-sm flex items-center justify-center p-3';
+            modal.innerHTML = `<div class="w-full max-w-2xl max-h-[88dvh] overflow-hidden rounded-3xl border border-fuchsia-300/40 bg-zinc-950 shadow-2xl flex flex-col">
+                <div class="p-4 border-b border-white/10 flex items-center justify-between"><div><h3 class="font-uno text-2xl text-fuchsia-300">🃏 ¿Qué carta querés imitar?</h3><p class="text-xs text-zinc-400">Podés elegir cualquier carta, excepto el +99.</p></div><button id="closeMysteryPicker" class="text-zinc-400 text-xl px-2">✕</button></div>
+                <div id="mysteryChoicesGrid" class="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 overflow-y-auto"></div>
+            </div>`;
+            document.body.appendChild(modal);
+            const grid = modal.querySelector('#mysteryChoicesGrid');
+            grid.innerHTML = choices.map((choice,idx) => `<button data-choice="${idx}" class="rounded-xl border border-white/10 ${colorClasses[choice.color] || 'bg-zinc-800'} px-2 py-2 text-[11px] font-extrabold text-white shadow hover:brightness-125">${choice.label}</button>`).join('');
+            modal.querySelector('#closeMysteryPicker').onclick = () => { modal.remove(); state.pendingMysteryCardId = null; };
+            grid.querySelectorAll('[data-choice]').forEach(btn => btn.onclick = async () => {
+                const choice = choices[Number(btn.dataset.choice)];
+                modal.remove();
+                state.pendingMysteryCardId = null;
+                await playCardFromHand(seatIndex, cardId, choice.chosenColor || null, choice);
+            });
+        }
+
         function canPlayCard(card, room, comboChain = null) {
             if (!card || !room) return false;
             const top = room.discardPile[room.discardPile.length - 1];
@@ -2248,7 +2371,7 @@
                 const stack = room.pendingStack;
                 if (stack.type === 'draw2') return card.value === 'draw2' || card.value === 'chaos_shield';
                 if (stack.type === 'draw4') return card.value === 'wild_draw4' || card.value === 'chaos_shield' || (card.type === 'number' && card.color === stack.chosenColor);
-                if (stack.type === 'chaos') return card.value === 'chaos_shield' || (['chaos_draw10','chaos_draw20','chaos_draw99'].includes(card.value) && Number(card.value.replace('chaos_draw','')) >= stack.amount);
+                if (stack.type === 'chaos') return card.value === 'chaos_shield' || (['chaos_draw10','chaos_draw20','chaos_draw30','chaos_draw50','chaos_draw99','chaos_draw200'].includes(card.value) && Number(card.value.replace('chaos_draw','')) >= stack.amount);
                 return false;
             }
             if (card.value === 'chaos_shield') return false;
@@ -2640,7 +2763,7 @@
                 return;
             }
 
-            const deck = room.gameMode === 'chaos' && state.isOnline ? createChaosDeckBatch(240) : createOfficial108Deck();
+            const deck = room.gameMode === 'chaos' && state.isOnline ? createChaosDeckBatch(360) : createOfficial108Deck();
             room.pendingStack = null;
             room.comboChain = null;
             room.seats.forEach(s => {
@@ -2684,7 +2807,7 @@
             });
         }
 
-        async function playCardFromHand(seatIndex, cardId, chosenColor = null) {
+        async function playCardFromHand(seatIndex, cardId, chosenColor = null, mimicChoice = null) {
             const room = state.room;
             if (!room || room.status !== 'playing') return;
             if (room.currentTurnSeat !== seatIndex) return;
@@ -2694,7 +2817,18 @@
             if (!seat || !seat.hand) return;
             const cardIdx = seat.hand.findIndex(c => c.id === cardId);
             if (cardIdx === -1) return;
-            const card = seat.hand[cardIdx];
+            let card = seat.hand[cardIdx];
+            if (card.value === 'chaos_mystery' && !mimicChoice) {
+                state.pendingMysteryCardId = cardId;
+                openMysteryCardPicker(seatIndex, cardId);
+                return;
+            }
+            if (mimicChoice) {
+                // La carta ? adopta la identidad y el efecto elegido; nunca puede imitar +99.
+                if (mimicChoice.value === 'chaos_draw99') return;
+                card = { ...card, value:mimicChoice.value, color:mimicChoice.color, type:mimicChoice.type, points:50, mimicked:true };
+                seat.hand[cardIdx] = card;
+            }
 
             if (!canPlayCard(card, room, state.comboChain)) {
                 showToast("Esa carta no coincide en color, valor o cadena.", "warn");
@@ -2857,7 +2991,7 @@
                 vfx.spawnSparkBurst(cx, cy, COLOR_META[finalColor].hex, 44, '+4');
                 room.pendingStack = { amount: 4, type: 'draw4', targetSeatIndex: targetSeatIdx, chosenColor: finalColor, fromSeatIndex: seatIndex };
                 room.currentTurnSeat = targetSeatIdx;
-            } else if (card.value === 'chaos_draw10' || card.value === 'chaos_draw20' || card.value === 'chaos_draw99') {
+            } else if (/^chaos_draw(10|20|30|50|99|200)$/.test(card.value)) {
                 const amount = Number(card.value.replace('chaos_draw', ''));
                 const targetSeatIdx = getNextSeatIndex(room, seatIndex, 1);
                 room.pendingStack = { amount: amount, type: 'chaos', targetSeatIndex: targetSeatIdx, chosenColor: finalColor, fromSeatIndex: seatIndex };
@@ -2880,6 +3014,28 @@
                 vfx.showCinemaCallout('¡ROBO DE CARTAS!', 'from-emerald-400 via-white to-lime-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
             } else if (card.value === 'chaos_reverse_all') {
                 room.direction *= -1; vfx.showCinemaCallout('¡CAOS INVERTIDO!', 'from-sky-400 via-white to-violet-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            } else if (card.value === 'chaos_everyone3') {
+                room.seats.filter(s => s.id && s.seatIndex !== seatIndex && !s.finishRank).forEach(s => { s.hand.push(...drawCardsFromDeck(room, 3)); s.saidUno = false; });
+                vfx.showCinemaCallout('¡TODOS +3!', 'from-amber-300 via-white to-orange-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            } else if (card.value === 'chaos_steal3') {
+                const target = room.seats[getNextSeatIndex(room, seatIndex, 1)]; const actor = room.seats[seatIndex];
+                if (target && actor) for (let i = 0; i < 3 && target.hand.length; i++) { const at = Math.floor(Math.random() * target.hand.length); actor.hand.push(target.hand.splice(at, 1)[0]); }
+                vfx.showCinemaCallout('¡ROBA 3!', 'from-emerald-400 via-white to-lime-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            } else if (card.value === 'chaos_skip_all') {
+                vfx.showCinemaCallout('¡SALTA A TODOS!', 'from-fuchsia-500 via-white to-violet-500'); room.currentTurnSeat = seatIndex;
+            } else if (card.value === 'chaos_double_turn') {
+                vfx.showCinemaCallout('¡OTRO TURNO!', 'from-amber-300 via-white to-yellow-500'); room.currentTurnSeat = seatIndex;
+            } else if (card.value === 'chaos_hand_shuffle') {
+                room.seats.filter(s => s.id && !s.finishRank).forEach(s => { s.hand = shuffleArray(s.hand); });
+                vfx.showCinemaCallout('¡MANOS MEZCLADAS!', 'from-cyan-400 via-white to-blue-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            } else if (card.value === 'chaos_give3') {
+                const target = room.seats[getNextSeatIndex(room, seatIndex, 1)]; const actor = room.seats[seatIndex];
+                if (target && actor) for (let i = 0; i < 3 && target.hand.length; i++) { const at = Math.floor(Math.random() * target.hand.length); actor.hand.push(target.hand.splice(at, 1)[0]); }
+                vfx.showCinemaCallout('¡DAME 3!', 'from-rose-400 via-white to-pink-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            } else if (card.value === 'chaos_roulette') {
+                const target = room.seats[getNextSeatIndex(room, seatIndex, 1)]; const amount = 1 + Math.floor(Math.random() * 6);
+                if (target) { target.hand.push(...drawCardsFromDeck(room, amount)); target.saidUno = false; }
+                vfx.showCinemaCallout('¡RULETA! +' + amount, 'from-violet-500 via-white to-fuchsia-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
             } else if (card.value === 'chaos_shield') {
                 vfx.showCinemaCallout('¡ESCUDO!', 'from-cyan-300 via-white to-blue-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
             } else {
@@ -3970,6 +4126,7 @@
         };
 
         document.getElementById('btnOpenRulesHome').onclick = () => document.getElementById('rulesModal').classList.remove('hidden');
+        document.getElementById('btnChangeDeviceMode').onclick = () => showDeviceSetup(true);
         document.getElementById('btnOpenRulesGame').onclick = () => document.getElementById('rulesModal').classList.remove('hidden');
         document.getElementById('btnCloseRules').onclick = () => document.getElementById('rulesModal').classList.add('hidden');
 
@@ -4022,6 +4179,7 @@
 
         // Inicializar vista al cargar
         updateAvatarStudioUI();
+        showDeviceSetup(false);
         renderCurrentView();
     </script>
 </body>
