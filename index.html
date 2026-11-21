@@ -1092,6 +1092,16 @@
         </div>
     </div>
 
+    <div id="stackPenaltyModal" class="hidden fixed inset-0 z-[94] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border-2 border-rose-400/60 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl">
+            <div class="text-4xl mb-2">💥</div>
+            <h3 class="font-uno text-2xl font-bold text-rose-300">¡Defiéndete o acepta!</h3>
+            <p id="stackPenaltyText" class="text-sm text-zinc-300 mt-2 mb-5">Hay una penalización pendiente.</p>
+            <button id="btnAcceptStack" class="w-full py-3 px-4 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold cursor-pointer">Aceptar y robar</button>
+            <p class="text-[11px] text-zinc-500 mt-3">Si tienes una defensa válida, toca esa carta para devolver el ataque.</p>
+        </div>
+    </div>
+
     <!-- ========================================================= -->
     <!-- MODAL DESAFÍO +4 (REGLA OFICIAL DE UNO!)                  -->
     <!-- ========================================================= -->
@@ -2188,6 +2198,12 @@
         function canPlayCard(card, room, comboChain = null) {
             if (!card || !room) return false;
             const top = room.discardPile[room.discardPile.length - 1];
+            if (room.pendingStack) {
+                const stack = room.pendingStack;
+                if (stack.type === 'draw2') return card.value === 'draw2';
+                if (stack.type === 'draw4') return card.value === 'wild_draw4' || (card.type === 'number' && card.color === stack.chosenColor);
+                return false;
+            }
             if (!top) return true;
 
             // Si estamos encadenando cartas en el mismo turno (Espejito o Escalerita)
@@ -2227,6 +2243,7 @@
 
         async function syncRoomToCloud() {
             if (!state.room) return;
+            state.room.comboChain = state.comboChain || null;
             state.room.updatedAt = Date.now();
             renderCurrentView();
             if (state.isOnline) {
@@ -2313,6 +2330,7 @@
 
                 const prevStatus = state.room?.status;
                 state.room = data;
+                state.comboChain = data.comboChain || null;
                 state.hostId = data.hostId;
                 renderChatAndReactionsFromRoom(data);
                 renderCurrentView();
@@ -2638,6 +2656,30 @@
 
             const finalColor = card.color === 'wild' ? (chosenColor || 'red') : card.color;
 
+            if (room.pendingStack) {
+                const stack = room.pendingStack;
+                seat.hand.splice(cardIdx, 1);
+                room.discardPile.push(card);
+                room.activeColor = finalColor;
+                room.lastMoveAnim = { id: Date.now() + '_' + Math.random(), seatIndex: seatIndex, card: card };
+                room.pendingStack = null;
+                if (stack.type === 'draw4' && card.type === 'number') {
+                    showToast(seat.name + ' bloqueó el +4 con el color elegido.', 'success');
+                    room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+                } else {
+                    const add = card.value === 'draw2' ? 2 : 4;
+                    const nextTarget = getNextSeatIndex(room, seatIndex, 1);
+                    room.pendingStack = { amount: stack.amount + add, type: stack.type, targetSeatIndex: nextTarget, chosenColor: finalColor, fromSeatIndex: seatIndex };
+                    room.currentTurnSeat = nextTarget;
+                    showToast('¡Penalización acumulada! Ahora son ' + room.pendingStack.amount + ' cartas.', 'warn');
+                }
+                room.turnStartedAt = Date.now();
+                state.comboChain = null;
+                await syncRoomToCloud();
+                scheduleBotTurnIfNeeded();
+                return;
+            }
+
             // Determinar si inicia o continúa cadena de Espejito / Escalerita
             let nextCombo = null;
             if (state.comboChain) {
@@ -2736,30 +2778,17 @@
                 room.currentTurnSeat = getNextSeatIndex(room, skippedSeat, 1);
             } else if (card.value === 'draw2') {
                 const targetSeatIdx = getNextSeatIndex(room, seatIndex, 1);
-                const targetSeat = room.seats[targetSeatIdx];
-                const drawn = drawCardsFromDeck(room, 2);
-                if (targetSeat) {
-                    targetSeat.hand.push(...drawn);
-                    targetSeat.saidUno = false;
-                }
+                room.pendingStack = { amount: 2, type: 'draw2', targetSeatIndex: targetSeatIdx, chosenColor: finalColor, fromSeatIndex: seatIndex };
                 sfx.playPowerImpact();
                 vfx.triggerScreenShake();
                 vfx.spawnSparkBurst(cx, cy, COLOR_META[finalColor].hex, 36, '+2');
-                room.currentTurnSeat = getNextSeatIndex(room, targetSeatIdx, 1);
+                room.currentTurnSeat = targetSeatIdx;
             } else if (card.value === 'wild_draw4') {
                 const targetSeatIdx = getNextSeatIndex(room, seatIndex, 1);
-                const fromSeat = room.seats[seatIndex];
-                const hadMatchingColor = fromSeat.hand.some(c => c.color === prevColor);
                 sfx.playPowerImpact();
                 vfx.triggerScreenShake();
                 vfx.spawnSparkBurst(cx, cy, COLOR_META[finalColor].hex, 44, '+4');
-
-                room.pendingDraw4 = {
-                    fromSeatIndex: seatIndex,
-                    targetSeatIndex: targetSeatIdx,
-                    hadMatchingColor,
-                    chosenColor: finalColor
-                };
+                room.pendingStack = { amount: 4, type: 'draw4', targetSeatIndex: targetSeatIdx, chosenColor: finalColor, fromSeatIndex: seatIndex };
                 room.currentTurnSeat = targetSeatIdx;
             } else {
                 room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
@@ -2867,6 +2896,24 @@
             scheduleBotTurnIfNeeded();
         }
 
+        async function resolveStackPenalty() {
+            const room = state.room;
+            if (!room || !room.pendingStack) return;
+            const stack = room.pendingStack;
+            const target = room.seats[stack.targetSeatIndex];
+            if (!target || target.id !== currentUserId) return;
+            room.pendingStack = null;
+            const cards = drawCardsFromDeck(room, stack.amount);
+            target.hand.push(...cards);
+            target.saidUno = false;
+            showToast(target.name + ' aceptó y robó ' + stack.amount + ' cartas.', 'danger');
+            sfx.playPenalty();
+            room.currentTurnSeat = getNextSeatIndex(room, target.seatIndex, 1);
+            room.turnStartedAt = Date.now();
+            await syncRoomToCloud();
+            scheduleBotTurnIfNeeded();
+        }
+
         async function handleLocalDrawCard() {
             const room = state.room;
             if (!room || room.status !== 'playing') return;
@@ -2875,7 +2922,7 @@
                 showToast("Espera tu turno para robar.", "warn");
                 return;
             }
-            if (room.pendingDraw4 || state.drawnPlayableCardId || state.comboChain) return;
+            if (room.pendingDraw4 || room.pendingStack || state.drawnPlayableCardId || state.comboChain) return;
 
             const drawn = drawCardsFromDeck(room, 1);
             if (drawn.length === 0) return;
@@ -2950,7 +2997,9 @@
                 if (!isResponsible) return;
 
                 lastTimeoutHandledTurnKey = turnTimeoutKey;
-                if (room.pendingDraw4 && room.pendingDraw4.targetSeatIndex === activeSeat.seatIndex) {
+                if (room.pendingStack && room.pendingStack.targetSeatIndex === activeSeat.seatIndex) {
+                    await resolveStackPenalty();
+                } else if (room.pendingDraw4 && room.pendingDraw4.targetSeatIndex === activeSeat.seatIndex) {
                     await resolveDraw4Challenge(false);
                 } else if (state.comboChain && activeSeat.id === currentUserId) {
                     await finishComboTurn();
@@ -2987,7 +3036,15 @@
                 const bot = r.seats[r.currentTurnSeat];
                 if (!bot || !bot.isBot) return;
 
-                // Si el bot recibió un +4 pendiente
+                // Los bots también pueden defenderse acumulando +2 o +4.
+                if (r.pendingStack && r.pendingStack.targetSeatIndex === bot.seatIndex) {
+                    const defense = bot.hand.find(c => canPlayCard(c, r, null));
+                    if (defense) await playCardFromHand(bot.seatIndex, defense.id, defense.color === 'wild' ? 'red' : defense.color);
+                    else await resolveStackPenalty();
+                    return;
+                }
+
+                // Compatibilidad con salas que todavía tengan un desafío +4 pendiente
                 if (r.pendingDraw4 && r.pendingDraw4.targetSeatIndex === bot.seatIndex) {
                     const shouldChallenge = Math.random() < 0.35;
                     await resolveDraw4Challenge(shouldChallenge);
@@ -3042,6 +3099,7 @@
             const gameEl = document.getElementById('gameScreen');
             const victoryModal = document.getElementById('victoryModal');
             const challengeModal = document.getElementById('challengeModal');
+            const stackModal = document.getElementById('stackPenaltyModal');
 
             if (!state.room) {
                 homeEl.classList.remove('hidden');
@@ -3049,6 +3107,7 @@
                 gameEl.classList.add('hidden');
                 victoryModal.classList.add('hidden');
                 challengeModal.classList.add('hidden');
+                stackModal?.classList.add('hidden');
                 return;
             }
 
@@ -3066,8 +3125,15 @@
             gameEl.classList.remove('hidden');
             renderGameTable();
 
-            // Modal de desafío +4 si le toca al jugador local
+            // Modal de defensa acumulativa si le toca al jugador local.
             const mySeat = state.room.seats.find(s => s.id === currentUserId);
+            if (state.room.pendingStack && mySeat && state.room.pendingStack.targetSeatIndex === mySeat.seatIndex) {
+                const p = state.room.pendingStack;
+                document.getElementById('stackPenaltyText').textContent = 'Te acumularon +' + p.amount + '. Puedes defenderte con una carta válida o aceptar y robar ' + p.amount + ' cartas.';
+                stackModal?.classList.remove('hidden');
+            } else {
+                stackModal?.classList.add('hidden');
+            }
             if (state.room.pendingDraw4 && mySeat && state.room.pendingDraw4.targetSeatIndex === mySeat.seatIndex) {
                 const attacker = state.room.seats[state.room.pendingDraw4.fromSeatIndex];
                 document.getElementById('challengeDescription').textContent =
@@ -3769,7 +3835,10 @@
             };
         });
 
-        // Desafío +4
+        // Defensa acumulativa de +2 y +4
+        document.getElementById('btnAcceptStack').onclick = resolveStackPenalty;
+
+        // Desafío +4 (compatibilidad con salas antiguas)
         document.getElementById('btnAcceptDraw4').onclick = () => resolveDraw4Challenge(false);
         document.getElementById('btnChallengeDraw4').onclick = () => resolveDraw4Challenge(true);
 
