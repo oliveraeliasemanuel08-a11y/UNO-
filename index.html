@@ -1700,7 +1700,7 @@
         }
 
         // Mazo dinámico de UNO CAOS: genera lotes nuevos cuando se agotan las cartas.
-        // +99 tiene una probabilidad de 1/500 por carta generada.
+        // +99 es extremadamente rara: probabilidad de 1/5000 por carta generada.
         function createChaosCard(value, color, type) {
             return { id: 'chaos_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10), color: color || COLORS[Math.floor(Math.random() * COLORS.length)], value: value, type: type || 'chaos', points: value === 'chaos_draw99' ? 200 : 50 };
         }
@@ -1708,7 +1708,7 @@
             const deck = [];
             for (let i = 0; i < (size || 180); i++) {
                 const roll = Math.random(); let special = null;
-                if (roll < 0.002) special = 'chaos_draw99';
+                if (roll < 0.0002) special = 'chaos_draw99';
                 else if (roll < 0.012) special = 'chaos_draw20';
                 else if (roll < 0.032) special = 'chaos_draw10';
                 else if (roll < 0.052) special = 'chaos_double_skip';
