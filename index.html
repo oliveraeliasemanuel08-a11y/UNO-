@@ -1353,44 +1353,51 @@
             }
         }
 
-        async function initFirebase() {
-            if (authInitPromise) return authInitPromise;
-            authInitPromise = (async () => {
-                updateOnlineBadgeUI('connecting');
-                try {
-                    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                        const firebaseConfig = typeof __firebase_config === 'string'
-                            ? JSON.parse(__firebase_config)
-                            : __firebase_config;
-                        const app = initializeApp(firebaseConfig);
-                        db = getFirestore(app);
-                        auth = getAuth(app);
+       async function initFirebase() {
+    if (authInitPromise) return authInitPromise;
 
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
+    authInitPromise = (async () => {
+        updateOnlineBadgeUI('connecting');
 
-                        if (auth.currentUser) {
-                            currentUser = auth.currentUser;
-                            currentUserId = auth.currentUser.uid;
-                            firebaseReady = true;
-                            updateOnlineBadgeUI('connected', currentUserId);
-                            startPublicRoomsListener();
-                            return true;
-                        }
-                    }
-                } catch (err) {
-                    console.warn("Error inicializando Firebase, usando modo local:", err);
-                }
-                firebaseReady = false;
-                updateOnlineBadgeUI('offline');
-                return false;
-            })();
-            return authInitPromise;
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDGphhSEypZrGrqm8pj9wykEQ2wiv7RgUo",
+                authDomain: "uno-club-dc29c.firebaseapp.com",
+                projectId: "uno-club-dc29c",
+                storageBucket: "uno-club-dc29c.firebasestorage.app",
+                messagingSenderId: "375402756368",
+                appId: "1:375402756368:web:ca9082992d6c317a0e8d95"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            await signInAnonymously(auth);
+
+            if (!auth.currentUser) {
+                throw new Error("No se pudo iniciar sesión");
+            }
+
+            currentUser = auth.currentUser;
+            currentUserId = currentUser.uid;
+            firebaseReady = true;
+
+            updateOnlineBadgeUI('connected', currentUserId);
+            startPublicRoomsListener();
+
+            return true;
+
+        } catch (err) {
+            console.error("Error inicializando Firebase:", err);
+            firebaseReady = false;
+            updateOnlineBadgeUI('offline');
+            return false;
         }
+    })();
 
+    return authInitPromise;
+}
         function startPublicRoomsListener() {
             if (unsubscribePublicRooms || !db || !currentUser) return;
             const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'uno_rooms');
