@@ -513,6 +513,37 @@
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 9999px; }
+        /* Mano compacta para cantidades extremas de cartas */
+        #localHandContainer.hand-many-cards {
+            overflow-x: auto !important;
+            overflow-y: visible !important;
+            justify-content: flex-start !important;
+            align-items: flex-end;
+            padding: 8px 18px 48px;
+            scrollbar-width: thin;
+            isolation: isolate;
+            touch-action: pan-x pan-y;
+        }
+        #localHandContainer.hand-many-cards .uno-card {
+            flex: 0 0 auto;
+            transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+        }
+        #localHandContainer.hand-many-cards .uno-card:hover,
+        #localHandContainer.hand-many-cards .uno-card.hand-card-focused {
+            transform: translateY(-38px) scale(1.38) rotate(0deg) !important;
+            filter: brightness(1.08);
+            z-index: 999 !important;
+            box-shadow: 0 20px 38px rgba(0,0,0,.8), 0 0 24px rgba(250,204,21,.9);
+        }
+        #localHandContainer.hand-many-cards .uno-card.hand-card-disabled:hover {
+            filter: brightness(.85) saturate(.85);
+        }
+        body.mobile-mode #localHandContainer.hand-many-cards { padding-bottom: 54px; }
+        body.mobile-mode #localHandContainer.hand-many-cards .uno-card:hover,
+        body.mobile-mode #localHandContainer.hand-many-cards .uno-card.hand-card-focused {
+            transform: translateY(-34px) scale(1.42) rotate(0deg) !important;
+        }
+
         /* Preferencia de dispositivo y adaptación móvil */
         body.mobile-mode { overflow: hidden; }
         body.mobile-mode #gameScreen { height: 100dvh; min-height: 100dvh; }
@@ -3801,25 +3832,37 @@
                 return;
             }
 
-            const maxSpreadDeg = Math.min(36, total * 4.2);
-            const overlapPx = total > 10 ? -36 : (total > 6 ? -24 : -12);
+            const isCompactHand = total > 12;
+            const maxSpreadDeg = isCompactHand ? Math.min(12, 120 / total) : Math.min(36, total * 4.2);
+            const cardWidth = state.deviceMode === 'mobile' ? (window.innerWidth < 500 ? 58 : 76) : 96;
+            // Con muchas cartas se superponen dejando una franja visible de cada una.
+            // El contenedor permite desplazarse horizontalmente para recorrer toda la mano.
+            const visibleStrip = total > 60 ? 9 : (total > 30 ? 13 : 18);
+            const overlapPx = isCompactHand ? -(cardWidth - visibleStrip) : (total > 6 ? -24 : -12);
+            handContainer.classList.toggle('hand-many-cards', isCompactHand);
+            handContainer.style.justifyContent = isCompactHand ? 'flex-start' : 'center';
+            handContainer.style.overflowX = isCompactHand ? 'auto' : 'visible';
+            handContainer.style.overflowY = 'visible';
+            handContainer.style.paddingBottom = isCompactHand ? '44px' : '';
 
             handContainer.innerHTML = cards.map((card, idx) => {
                 const playable = isMyTurn && canPlayCard(card, room, state.comboChain);
                 const norm = total === 1 ? 0 : (idx / (total - 1)) - 0.5;
-                const rot = norm * maxSpreadDeg;
-                const liftY = Math.abs(norm) * 14;
+                const rot = isCompactHand ? norm * maxSpreadDeg : norm * maxSpreadDeg;
+                const liftY = isCompactHand ? 0 : Math.abs(norm) * 14;
                 const stateClass = playable ? 'hand-card-playable' : 'hand-card-disabled';
                 const marginStyle = idx === 0 ? '' : `margin-left: ${overlapPx}px;`;
-
+                const widthClass = state.deviceMode === 'mobile' ? 'shrink-0' : 'w-20 sm:w-24 shrink-0';
+                const widthStyle = state.deviceMode === 'mobile' ? `width:${cardWidth}px;` : '';
                 return createCardHTML(
                     card,
-                    `w-20 sm:w-24 shrink-0 ${stateClass}`,
-                    `${marginStyle} transform: translateY(${liftY}px) rotate(${rot}deg); z-index: ${idx + 1};`
+                    `${widthClass} ${stateClass} hand-card-index-${idx}`,
+                    `${marginStyle} ${widthStyle} transform: translateY(${liftY}px) rotate(${rot}deg); z-index: ${idx + 1};`
                 );
             }).join('');
 
-            // Interacción táctil / ratón + efecto brillo 3D
+            // En PC se identifica al pasar el mouse. En móvil, el primer toque
+            // levanta y amplía la carta; el segundo toque la juega.
             handContainer.querySelectorAll('.uno-card').forEach(cardEl => {
                 const cId = cardEl.dataset.cardId;
                 cardEl.addEventListener('mousemove', (e) => {
@@ -3829,8 +3872,22 @@
                     cardEl.style.setProperty('--glare-x', `${gx}%`);
                     cardEl.style.setProperty('--glare-y', `${gy}%`);
                 });
+                cardEl.addEventListener('pointerdown', () => {
+                    if (state.deviceMode !== 'mobile') return;
+                    handContainer.querySelectorAll('.uno-card.hand-card-focused').forEach(el => el.classList.remove('hand-card-focused'));
+                    cardEl.classList.add('hand-card-focused');
+                    cardEl.style.zIndex = '999';
+                });
                 cardEl.addEventListener('click', () => {
                     if (!isMyTurn) return;
+                    if (state.deviceMode === 'mobile' && !cardEl.dataset.touchSelected) {
+                        handContainer.querySelectorAll('.uno-card').forEach(el => { el.dataset.touchSelected = ''; el.classList.remove('hand-card-focused'); });
+                        cardEl.dataset.touchSelected = '1';
+                        cardEl.classList.add('hand-card-focused');
+                        cardEl.style.zIndex = '999';
+                        return;
+                    }
+                    cardEl.dataset.touchSelected = '';
                     playCardFromHand(mySeat.seatIndex, cId);
                 });
             });
