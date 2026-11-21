@@ -2246,7 +2246,7 @@
             const top = room.discardPile[room.discardPile.length - 1];
             if (room.pendingStack) {
                 const stack = room.pendingStack;
-                if (stack.type === 'draw2') return card.value === 'draw2';
+                if (stack.type === 'draw2') return card.value === 'draw2' || card.value === 'chaos_shield';
                 if (stack.type === 'draw4') return card.value === 'wild_draw4' || card.value === 'chaos_shield' || (card.type === 'number' && card.color === stack.chosenColor);
                 if (stack.type === 'chaos') return card.value === 'chaos_shield' || (['chaos_draw10','chaos_draw20','chaos_draw99'].includes(card.value) && Number(card.value.replace('chaos_draw','')) >= stack.amount);
                 return false;
