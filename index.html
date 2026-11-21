@@ -630,6 +630,20 @@
                                     <button type="button" data-trait="acc" data-dir="1" class="trait-cycle w-7 h-7 rounded-lg bg-zinc-800 hover:bg-zinc-700 font-bold cursor-pointer">›</button>
                                 </div>
                             </div>
+                            <!-- Barba / Bigote -->
+                            <div class="flex items-center justify-between bg-zinc-950/60 px-3 py-2 rounded-xl border border-white/5">
+                                <span class="text-zinc-400 font-semibold">Barba</span>
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" data-trait="beard" data-dir="-1" class="trait-cycle w-7 h-7 rounded-lg bg-zinc-800 hover:bg-zinc-700 font-bold cursor-pointer">‹</button>
+                                    <span id="beardLabel" class="w-20 text-center font-bold text-white truncate">Afeitado</span>
+                                    <button type="button" data-trait="beard" data-dir="1" class="trait-cycle w-7 h-7 rounded-lg bg-zinc-800 hover:bg-zinc-700 font-bold cursor-pointer">›</button>
+                                </div>
+                            </div>
+                            <!-- Color de camiseta -->
+                            <div class="flex items-center justify-between bg-zinc-950/60 px-3 py-2 rounded-xl border border-white/5">
+                                <span class="text-zinc-400 font-semibold">Camiseta</span>
+                                <div id="shirtColorPicker" class="flex items-center gap-1.5"></div>
+                            </div>
                             <!-- Marco / Aura -->
                             <div class="flex items-center justify-between bg-zinc-950/60 px-3 py-2 rounded-xl border border-white/5">
                                 <span class="text-zinc-400 font-semibold">Marco VIP</span>
@@ -1483,6 +1497,8 @@
         // =========================================================
         const AVATAR_SKIN_PALETTE = ['#ffdbac', '#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#5c3818'];
         const AVATAR_HAIR_PALETTE = ['#18181b', '#451a03', '#b45309', '#facc15', '#dc2626', '#2563eb', '#9333ea', '#e2e8f0'];
+        const AVATAR_SHIRT_PALETTE = ['#ef4444', '#2563eb', '#16a34a', '#eab308', '#9333ea', '#f97316', '#f8fafc', '#18181b'];
+        const AVATAR_BEARD_STYLES = ['Afeitado', 'Barba corta', 'Barba completa', 'Bigote'];
         const AVATAR_FRAME_PALETTE = [
             { id: 'gold',    hex: '#facc15', bg: '#422006' },
             { id: 'rose',    hex: '#f43f5e', bg: '#4c0519' },
@@ -1501,18 +1517,23 @@
                 hairColor: (seed * 3) % AVATAR_HAIR_PALETTE.length,
                 face: seed % AVATAR_FACE_STYLES.length,
                 acc: (seed + 1) % AVATAR_ACC_STYLES.length,
-                frame: seed % AVATAR_FRAME_PALETTE.length
+                frame: seed % AVATAR_FRAME_PALETTE.length,
+                shirtColor: seed % AVATAR_SHIRT_PALETTE.length,
+                beard: 0
             };
         }
 
         function renderCustomAvatarSVG(cfgInput, sizeClass = 'w-10 h-10') {
-            const cfg = (cfgInput && typeof cfgInput === 'object') ? cfgInput : getDefaultAvatarConfig(0);
-            const skin = AVATAR_SKIN_PALETTE[cfg.skin % AVATAR_SKIN_PALETTE.length];
+            const rawCfg = (cfgInput && typeof cfgInput === 'object') ? cfgInput : {};
+            const cfg = { ...getDefaultAvatarConfig(0), ...rawCfg };
+            const skin = AVATAR_SKIN_PALETTE[((Number(cfg.skin) || 0) % AVATAR_SKIN_PALETTE.length + AVATAR_SKIN_PALETTE.length) % AVATAR_SKIN_PALETTE.length];
             const hairCol = AVATAR_HAIR_PALETTE[cfg.hairColor % AVATAR_HAIR_PALETTE.length];
-            const frame = AVATAR_FRAME_PALETTE[cfg.frame % AVATAR_FRAME_PALETTE.length];
-            const hairStyle = AVATAR_HAIR_STYLES[cfg.hair % AVATAR_HAIR_STYLES.length];
-            const faceStyle = AVATAR_FACE_STYLES[cfg.face % AVATAR_FACE_STYLES.length];
-            const accStyle = AVATAR_ACC_STYLES[cfg.acc % AVATAR_ACC_STYLES.length];
+            const frame = AVATAR_FRAME_PALETTE[((Number(cfg.frame) || 0) % AVATAR_FRAME_PALETTE.length + AVATAR_FRAME_PALETTE.length) % AVATAR_FRAME_PALETTE.length];
+            const shirtColor = AVATAR_SHIRT_PALETTE[((Number(cfg.shirtColor) || 0) % AVATAR_SHIRT_PALETTE.length + AVATAR_SHIRT_PALETTE.length) % AVATAR_SHIRT_PALETTE.length];
+            const hairStyle = AVATAR_HAIR_STYLES[((Number(cfg.hair) || 0) % AVATAR_HAIR_STYLES.length + AVATAR_HAIR_STYLES.length) % AVATAR_HAIR_STYLES.length];
+            const faceStyle = AVATAR_FACE_STYLES[((Number(cfg.face) || 0) % AVATAR_FACE_STYLES.length + AVATAR_FACE_STYLES.length) % AVATAR_FACE_STYLES.length];
+            const accStyle = AVATAR_ACC_STYLES[((Number(cfg.acc) || 0) % AVATAR_ACC_STYLES.length + AVATAR_ACC_STYLES.length) % AVATAR_ACC_STYLES.length];
+            const beardStyle = AVATAR_BEARD_STYLES[((Number(cfg.beard) || 0) % AVATAR_BEARD_STYLES.length + AVATAR_BEARD_STYLES.length) % AVATAR_BEARD_STYLES.length];
 
             // Cabello trasero (si es largo)
             const backHair = hairStyle === 'Largo'
@@ -1567,6 +1588,16 @@
                     <line x1="42" y1="63" x2="58" y2="63" stroke="#18181b" stroke-width="2.6" stroke-linecap="round"/>`;
             }
 
+            // Barba y bigote: rasgos opcionales del rostro
+            let beardSVG = '';
+            if (beardStyle === 'Barba corta') {
+                beardSVG = `<path d="M34 61 Q50 78 66 61 L63 69 Q50 77 37 69 Z" fill="${hairCol}" opacity="0.92"/>`;
+            } else if (beardStyle === 'Barba completa') {
+                beardSVG = `<path d="M30 55 Q30 76 50 79 Q70 76 70 55 L65 68 Q50 83 35 68 Z" fill="${hairCol}" opacity="0.96"/>`;
+            } else if (beardStyle === 'Bigote') {
+                beardSVG = `<path d="M39 58 Q44 54 50 59 Q56 54 61 58 Q57 66 50 62 Q43 66 39 58 Z" fill="${hairCol}"/>`;
+            }
+
             // Accesorios VIP
             let accessorySVG = '';
             if (accStyle === 'Gafas VIP') {
@@ -1595,7 +1626,8 @@
                     <svg viewBox="0 0 100 100" class="w-full h-full rounded-full overflow-hidden" style="background: radial-gradient(circle at 35% 25%, ${frame.bg}, #09090b);">
                         ${backHair}
                         <!-- Hombros / Camiseta -->
-                        <path d="M20 96 C22 76, 78 76, 80 96 Z" fill="${frame.hex}" />
+                        <path d="M20 96 C22 76, 78 76, 80 96 Z" fill="${shirtColor}" />
+                        <path d="M42 80 L50 89 L58 80" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2" fill="none"/>
                         <!-- Cuello -->
                         <rect x="43" y="66" width="14" height="14" rx="5" fill="${skin}" />
                         <!-- Cabeza -->
@@ -1605,6 +1637,7 @@
                         <ellipse cx="66" cy="56" rx="4" ry="2.2" fill="#f43f5e" opacity="0.28"/>
                         ${frontHair}
                         ${eyesAndMouth}
+                        ${beardSVG}
                         ${accessorySVG}
                     </svg>
                 </div>
@@ -2161,7 +2194,7 @@
             if (comboChain && comboChain.lastCard) {
                 const prev = comboChain.lastCard;
                 if (comboChain.mode === 'mirror') {
-                    return card.color === prev.color && card.value === prev.value;
+                    return card.type === 'number' && prev.type === 'number' && card.color !== prev.color && card.value === prev.value;
                 }
                 if (comboChain.mode === 'straight') {
                     if (card.type !== 'number' || prev.type !== 'number') return false;
@@ -2618,7 +2651,7 @@
             } else {
                 // Primera carta del turno: verificar si habilita cadena
                 const top = room.discardPile[room.discardPile.length - 1];
-                if (room.mirrorRule && top && card.color === top.color && card.value === top.value) {
+                if (room.mirrorRule && top && card.type === 'number' && top.type === 'number' && card.color !== top.color && card.value === top.value) {
                     nextCombo = { mode: 'mirror', direction: null, lastCard: card };
                 } else if (room.straightRule && card.type === 'number') {
                     nextCombo = { mode: 'straight', direction: null, lastCard: card };
@@ -3511,6 +3544,7 @@
             document.getElementById('hairLabel').textContent = AVATAR_HAIR_STYLES[cfg.hair];
             document.getElementById('faceLabel').textContent = AVATAR_FACE_STYLES[cfg.face];
             document.getElementById('accLabel').textContent  = AVATAR_ACC_STYLES[cfg.acc];
+            document.getElementById('beardLabel').textContent = AVATAR_BEARD_STYLES[cfg.beard || 0];
 
             const skinPicker = document.getElementById('skinColorPicker');
             skinPicker.innerHTML = AVATAR_SKIN_PALETTE.map((hex, idx) =>
@@ -3526,6 +3560,14 @@
             ).join('');
             hairPicker.querySelectorAll('button').forEach(b => {
                 b.onclick = () => { cfg.hairColor = Number(b.dataset.hcol); saveAvatarCfg(); };
+            });
+
+            const shirtPicker = document.getElementById('shirtColorPicker');
+            shirtPicker.innerHTML = AVATAR_SHIRT_PALETTE.map((hex, idx) =>
+                `<button type="button" data-shirt="${idx}" aria-label="Camiseta ${idx + 1}" class="w-5 h-5 rounded-full border-2 ${cfg.shirtColor === idx ? 'border-amber-300 scale-110' : 'border-white/20'} cursor-pointer" style="background:${hex}"></button>`
+            ).join('');
+            shirtPicker.querySelectorAll('button').forEach(b => {
+                b.onclick = () => { cfg.shirtColor = Number(b.dataset.shirt); saveAvatarCfg(); };
             });
 
             const framePicker = document.getElementById('frameColorPicker');
@@ -3557,7 +3599,8 @@
                 const maxMap = {
                     hair: AVATAR_HAIR_STYLES.length,
                     face: AVATAR_FACE_STYLES.length,
-                    acc:  AVATAR_ACC_STYLES.length
+                    acc:  AVATAR_ACC_STYLES.length,
+                    beard: AVATAR_BEARD_STYLES.length
                 };
                 const len = maxMap[trait];
                 state.playerAvatar[trait] = (state.playerAvatar[trait] + dir + len) % len;
@@ -3572,7 +3615,9 @@
                 hairColor: Math.floor(Math.random() * AVATAR_HAIR_PALETTE.length),
                 face: Math.floor(Math.random() * AVATAR_FACE_STYLES.length),
                 acc: Math.floor(Math.random() * AVATAR_ACC_STYLES.length),
-                frame: Math.floor(Math.random() * AVATAR_FRAME_PALETTE.length)
+                frame: Math.floor(Math.random() * AVATAR_FRAME_PALETTE.length),
+                shirtColor: Math.floor(Math.random() * AVATAR_SHIRT_PALETTE.length),
+                beard: Math.floor(Math.random() * AVATAR_BEARD_STYLES.length)
             };
             saveAvatarCfg();
         };
