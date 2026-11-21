@@ -784,6 +784,14 @@
                 </div>
             </div>
 
+            <div class="py-4 border-b border-white/10">
+                <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5">
+                    <div class="flex flex-wrap items-center justify-between gap-3"><div><span class="block text-xs font-extrabold text-fuchsia-300">🎲 Modo de juego</span><span id="gameModeHint" class="block text-[11px] text-zinc-400">UNO CAOS solo está disponible online.</span></div>
+                    <div class="flex gap-2"><button id="gameModeClassicBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🃏 UNO clásico</button><button id="gameModeChaosBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">💥 UNO CAOS</button></div></div>
+                    <p id="chaosModeInfo" class="hidden mt-3 text-[11px] text-fuchsia-200 bg-fuchsia-950/40 border border-fuchsia-400/20 rounded-xl p-2.5">Cartas especiales, +99 ultra rara y mazo que se repone automáticamente sin límite.</p>
+                </div>
+            </div>
+
             <!-- Reglas Especiales de Casa: Espejito y Escalerita -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 border-b border-white/10">
                 <!-- Opción Espejito -->
@@ -1092,8 +1100,8 @@
         </div>
     </div>
 
-    <div id="stackPenaltyModal" class="hidden fixed inset-0 z-[94] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border-2 border-rose-400/60 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl">
+    <div id="stackPenaltyModal" class="hidden fixed inset-0 z-[94] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-none">
+        <div class="pointer-events-auto bg-zinc-900 border-2 border-rose-400/60 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl">
             <div class="text-4xl mb-2">💥</div>
             <h3 class="font-uno text-2xl font-bold text-rose-300">¡Defiéndete o acepta!</h3>
             <p id="stackPenaltyText" class="text-sm text-zinc-300 mt-2 mb-5">Hay una penalización pendiente.</p>
@@ -1691,6 +1699,37 @@
             return shuffleArray(deck);
         }
 
+        // Mazo dinámico de UNO CAOS: genera lotes nuevos cuando se agotan las cartas.
+        // +99 tiene una probabilidad de 1/500 por carta generada.
+        function createChaosCard(value, color, type) {
+            return { id: 'chaos_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10), color: color || COLORS[Math.floor(Math.random() * COLORS.length)], value: value, type: type || 'chaos', points: value === 'chaos_draw99' ? 200 : 50 };
+        }
+        function createChaosDeckBatch(size) {
+            const deck = [];
+            for (let i = 0; i < (size || 180); i++) {
+                const roll = Math.random(); let special = null;
+                if (roll < 0.002) special = 'chaos_draw99';
+                else if (roll < 0.012) special = 'chaos_draw20';
+                else if (roll < 0.032) special = 'chaos_draw10';
+                else if (roll < 0.052) special = 'chaos_double_skip';
+                else if (roll < 0.067) special = 'chaos_swap';
+                else if (roll < 0.082) special = 'chaos_everyone5';
+                else if (roll < 0.097) special = 'chaos_steal2';
+                else if (roll < 0.112) special = 'chaos_reverse_all';
+                else if (roll < 0.127) special = 'chaos_shield';
+                if (special) deck.push(createChaosCard(special, COLORS[Math.floor(Math.random() * COLORS.length)], 'chaos'));
+                else {
+                    const color = COLORS[Math.floor(Math.random() * COLORS.length)]; const pick = Math.random();
+                    if (pick < 0.64) deck.push(createChaosCard(String(Math.floor(Math.random() * 10)), color, 'number'));
+                    else if (pick < 0.76) deck.push(createChaosCard('draw2', color, 'action'));
+                    else if (pick < 0.88) deck.push(createChaosCard('skip', color, 'action'));
+                    else if (pick < 0.96) deck.push(createChaosCard('reverse', color, 'action'));
+                    else deck.push(createChaosCard('wild', 'wild', 'wild'));
+                }
+            }
+            return shuffleArray(deck);
+        }
+
         function shuffleArray(arr) {
             const copy = [...arr];
             for (let i = copy.length - 1; i > 0; i--) {
@@ -1739,6 +1778,11 @@
                     <span class="absolute w-4 h-6 rounded-sm bg-amber-400 border border-black translate-x-1 translate-y-1.5 rotate-6"></span>
                     <span class="absolute w-4 h-6 rounded-sm bg-rose-600 border border-black translate-x-2.5 -translate-y-0.5 rotate-12"></span>
                 </div>`;
+            }
+            const chaosLabels = { chaos_draw10: '+10', chaos_draw20: '+20', chaos_draw99: '+99', chaos_double_skip: '⛔×2', chaos_swap: 'CAMBIO', chaos_everyone5: 'TODOS +5', chaos_steal2: 'ROBAR 2', chaos_reverse_all: '↔', chaos_shield: 'ESCUDO' };
+            if (chaosLabels[value]) {
+                const label = chaosLabels[value]; const sizeClass = isCorner ? 'text-[8px] sm:text-[9px]' : (label.length > 5 ? 'text-xs sm:text-sm' : 'text-2xl sm:text-3xl');
+                return '<span class="font-uno font-black ' + sizeClass + ' text-center leading-tight px-0.5">' + label + '</span>';
             }
             // Número 0-9
             const fontSize = isCorner ? 'text-xs sm:text-sm' : 'text-3xl sm:text-4xl';
@@ -2179,6 +2223,7 @@
         function drawCardsFromDeck(room, count) {
             const drawn = [];
             for (let i = 0; i < count; i++) {
+                if ((!room.drawPile || room.drawPile.length === 0) && room.gameMode === 'chaos') room.drawPile = createChaosDeckBatch(180);
                 if (!room.drawPile || room.drawPile.length === 0) {
                     if (room.discardPile && room.discardPile.length > 1) {
                         const top = room.discardPile.pop();
@@ -2201,7 +2246,8 @@
             if (room.pendingStack) {
                 const stack = room.pendingStack;
                 if (stack.type === 'draw2') return card.value === 'draw2';
-                if (stack.type === 'draw4') return card.value === 'wild_draw4' || (card.type === 'number' && card.color === stack.chosenColor);
+                if (stack.type === 'draw4') return card.value === 'wild_draw4' || card.value === 'chaos_shield' || (card.type === 'number' && card.color === stack.chosenColor);
+                if (stack.type === 'chaos') return card.value === 'chaos_shield' || (['chaos_draw10','chaos_draw20','chaos_draw99'].includes(card.value) && Number(card.value.replace('chaos_draw','')) >= stack.amount);
                 return false;
             }
             if (!top) return true;
@@ -2388,6 +2434,9 @@
                 mirrorRule: false,
                 straightRule: false,
                 straightColorMode: 'same',
+                gameMode: 'classic',
+                pendingStack: null,
+                comboChain: null,
                 seats,
                 drawPile: [],
                 discardPile: [],
@@ -2589,7 +2638,9 @@
                 return;
             }
 
-            const deck = createOfficial108Deck();
+            const deck = room.gameMode === 'chaos' && state.isOnline ? createChaosDeckBatch(240) : createOfficial108Deck();
+            room.pendingStack = null;
+            room.comboChain = null;
             room.seats.forEach(s => {
                 s.hand = [];
                 s.saidUno = false;
@@ -2613,6 +2664,7 @@
             room.activeColor = firstCard.color === 'wild' ? COLORS[Math.floor(Math.random() * 4)] : firstCard.color;
             room.direction = 1;
             room.pendingDraw4 = null;
+            room.pendingStack = null;
             room.lastMoveAnim = null;
             room.podium = [];
             room.status = 'playing';
@@ -2667,11 +2719,16 @@
                     showToast(seat.name + ' bloqueó el +4 con el color elegido.', 'success');
                     room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
                 } else {
-                    const add = card.value === 'draw2' ? 2 : 4;
-                    const nextTarget = getNextSeatIndex(room, seatIndex, 1);
-                    room.pendingStack = { amount: stack.amount + add, type: stack.type, targetSeatIndex: nextTarget, chosenColor: finalColor, fromSeatIndex: seatIndex };
-                    room.currentTurnSeat = nextTarget;
-                    showToast('¡Penalización acumulada! Ahora son ' + room.pendingStack.amount + ' cartas.', 'warn');
+                    if (card.value === 'chaos_shield') {
+                        showToast(seat.name + ' activó un escudo y anuló la penalización.', 'success');
+                        room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+                    } else {
+                        const add = card.value === 'draw2' ? 2 : card.value === 'wild_draw4' ? 4 : Number(card.value.replace('chaos_draw',''));
+                        const nextTarget = getNextSeatIndex(room, seatIndex, 1);
+                        room.pendingStack = { amount: stack.amount + add, type: stack.type, targetSeatIndex: nextTarget, chosenColor: finalColor, fromSeatIndex: seatIndex };
+                        room.currentTurnSeat = nextTarget;
+                        showToast('¡Penalización acumulada! Ahora son ' + room.pendingStack.amount + ' cartas.', 'warn');
+                    }
                 }
                 room.turnStartedAt = Date.now();
                 state.comboChain = null;
@@ -2790,6 +2847,30 @@
                 vfx.spawnSparkBurst(cx, cy, COLOR_META[finalColor].hex, 44, '+4');
                 room.pendingStack = { amount: 4, type: 'draw4', targetSeatIndex: targetSeatIdx, chosenColor: finalColor, fromSeatIndex: seatIndex };
                 room.currentTurnSeat = targetSeatIdx;
+            } else if (card.value === 'chaos_draw10' || card.value === 'chaos_draw20' || card.value === 'chaos_draw99') {
+                const amount = Number(card.value.replace('chaos_draw', ''));
+                const targetSeatIdx = getNextSeatIndex(room, seatIndex, 1);
+                room.pendingStack = { amount: amount, type: 'chaos', targetSeatIndex: targetSeatIdx, chosenColor: finalColor, fromSeatIndex: seatIndex };
+                vfx.triggerScreenShake(); vfx.spawnSparkBurst(cx, cy, COLOR_META[finalColor].hex, amount >= 99 ? 100 : 48, '+' + amount);
+                room.currentTurnSeat = targetSeatIdx;
+            } else if (card.value === 'chaos_double_skip') {
+                const first = getNextSeatIndex(room, seatIndex, 1); const second = getNextSeatIndex(room, first, 1);
+                vfx.showCinemaCallout('¡BLOQUEO DOBLE!', 'from-fuchsia-500 via-white to-violet-500'); room.currentTurnSeat = getNextSeatIndex(room, second, 1);
+            } else if (card.value === 'chaos_swap') {
+                const target = room.seats[getNextSeatIndex(room, seatIndex, 1)]; const actor = room.seats[seatIndex];
+                if (target && actor) [actor.hand, target.hand] = [target.hand, actor.hand];
+                vfx.showCinemaCallout('¡CAMBIO DE MANOS!', 'from-cyan-400 via-white to-blue-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            } else if (card.value === 'chaos_everyone5') {
+                room.seats.filter(s => s.id && s.seatIndex !== seatIndex && !s.finishRank).forEach(s => { s.hand.push(...drawCardsFromDeck(room, 5)); s.saidUno = false; });
+                vfx.showCinemaCallout('¡TODOS +5!', 'from-amber-400 via-white to-rose-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            } else if (card.value === 'chaos_steal2') {
+                const target = room.seats[getNextSeatIndex(room, seatIndex, 1)]; const actor = room.seats[seatIndex];
+                if (target && actor) for (let i = 0; i < 2 && target.hand.length; i++) { const at = Math.floor(Math.random() * target.hand.length); actor.hand.push(target.hand.splice(at, 1)[0]); }
+                vfx.showCinemaCallout('¡ROBO DE CARTAS!', 'from-emerald-400 via-white to-lime-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            } else if (card.value === 'chaos_reverse_all') {
+                room.direction *= -1; vfx.showCinemaCallout('¡CAOS INVERTIDO!', 'from-sky-400 via-white to-violet-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            } else if (card.value === 'chaos_shield') {
+                vfx.showCinemaCallout('¡ESCUDO!', 'from-cyan-300 via-white to-blue-500'); room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
             } else {
                 room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
             }
@@ -2901,7 +2982,7 @@
             if (!room || !room.pendingStack) return;
             const stack = room.pendingStack;
             const target = room.seats[stack.targetSeatIndex];
-            if (!target || target.id !== currentUserId) return;
+            if (!target || (target.id !== currentUserId && !target.isBot)) return;
             room.pendingStack = null;
             const cards = drawCardsFromDeck(room, stack.amount);
             target.hand.push(...cards);
@@ -3217,6 +3298,16 @@
                 };
             });
 
+            // Modo CAOS solo online y seleccionable por el anfitrión.
+            const classicBtn = document.getElementById('gameModeClassicBtn'); const chaosBtn = document.getElementById('gameModeChaosBtn'); const chaosInfo = document.getElementById('chaosModeInfo');
+            if (classicBtn && chaosBtn) {
+                const allowed = state.isOnline; classicBtn.disabled = !isHost; chaosBtn.disabled = !isHost || !allowed;
+                classicBtn.className = 'px-4 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ' + (room.gameMode !== 'chaos' ? 'bg-emerald-600 text-white border-emerald-400' : 'bg-zinc-900 text-zinc-400 border-zinc-700');
+                chaosBtn.className = 'px-4 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ' + (room.gameMode === 'chaos' ? 'bg-fuchsia-600 text-white border-fuchsia-300' : 'bg-zinc-900 text-zinc-400 border-zinc-700') + (allowed && isHost ? '' : ' opacity-40 cursor-not-allowed');
+                chaosInfo.classList.toggle('hidden', room.gameMode !== 'chaos');
+                document.getElementById('gameModeHint').textContent = allowed ? 'El anfitrión elige el modo para toda la sala.' : 'UNO CAOS solo funciona en multijugador online.';
+            }
+
             // Regla Espejito Sí/No
             const mirrorYes = document.getElementById('mirrorYesBtn');
             const mirrorNo = document.getElementById('mirrorNoBtn');
@@ -3335,7 +3426,7 @@
             const modeText = room.teamMode
                 ? `${room.teamCount} Equipos`
                 : `Podio (${room.podium?.length || 0}/${Math.max(1, room.seats.filter(s => s.id).length - 1)})`;
-            document.getElementById('hudModePill').textContent = modeText;
+            document.getElementById('hudModePill').textContent = (room.gameMode === 'chaos' ? '💥 UNO CAOS • ' : '🃏 UNO CLÁSICO • ') + modeText;
 
             const banner = document.getElementById('turnStatusBanner');
             if (mySeat && mySeat.finishRank) {
@@ -3719,6 +3810,15 @@
             state.room.teamMode = true;
             state.room.seats = buildInitialSeats(state.room.maxSeats, true, state.room.teamCount, state.room.seats);
             await syncRoomToCloud();
+        };
+
+        document.getElementById('gameModeClassicBtn').onclick = async () => {
+            if (!state.room || state.room.hostId !== currentUserId) return;
+            state.room.gameMode = 'classic'; state.room.pendingStack = null; await syncRoomToCloud();
+        };
+        document.getElementById('gameModeChaosBtn').onclick = async () => {
+            if (!state.room || !state.isOnline || state.room.hostId !== currentUserId) { showToast('UNO CAOS solo está disponible online.', 'warn'); return; }
+            state.room.gameMode = 'chaos'; state.room.pendingStack = null; await syncRoomToCloud();
         };
 
         // Botones de Espejito y Escalerita en el Lobby
