@@ -2654,7 +2654,7 @@
 
             // Primera carta inicial (si es +4 se devuelve al mazo)
             let firstCard = deck.pop();
-            while (firstCard && firstCard.value === 'wild_draw4') {
+            while (firstCard && (firstCard.value === 'wild_draw4' || firstCard.value === 'chaos_draw99')) {
                 deck.unshift(firstCard);
                 firstCard = deck.pop();
             }
@@ -2714,6 +2714,12 @@
                 room.discardPile.push(card);
                 room.activeColor = finalColor;
                 room.lastMoveAnim = { id: Date.now() + '_' + Math.random(), seatIndex: seatIndex, card: card };
+                if (seat.hand.length === 0) {
+                    room.pendingStack = null;
+                    state.comboChain = null;
+                    await handlePlayerFinishedHand(seatIndex);
+                    return;
+                }
                 room.pendingStack = null;
                 if (stack.type === 'draw4' && card.type === 'number') {
                     showToast(seat.name + ' bloqueó el +4 con el color elegido.', 'success');
