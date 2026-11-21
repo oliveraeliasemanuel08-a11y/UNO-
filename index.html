@@ -2250,6 +2250,7 @@
                 if (stack.type === 'chaos') return card.value === 'chaos_shield' || (['chaos_draw10','chaos_draw20','chaos_draw99'].includes(card.value) && Number(card.value.replace('chaos_draw','')) >= stack.amount);
                 return false;
             }
+            if (card.value === 'chaos_shield') return false;
             if (!top) return true;
 
             // Si estamos encadenando cartas en el mismo turno (Espejito o Escalerita)
@@ -2654,7 +2655,7 @@
 
             // Primera carta inicial (si es +4 se devuelve al mazo)
             let firstCard = deck.pop();
-            while (firstCard && (firstCard.value === 'wild_draw4' || firstCard.value === 'chaos_draw99')) {
+            while (firstCard && (firstCard.value === 'wild_draw4' || (room.gameMode === 'chaos' && firstCard.type === 'chaos'))) {
                 deck.unshift(firstCard);
                 firstCard = deck.pop();
             }
@@ -2861,7 +2862,8 @@
                 room.currentTurnSeat = targetSeatIdx;
             } else if (card.value === 'chaos_double_skip') {
                 const first = getNextSeatIndex(room, seatIndex, 1); const second = getNextSeatIndex(room, first, 1);
-                vfx.showCinemaCallout('¡BLOQUEO DOBLE!', 'from-fuchsia-500 via-white to-violet-500'); room.currentTurnSeat = getNextSeatIndex(room, second, 1);
+                vfx.showCinemaCallout('¡BLOQUEO DOBLE!', 'from-fuchsia-500 via-white to-violet-500');
+                room.currentTurnSeat = getActivePlayers(room).length <= 3 ? seatIndex : getNextSeatIndex(room, second, 1);
             } else if (card.value === 'chaos_swap') {
                 const target = room.seats[getNextSeatIndex(room, seatIndex, 1)]; const actor = room.seats[seatIndex];
                 if (target && actor) [actor.hand, target.hand] = [target.hand, actor.hand];
