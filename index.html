@@ -2714,6 +2714,7 @@
                 const stack = room.pendingStack;
                 seat.hand.splice(cardIdx, 1);
                 room.discardPile.push(card);
+                if (room.gameMode === 'chaos' && room.discardPile.length > 60) room.discardPile.splice(0, room.discardPile.length - 60);
                 room.activeColor = finalColor;
                 room.lastMoveAnim = { id: Date.now() + '_' + Math.random(), seatIndex: seatIndex, card: card };
                 if (seat.hand.length === 0) {
@@ -2768,6 +2769,7 @@
             // Extraer carta de la mano y poner en descarte
             seat.hand.splice(cardIdx, 1);
             room.discardPile.push(card);
+            if (room.gameMode === 'chaos' && room.discardPile.length > 60) room.discardPile.splice(0, room.discardPile.length - 60);
             room.activeColor = finalColor;
             room.lastMoveAnim = {
                 id: `${Date.now()}_${Math.random()}`,
