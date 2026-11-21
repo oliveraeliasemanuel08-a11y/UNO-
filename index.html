@@ -672,14 +672,28 @@
                     <!-- Unirse con código -->
                     <div class="bg-zinc-900/80 border border-white/10 rounded-3xl p-4 sm:p-5">
                         <div class="flex items-center justify-between mb-2">
-                            <label class="text-xs font-extrabold uppercase tracking-wider text-amber-300">🔑 Unirse a Sala Privada</label>
-                            <span class="text-[11px] text-zinc-500">Tiempo Real</span>
+                            <label class="text-xs font-extrabold uppercase tracking-wider text-amber-300">🔑 Unirse por Código</label>
+                            <span class="text-[11px] text-zinc-500">Acceso Directo</span>
                         </div>
                         <div class="flex gap-2.5">
                             <input id="joinCodeInput" type="text" maxlength="6" placeholder="CÓDIGO (EJ: K8M2P9)" class="flex-1 bg-zinc-950 border border-zinc-700 focus:border-amber-400 rounded-2xl px-4 py-3 text-center font-mono text-base font-extrabold tracking-widest uppercase text-amber-300 placeholder:text-zinc-600 focus:outline-none">
                             <button id="btnJoinRoom" class="px-6 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-zinc-950 font-extrabold text-sm shadow-lg transition-transform active:scale-95 cursor-pointer">
                                 Entrar
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Explorador de Salas Públicas en Vivo -->
+                    <div class="bg-zinc-900/80 border border-white/10 rounded-3xl p-4">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                                Salas Públicas en Vivo
+                            </span>
+                            <span id="publicRoomsCount" class="text-[11px] text-zinc-400 font-semibold">Buscando...</span>
+                        </div>
+                        <div id="publicRoomsList" class="space-y-2 max-h-32 overflow-y-auto pr-1">
+                            <div class="text-xs text-zinc-500 text-center py-3 italic">No hay salas públicas abiertas ahora. ¡Crea una!</div>
                         </div>
                     </div>
 
@@ -792,6 +806,32 @@
                 </div>
             </div>
 
+            <!-- Visibilidad Online y Temporizador de Turno -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 border-b border-white/10">
+                <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="block text-xs font-extrabold text-sky-300">🌍 Visibilidad de la Sala</span>
+                        <span class="block text-[11px] text-zinc-400">Pública aparece en el explorador; Privada solo entra con código</span>
+                    </div>
+                    <div class="flex gap-1.5 shrink-0">
+                        <button id="visPublicBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border bg-emerald-600 text-white border-emerald-400 cursor-pointer">Pública</button>
+                        <button id="visPrivateBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border bg-zinc-900 text-zinc-400 border-zinc-700 cursor-pointer">Privada</button>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="block text-xs font-extrabold text-amber-300">⏱️ Reloj por Turno Online</span>
+                        <span class="block text-[11px] text-zinc-400">Evita partidas pausadas si alguien se distrae</span>
+                    </div>
+                    <div class="flex gap-1.5 shrink-0">
+                        <button type="button" data-timer="0" class="turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border bg-zinc-900 text-zinc-400 border-zinc-700 cursor-pointer">Sin límite</button>
+                        <button type="button" data-timer="20" class="turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border bg-amber-400 text-zinc-950 border-amber-300 cursor-pointer">20s</button>
+                        <button type="button" data-timer="35" class="turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border bg-zinc-900 text-zinc-400 border-zinc-700 cursor-pointer">35s</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Grilla de Asientos alrededor de la mesa -->
             <div class="py-4">
                 <div class="flex items-center justify-between mb-3">
@@ -894,6 +934,7 @@
                     <span class="text-white/30">•</span>
                     <span id="directionLabel" class="text-xs font-semibold text-zinc-300">↻ Horario</span>
                     <span id="deckCountBadge" class="ml-1 text-[11px] bg-white/10 px-2 py-0.5 rounded-full text-zinc-300 font-mono">Mazo: 108</span>
+                    <span id="turnTimerBadge" class="hidden ml-1 text-[11px] bg-amber-400/20 border border-amber-400/40 px-2 py-0.5 rounded-full text-amber-300 font-mono font-bold">⏱ 20s</span>
                 </div>
 
                 <!-- Mazo de Robo + Pila de Descarte lado a lado -->
@@ -975,6 +1016,10 @@
 
                 <!-- BOTÓN OFICIAL ¡UNO! Y ATRAPAR -->
                 <div class="flex items-center gap-2">
+                    <button id="btnSortHand" type="button" class="px-3 py-2 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/15 text-zinc-200 font-bold text-xs shadow-lg transition-all active:scale-95 cursor-pointer" title="Ordenar cartas por color y valor">
+                        🗂️ Ordenar
+                    </button>
+
                     <button id="btnCatchUno" type="button" class="hidden px-3.5 py-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-extrabold text-xs sm:text-sm shadow-lg animate-bounce cursor-pointer">
                         🚨 ¡No dijo UNO! (+2)
                     </button>
@@ -997,7 +1042,8 @@
         <aside id="chatDrawer" class="hidden fixed right-3 top-14 bottom-44 w-72 sm:w-80 bg-zinc-950/95 border border-zinc-700/80 rounded-3xl shadow-2xl z-40 flex flex-col overflow-hidden backdrop-blur-md">
             <div class="px-4 py-2.5 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between">
                 <span class="text-xs font-extrabold uppercase tracking-wider text-amber-300">Chat de Sala</span>
-                <button id="btnCloseChat" class="text-zinc-400 hover:text-white text-sm cursor-pointer">✕</button>            </div>
+                <button id="btnCloseChat" class="text-zinc-400 hover:text-white text-sm cursor-pointer">✕</button>
+            </div>
             <!-- Emojis móviles -->
             <div class="flex items-center justify-around py-1.5 bg-zinc-900/60 border-b border-zinc-800">
                 <button type="button" data-react="👏" class="react-btn text-lg hover:scale-125 transition-transform cursor-pointer">👏</button>
@@ -1103,8 +1149,8 @@
     <!-- ========================================================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================
         // 1. SINTETIZADOR DE EFECTOS DE SONIDO REALISTAS (WEB AUDIO)
@@ -1285,30 +1331,124 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'uno-club-official';
         let db = null;
         let auth = null;
+        let currentUser = null;
         let currentUserId = 'local-' + Math.random().toString(36).substring(2, 10);
         let firebaseReady = false;
+        let authInitPromise = null;
+        let unsubscribePublicRooms = null;
+
+        function updateOnlineBadgeUI(status, detail = '') {
+            const badge = document.getElementById('onlineStatusBadge');
+            if (!badge) return;
+            if (status === 'connected') {
+                badge.className = 'flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-xs font-semibold text-emerald-300';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>Online Activo</span>`;
+                badge.title = `ID Conectado: ${detail}`;
+            } else if (status === 'connecting') {
+                badge.className = 'flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-950/80 border border-amber-500/40 text-xs font-semibold text-amber-300';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span><span>Conectando...</span>`;
+            } else {
+                badge.className = 'flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-xs font-semibold text-zinc-400';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-zinc-500"></span><span>Modo Local</span>`;
+            }
+        }
 
         async function initFirebase() {
-            try {
-                if (typeof __firebase_config !== 'undefined') {
-                    const firebaseConfig = JSON.parse(__firebase_config);
-                    const app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+            if (authInitPromise) return authInitPromise;
+            authInitPromise = (async () => {
+                updateOnlineBadgeUI('connecting');
+                try {
+                    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                        const firebaseConfig = typeof __firebase_config === 'string'
+                            ? JSON.parse(__firebase_config)
+                            : __firebase_config;
+                        const app = initializeApp(firebaseConfig);
+                        db = getFirestore(app);
+                        auth = getAuth(app);
+
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+
+                        if (auth.currentUser) {
+                            currentUser = auth.currentUser;
+                            currentUserId = auth.currentUser.uid;
+                            firebaseReady = true;
+                            updateOnlineBadgeUI('connected', currentUserId);
+                            startPublicRoomsListener();
+                            return true;
+                        }
                     }
-                    if (auth.currentUser) {
-                        currentUserId = auth.currentUser.uid;
-                    }
-                    firebaseReady = true;
+                } catch (err) {
+                    console.warn("Error inicializando Firebase, usando modo local:", err);
                 }
-            } catch (err) {
-                console.warn("Modo offline/local activo:", err);
                 firebaseReady = false;
+                updateOnlineBadgeUI('offline');
+                return false;
+            })();
+            return authInitPromise;
+        }
+
+        function startPublicRoomsListener() {
+            if (unsubscribePublicRooms || !db || !currentUser) return;
+            const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'uno_rooms');
+            unsubscribePublicRooms = onSnapshot(roomsCol, (snapshot) => {
+                const openRooms = [];
+                const now = Date.now();
+                snapshot.forEach(docSnap => {
+                    const r = docSnap.data();
+                    if (r && r.status === 'lobby' && r.isPublic !== false && (now - (r.updatedAt || now)) < 1000 * 60 * 30) {
+                        const occupied = (r.seats || []).filter(s => s && s.id).length;
+                        if (occupied > 0 && occupied < (r.maxSeats || 4)) {
+                            openRooms.push({ ...r, occupied });
+                        }
+                    }
+                });
+                openRooms.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+                renderPublicRoomsExplorer(openRooms);
+            }, (err) => {
+                console.warn("Error escuchando salas públicas:", err);
+            });
+        }
+
+        function renderPublicRoomsExplorer(rooms) {
+            const countEl = document.getElementById('publicRoomsCount');
+            const listEl = document.getElementById('publicRoomsList');
+            if (!countEl || !listEl) return;
+
+            countEl.textContent = `${rooms.length} ${rooms.length === 1 ? 'sala abierta' : 'salas abiertas'}`;
+            if (rooms.length === 0) {
+                listEl.innerHTML = `<div class="text-xs text-zinc-500 text-center py-3 italic">No hay salas públicas abiertas ahora. ¡Crea una!</div>`;
+                return;
             }
+
+            listEl.innerHTML = rooms.map(r => {
+                const hostSeat = (r.seats || []).find(s => s && s.id === r.hostId) || (r.seats || []).find(s => s && s.id);
+                const hostName = hostSeat ? hostSeat.name : 'Anfitrión';
+                const modeTag = r.teamMode ? `${r.teamCount} Equipos` : 'Individual';
+                const extras = [r.mirrorRule ? '🪞' : '', r.straightRule ? '🪜' : ''].filter(Boolean).join('');
+                return `
+                    <div class="flex items-center justify-between gap-2 bg-zinc-950/90 border border-white/10 hover:border-emerald-400/50 rounded-2xl px-3 py-2 transition-colors">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-mono font-extrabold text-xs text-amber-300">${r.code}</span>
+                                <span class="text-xs font-bold text-white truncate">• Mesa de ${hostName}</span>
+                                ${extras ? `<span class="text-xs">${extras}</span>` : ''}
+                            </div>
+                            <div class="text-[11px] text-zinc-400">${modeTag} • ${r.occupied}/${r.maxSeats} jugadores</div>
+                        </div>
+                        <button type="button" data-quick-join="${r.code}" class="quick-join-room-btn shrink-0 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-extrabold text-xs cursor-pointer">
+                            Unirse →
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            listEl.querySelectorAll('.quick-join-room-btn').forEach(btn => {
+                btn.onclick = () => joinExistingRoom(btn.dataset.quickJoin);
+            });
         }
         initFirebase();
 
@@ -1996,7 +2136,8 @@
                         room.discardPile = [top];
                     } else {
                         break;
-                    }                }
+                    }
+                }
                 if (room.drawPile.length > 0) {
                     drawn.push(room.drawPile.pop());
                 }
@@ -2041,46 +2182,121 @@
         // =========================================================
         // 6. SINCRONIZACIÓN DE SALA (ONLINE FIRESTORE / LOCAL)
         // =========================================================
+        let lastChatCount = 0;
+        let lastReactionId = null;
+
         async function syncRoomToCloud() {
             if (!state.room) return;
+            state.room.updatedAt = Date.now();
             renderCurrentView();
-            if (state.isOnline && firebaseReady && db && state.roomCode) {
+            if (state.isOnline) {
+                const ready = await initFirebase();
+                if (!ready || !currentUser || !db || !state.roomCode) return;
                 try {
                     const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'uno_rooms', state.roomCode);
-                    await setDoc(roomRef, JSON.parse(JSON.stringify(state.room)));
+                    const cleanPayload = JSON.parse(JSON.stringify(state.room));
+                    await setDoc(roomRef, cleanPayload);
                 } catch (err) {
                     console.error("Error sincronizando sala:", err);
+                    showToast("Error de red al sincronizar jugada.", "danger");
                 }
             }
         }
 
-        function subscribeToRoom(roomCode) {
+        function renderChatAndReactionsFromRoom(roomData) {
+            if (!roomData) return;
+            const chatList = roomData.chat || [];
+            const listEl = document.getElementById('chatMessagesList');
+            if (listEl) {
+                if (chatList.length === 0) {
+                    listEl.innerHTML = `<div class="text-zinc-500 text-center italic">¡Bienvenidos a la mesa de UNO!</div>`;
+                } else {
+                    listEl.innerHTML = chatList.map(m =>
+                        `<div><strong class="text-amber-300">${m.sender}:</strong> <span class="text-zinc-200">${m.text}</span></div>`
+                    ).join('');
+                    listEl.scrollTop = listEl.scrollHeight;
+                }
+            }
+            if (chatList.length > lastChatCount) {
+                const drawer = document.getElementById('chatDrawer');
+                if (drawer && drawer.classList.contains('hidden') && lastChatCount > 0) {
+                    document.getElementById('chatUnreadDot')?.classList.remove('hidden');
+                }
+                lastChatCount = chatList.length;
+            }
+
+            // Mostrar reacciones flotantes de cualquier jugador en tiempo real
+            if (roomData.lastReaction && roomData.lastReaction.id !== lastReactionId) {
+                lastReactionId = roomData.lastReaction.id;
+                const { seatIndex, emoji } = roomData.lastReaction;
+                const mySeat = roomData.seats?.find(s => s.id === currentUserId);
+                const anchorEl = (mySeat && mySeat.seatIndex === seatIndex)
+                    ? document.getElementById('localPlayerBadge')
+                    : document.getElementById(`opponentSeat_${seatIndex}`);
+                if (anchorEl) {
+                    const rect = anchorEl.getBoundingClientRect();
+                    const bubble = document.createElement('div');
+                    bubble.className = 'fixed z-50 text-3xl reaction-bubble pointer-events-none';
+                    bubble.style.left = `${rect.left + rect.width / 2}px`;
+                    bubble.style.top = `${rect.top - 10}px`;
+                    bubble.textContent = emoji;
+                    document.body.appendChild(bubble);
+                    setTimeout(() => bubble.remove(), 2400);
+                }
+            }
+        }
+
+        async function subscribeToRoom(roomCode) {
             if (state.unsubscribeRoom) {
                 state.unsubscribeRoom();
                 state.unsubscribeRoom = null;
             }
-            if (!firebaseReady || !db) return;
+            const ready = await initFirebase();
+            if (!ready || !currentUser || !db) return;
+
             const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'uno_rooms', roomCode);
             state.unsubscribeRoom = onSnapshot(roomRef, (snap) => {
                 if (!snap.exists()) {
                     showToast("La sala fue cerrada por el anfitrión.", "warn");
-                    leaveRoomToHome();
+                    leaveRoomToHome(true);
                     return;
                 }
                 const data = snap.data();
+
+                // Si el host expulsó al jugador local del asiento
+                const stillSeated = (data.seats || []).some(s => s.id === currentUserId);
+                if (!stillSeated) {
+                    showToast("Has salido o fuiste retirado de la sala.", "warn");
+                    leaveRoomToHome(true);
+                    return;
+                }
+
+                const prevStatus = state.room?.status;
                 state.room = data;
                 state.hostId = data.hostId;
+                renderChatAndReactionsFromRoom(data);
                 renderCurrentView();
+
+                if (prevStatus === 'lobby' && data.status === 'playing') {
+                    vfx.playShuffleSequence();
+                }
+
                 scheduleBotTurnIfNeeded();
             }, (err) => {
-                console.error("Error en tiempo real:", err);
+                console.error("Error en listener de tiempo real:", err);
+                showToast("Conexión interrumpida con la sala.", "danger");
             });
         }
 
         async function createNewRoom(isOnlineMode = true) {
             sfx.init();
-            const code = isOnlineMode ? generateRoomCode() : 'LOCAL';
-            const defaultSeats = isOnlineMode ? 4 : 4;
+            let onlineAvailable = false;
+            if (isOnlineMode) {
+                onlineAvailable = await initFirebase();
+            }
+
+            const code = onlineAvailable ? generateRoomCode() : 'LOCAL';
+            const defaultSeats = 4;
             const seats = buildInitialSeats(defaultSeats, false, 2, []);
             seats[0] = {
                 seatIndex: 0,
@@ -2096,13 +2312,17 @@
 
             state.roomCode = code;
             state.hostId = currentUserId;
-            state.isOnline = isOnlineMode && firebaseReady;
+            state.isOnline = onlineAvailable;
             state.comboChain = null;
             state.drawnPlayableCardId = null;
+            lastChatCount = 0;
 
             state.room = {
                 code,
                 hostId: currentUserId,
+                isPublic: true,
+                turnDuration: 20,
+                turnStartedAt: Date.now(),
                 status: 'lobby',
                 maxSeats: defaultSeats,
                 teamMode: false,
@@ -2117,14 +2337,17 @@
                 direction: 1,
                 currentTurnSeat: 0,
                 pendingDraw4: null,
+                lastMoveAnim: null,
                 podium: [],
-                chat: []
+                chat: [],
+                lastReaction: null,
+                updatedAt: Date.now()
             };
 
             if (state.isOnline) {
                 await syncRoomToCloud();
-                subscribeToRoom(code);
-                showToast(`Sala online ${code} creada`, "success");
+                await subscribeToRoom(code);
+                showToast(`Sala online ${code} creada. ¡Comparte el código!`, "success");
             } else if (!isOnlineMode) {
                 // Partida rápida vs 3 bots
                 for (let i = 1; i < 4; i++) {
@@ -2140,40 +2363,55 @@
                 await dealAndStartGame();
                 return;
             } else {
-                showToast("Modo local activo (sin conexión externa)", "warn");
+                showToast("No se pudo conectar al servidor online, iniciando sala local.", "warn");
             }
             renderCurrentView();
         }
 
         async function joinExistingRoom(rawCode) {
+            sfx.init();
             const code = (rawCode || '').trim().toUpperCase();
             if (code.length < 4) {
                 showToast("Ingresa un código de sala válido.", "warn");
                 return;
             }
-            if (!firebaseReady || !db) {
-                showToast("El modo online no está disponible ahora.", "danger");
+            const ready = await initFirebase();
+            if (!ready || !currentUser || !db) {
+                showToast("El servicio online no está disponible en este momento.", "danger");
                 return;
             }
+
             try {
                 const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'uno_rooms', code);
-                const snap = await getDoc(roomRef);
-                if (!snap.exists()) {
-                    showToast("No se encontró ninguna sala con ese código.", "danger");
-                    return;
-                }
-                const roomData = snap.data();
-                const alreadyIn = roomData.seats.find(s => s.id === currentUserId);
-                if (!alreadyIn) {
+                let joinedRoomData = null;
+
+                // Transacción atómica para evitar que 2 jugadores ocupen el mismo asiento a la vez
+                await runTransaction(db, async (transaction) => {
+                    const snap = await transaction.get(roomRef);
+                    if (!snap.exists()) {
+                        throw new Error("NOT_FOUND");
+                    }
+                    const roomData = snap.data();
+                    const alreadyIn = (roomData.seats || []).find(s => s.id === currentUserId);
+
+                    if (alreadyIn) {
+                        // Actualizar nombre/avatar por si los cambió antes de reconectar
+                        alreadyIn.name = state.playerName;
+                        alreadyIn.avatar = state.playerAvatar;
+                        transaction.update(roomRef, { seats: roomData.seats, updatedAt: Date.now() });
+                        joinedRoomData = roomData;
+                        return;
+                    }
+
                     if (roomData.status !== 'lobby') {
-                        showToast("La partida ya está en curso.", "warn");
-                        return;
+                        throw new Error("ALREADY_STARTED");
                     }
-                    const freeIdx = roomData.seats.findIndex(s => !s.id);
+
+                    const freeIdx = (roomData.seats || []).findIndex(s => !s.id);
                     if (freeIdx === -1) {
-                        showToast("La sala está llena (máximo alcanzado).", "danger");
-                        return;
+                        throw new Error("ROOM_FULL");
                     }
+
                     roomData.seats[freeIdx] = {
                         ...roomData.seats[freeIdx],
                         id: currentUserId,
@@ -2182,31 +2420,103 @@
                         isBot: false,
                         finishRank: null
                     };
-                    await updateDoc(roomRef, { seats: roomData.seats });
-                }
+
+                    roomData.chat = roomData.chat || [];
+                    roomData.chat.push({ sender: 'Sistema', text: `${state.playerName} se unió a la mesa.` });
+                    if (roomData.chat.length > 30) roomData.chat.shift();
+
+                    transaction.update(roomRef, {
+                        seats: roomData.seats,
+                        chat: roomData.chat,
+                        updatedAt: Date.now()
+                    });
+                    joinedRoomData = roomData;
+                });
+
                 state.roomCode = code;
-                state.hostId = roomData.hostId;
+                state.hostId = joinedRoomData.hostId;
                 state.isOnline = true;
-                state.room = roomData;
-                subscribeToRoom(code);
-                showToast(`Te uniste a la sala ${code}`, "success");
+                state.room = joinedRoomData;
+                lastChatCount = (joinedRoomData.chat || []).length;
+                await subscribeToRoom(code);
+                showToast(`¡Te uniste a la sala ${code}!`, "success");
                 renderCurrentView();
             } catch (err) {
                 console.error(err);
-                showToast("Error al intentar unirse a la sala.", "danger");
+                if (err.message === "NOT_FOUND") {
+                    showToast("No existe ninguna sala con ese código.", "danger");
+                } else if (err.message === "ALREADY_STARTED") {
+                    showToast("Esa partida ya comenzó.", "warn");
+                } else if (err.message === "ROOM_FULL") {
+                    showToast("La sala está completa.", "danger");
+                } else {
+                    showToast("No se pudo entrar a la sala. Verifica el código.", "danger");
+                }
             }
         }
 
-        function leaveRoomToHome() {
+        async function leaveRoomToHome(fromRemoteEvent = false) {
+            const prevRoom = state.room;
+            const prevCode = state.roomCode;
+            const wasOnline = state.isOnline;
+
             if (state.unsubscribeRoom) {
                 state.unsubscribeRoom();
                 state.unsubscribeRoom = null;
             }
+
             state.room = null;
             state.roomCode = null;
             state.comboChain = null;
             state.drawnPlayableCardId = null;
             renderCurrentView();
+
+            // Notificar salida limpia en Firestore si fue acción manual del usuario
+            if (!fromRemoteEvent && wasOnline && prevRoom && prevCode && firebaseReady && currentUser && db) {
+                try {
+                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'uno_rooms', prevCode);
+                    if (prevRoom.hostId === currentUserId) {
+                        // Si el anfitrión abandona en el lobby, transferir host o cerrar sala
+                        const nextHuman = (prevRoom.seats || []).find(s => s.id && !s.isBot && s.id !== currentUserId);
+                        if (nextHuman && prevRoom.status === 'lobby') {
+                            prevRoom.seats.forEach(s => {
+                                if (s.id === currentUserId) {
+                                    s.id = null;
+                                    s.name = `Asiento ${s.seatIndex + 1}`;
+                                    s.avatar = '💺';
+                                }
+                            });
+                            await updateDoc(roomRef, {
+                                hostId: nextHuman.id,
+                                seats: prevRoom.seats,
+                                updatedAt: Date.now()
+                            });
+                        } else {
+                            await deleteDoc(roomRef);
+                        }
+                    } else {
+                        await runTransaction(db, async (tx) => {
+                            const snap = await tx.get(roomRef);
+                            if (!snap.exists()) return;
+                            const data = snap.data();
+                            const seat = (data.seats || []).find(s => s.id === currentUserId);
+                            if (!seat) return;
+                            if (data.status === 'lobby') {
+                                seat.id = null;
+                                seat.name = `Asiento ${seat.seatIndex + 1}`;
+                                seat.avatar = '💺';
+                            } else {
+                                // Si sale en mitad de partida, un Bot IA toma su lugar para no trabar la mesa
+                                seat.isBot = true;
+                                seat.name = `${seat.name} (IA)`;
+                            }
+                            tx.update(roomRef, { seats: data.seats, updatedAt: Date.now() });
+                        });
+                    }
+                } catch (e) {
+                    console.warn("Error al salir de sala en nube:", e);
+                }
+            }
         }
 
         // =========================================================
@@ -2245,11 +2555,13 @@
             room.activeColor = firstCard.color === 'wild' ? COLORS[Math.floor(Math.random() * 4)] : firstCard.color;
             room.direction = 1;
             room.pendingDraw4 = null;
+            room.lastMoveAnim = null;
             room.podium = [];
             room.status = 'playing';
 
             const firstSeated = seatedPlayers[0].seatIndex;
             room.currentTurnSeat = firstSeated;
+            room.turnStartedAt = Date.now();
             state.comboChain = null;
             state.drawnPlayableCardId = null;
             state.lastTurnId = null;
@@ -2310,6 +2622,11 @@
             seat.hand.splice(cardIdx, 1);
             room.discardPile.push(card);
             room.activeColor = finalColor;
+            room.lastMoveAnim = {
+                id: `${Date.now()}_${Math.random()}`,
+                seatIndex,
+                card
+            };
             state.drawnPlayableCardId = null;
 
             // Animación y sonido de carta lanzada
@@ -2408,6 +2725,7 @@
                 room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
             }
 
+            room.turnStartedAt = Date.now();
             await syncRoomToCloud();
             scheduleBotTurnIfNeeded();
         }
@@ -2457,6 +2775,7 @@
             vfx.showCinemaCallout(`🏅 ¡${seat.name} #${rank}!`, 'from-amber-300 via-yellow-100 to-amber-500');
             showToast(`${seat.name} terminó en puesto #${rank}. ¡La partida continúa!`, "success");
             room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
+            room.turnStartedAt = Date.now();
             await syncRoomToCloud();
             scheduleBotTurnIfNeeded();
         }
@@ -2503,6 +2822,7 @@
                 room.currentTurnSeat = getNextSeatIndex(room, targetSeatIndex, 1);
             }
 
+            room.turnStartedAt = Date.now();
             await syncRoomToCloud();
             scheduleBotTurnIfNeeded();
         }
@@ -2536,6 +2856,7 @@
                 await syncRoomToCloud();
             } else {
                 room.currentTurnSeat = getNextSeatIndex(room, mySeat.seatIndex, 1);
+                room.turnStartedAt = Date.now();
                 await syncRoomToCloud();
                 scheduleBotTurnIfNeeded();
             }
@@ -2548,13 +2869,68 @@
             if (!mySeat) return;
             state.drawnPlayableCardId = null;
             room.currentTurnSeat = getNextSeatIndex(room, mySeat.seatIndex, 1);
+            room.turnStartedAt = Date.now();
             await syncRoomToCloud();
             scheduleBotTurnIfNeeded();
         }
 
         // =========================================================
-        // 8. INTELIGENCIA ARTIFICIAL DE BOTS (TURNO AUTOMÁTICO)
+        // 8. INTELIGENCIA ARTIFICIAL DE BOTS + RELOJ DE TURNO ONLINE
         // =========================================================
+        let lastRemoteMoveAnimId = null;
+        let lastTimeoutHandledTurnKey = null;
+
+        setInterval(async () => {
+            const room = state.room;
+            const timerBadge = document.getElementById('turnTimerBadge');
+            if (!room || room.status !== 'playing' || !room.turnDuration || room.turnDuration <= 0) {
+                if (timerBadge) timerBadge.classList.add('hidden');
+                return;
+            }
+
+            const elapsed = Math.floor((Date.now() - (room.turnStartedAt || Date.now())) / 1000);
+            const remaining = Math.max(0, room.turnDuration - elapsed);
+
+            if (timerBadge) {
+                timerBadge.classList.remove('hidden');
+                timerBadge.textContent = `⏱ ${remaining}s`;
+                timerBadge.className = remaining <= 5
+                    ? 'ml-1 text-[11px] bg-rose-600/30 border border-rose-400 px-2 py-0.5 rounded-full text-rose-200 font-mono font-extrabold animate-pulse'
+                    : 'ml-1 text-[11px] bg-amber-400/20 border border-amber-400/40 px-2 py-0.5 rounded-full text-amber-300 font-mono font-bold';
+            }
+
+            // Si el tiempo llega a 0, el cliente dueño del turno (o el host si el cliente se desconectó) resuelve el turno automáticamente
+            if (remaining === 0) {
+                const activeSeat = room.seats[room.currentTurnSeat];
+                if (!activeSeat || activeSeat.isBot) return;
+                const turnTimeoutKey = `${room.currentTurnSeat}_${room.turnStartedAt}`;
+                if (lastTimeoutHandledTurnKey === turnTimeoutKey) return;
+
+                const isResponsible = activeSeat.id === currentUserId || (room.hostId === currentUserId && elapsed >= room.turnDuration + 2);
+                if (!isResponsible) return;
+
+                lastTimeoutHandledTurnKey = turnTimeoutKey;
+                if (room.pendingDraw4 && room.pendingDraw4.targetSeatIndex === activeSeat.seatIndex) {
+                    await resolveDraw4Challenge(false);
+                } else if (state.comboChain && activeSeat.id === currentUserId) {
+                    await finishComboTurn();
+                } else if (state.drawnPlayableCardId && activeSeat.id === currentUserId) {
+                    await passAfterDrawnCard();
+                } else {
+                    const drawn = drawCardsFromDeck(room, 1);
+                    if (drawn.length > 0) {
+                        activeSeat.hand.push(drawn[0]);
+                        activeSeat.saidUno = false;
+                    }
+                    room.currentTurnSeat = getNextSeatIndex(room, activeSeat.seatIndex, 1);
+                    room.turnStartedAt = Date.now();
+                    if (activeSeat.id === currentUserId) showToast("⏱️ Tiempo agotado: robaste 1 carta automáticamente.", "warn");
+                    await syncRoomToCloud();
+                    scheduleBotTurnIfNeeded();
+                }
+            }
+        }, 500);
+
         let botTimer = null;
         function scheduleBotTurnIfNeeded() {
             if (botTimer) clearTimeout(botTimer);
@@ -2673,7 +3049,24 @@
             const room = state.room;
             const isHost = room.hostId === currentUserId;
             document.getElementById('lobbyRoomCode').textContent = room.code;
-            document.getElementById('lobbyModeTag').textContent = state.isOnline ? 'Multijugador Online en Vivo' : 'Sala Local';
+            document.getElementById('lobbyModeTag').textContent = state.isOnline
+                ? `Multijugador Online • ${isHost ? 'Eres el Anfitrión' : 'Esperando al Anfitrión'}`
+                : 'Sala Local';
+
+            // Ocultar o deshabilitar controles exclusivos del anfitrión para invitados
+            const startBtn = document.getElementById('btnStartMatch');
+            const fillBotsBtn = document.getElementById('btnFillBots');
+            if (!isHost) {
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-60', 'cursor-not-allowed');
+                startBtn.textContent = '⏳ Esperando que el anfitrión inicie...';
+                fillBotsBtn.classList.add('hidden');
+            } else {
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                startBtn.textContent = '🃏 Mezclar Mazo y Comenzar →';
+                fillBotsBtn.classList.remove('hidden');
+            }
 
             // Selector de capacidad 2..8
             const seatSelector = document.getElementById('seatCountSelector');
@@ -2742,28 +3135,64 @@
             sameBtn.className = `px-2.5 py-1 rounded-lg text-[11px] font-extrabold border cursor-pointer ${room.straightColorMode === 'same' ? 'bg-amber-400 text-zinc-950 border-amber-300' : 'bg-zinc-900 text-zinc-300 border-zinc-700'}`;
             diffBtn.className = `px-2.5 py-1 rounded-lg text-[11px] font-extrabold border cursor-pointer ${room.straightColorMode === 'diff' ? 'bg-amber-400 text-zinc-950 border-amber-300' : 'bg-zinc-900 text-zinc-300 border-zinc-700'}`;
 
+            // Visibilidad Pública / Privada y Reloj por Turno
+            const visPub = document.getElementById('visPublicBtn');
+            const visPriv = document.getElementById('visPrivateBtn');
+            const isPub = room.isPublic !== false;
+            visPub.className  = `px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ${isPub ? 'bg-emerald-600 text-white border-emerald-400' : 'bg-zinc-900 text-zinc-400 border-zinc-700'}`;
+            visPriv.className = `px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ${!isPub ? 'bg-amber-500 text-zinc-950 border-amber-300' : 'bg-zinc-900 text-zinc-400 border-zinc-700'}`;
+
+            document.querySelectorAll('.turn-timer-opt').forEach(btn => {
+                const val = Number(btn.dataset.timer);
+                const active = (room.turnDuration ?? 20) === val;
+                btn.className = `turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ${active ? 'bg-amber-400 text-zinc-950 border-amber-300' : 'bg-zinc-900 text-zinc-400 border-zinc-700'}`;
+                btn.onclick = async () => {
+                    if (!isHost) return;
+                    room.turnDuration = val;
+                    await syncRoomToCloud();
+                };
+            });
+
             // Grilla de asientos
             const grid = document.getElementById('lobbySeatsGrid');
             grid.innerHTML = room.seats.map((seat, idx) => {
                 const occupied = Boolean(seat.id);
+                const isMe = seat.id === currentUserId;
+                const isSeatHost = seat.id === room.hostId;
                 const teamInfo = (room.teamMode && seat.team !== null) ? TEAMS_META[seat.team] : null;
                 const avatarHtml = occupied
                     ? renderCustomAvatarSVG(seat.avatar, 'w-11 h-11')
                     : `<div class="w-11 h-11 rounded-full bg-zinc-800/80 border border-dashed border-zinc-600 flex items-center justify-center text-lg">💺</div>`;
 
                 return `
-                    <div class="bg-zinc-900/90 border ${occupied ? 'border-amber-400/35' : 'border-white/5'} rounded-2xl p-3 flex items-center justify-between gap-2">
+                    <div class="bg-zinc-900/90 border ${isMe ? 'border-emerald-400/70' : (occupied ? 'border-amber-400/35' : 'border-white/5')} rounded-2xl p-3 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2.5 min-w-0">
                             ${avatarHtml}
                             <div class="min-w-0">
-                                <div class="text-xs font-extrabold text-white truncate">${occupied ? seat.name : `Asiento ${idx + 1} (Libre)`}</div>
-                                ${teamInfo ? `<span class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${teamInfo.badge}">${teamInfo.name}</span>` : `<span class="text-[10px] text-zinc-500">${occupied ? (seat.isBot ? 'Bot IA' : 'Jugador') : 'Esperando...'}</span>`}
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs font-extrabold text-white truncate">${occupied ? seat.name : `Asiento ${idx + 1} (Libre)`}</span>
+                                    ${isSeatHost ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-bold">HOST</span>` : ''}
+                                </div>
+                                ${teamInfo ? `<span class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${teamInfo.badge}">${teamInfo.name}</span>` : `<span class="text-[10px] text-zinc-500">${occupied ? (seat.isBot ? 'Bot IA' : (isMe ? 'Tú' : 'Jugador Online')) : 'Esperando...'}</span>`}
                             </div>
                         </div>
-                        ${(isHost && seat.isBot) ? `<button type="button" data-kick-seat="${idx}" class="kick-bot-btn text-xs text-rose-400 hover:text-rose-300 px-2 py-1 rounded-lg bg-rose-950/50 cursor-pointer">✕</button>` : ''}
+                        <div class="flex items-center gap-1">
+                            ${(room.teamMode && occupied && (isHost || isMe)) ? `<button type="button" data-cycle-team="${idx}" class="cycle-team-btn text-[10px] px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-300 font-bold cursor-pointer" title="Cambiar de equipo">⇄ Eq</button>` : ''}
+                            ${(isHost && occupied && !isMe) ? `<button type="button" data-kick-seat="${idx}" class="kick-bot-btn text-xs text-rose-400 hover:text-rose-300 px-2 py-1 rounded-lg bg-rose-950/50 cursor-pointer" title="Quitar de asiento">✕</button>` : ''}
+                        </div>
                     </div>
                 `;
             }).join('');
+
+            grid.querySelectorAll('.cycle-team-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    const idx = Number(btn.dataset.cycleTeam);
+                    const s = room.seats[idx];
+                    if (!s) return;
+                    s.team = ((s.team ?? 0) + 1) % room.teamCount;
+                    await syncRoomToCloud();
+                };
+            });
 
             grid.querySelectorAll('.kick-bot-btn').forEach(btn => {
                 btn.onclick = async () => {
@@ -2886,6 +3315,18 @@
             // Renderizar oponentes alrededor de la mesa
             renderOpponentsAroundTable(room, mySeat);
 
+            // Reproducir vuelo de carta cuando un jugador remoto lanza carta
+            if (room.lastMoveAnim && room.lastMoveAnim.id !== lastRemoteMoveAnimId) {
+                lastRemoteMoveAnimId = room.lastMoveAnim.id;
+                const moverSeat = room.seats[room.lastMoveAnim.seatIndex];
+                if (moverSeat && moverSeat.id !== currentUserId) {
+                    const fromEl = document.getElementById(`opponentSeat_${moverSeat.seatIndex}`);
+                    const toEl = document.getElementById('discardPileContainer');
+                    vfx.flyCardAnimation({ card: room.lastMoveAnim.card, fromEl, toEl, duration: 340 });
+                    sfx.playTableSlap();
+                }
+            }
+
             // Renderizar jugador local y su abanico de cartas
             renderLocalPlayerAndHand(room, mySeat, isMyTurn);
         }
@@ -2911,6 +3352,14 @@
                 const teamInfo = (room.teamMode && opp.team !== null) ? TEAMS_META[opp.team] : null;
                 const unoAlert = opp.hand.length === 1 && !opp.saidUno && !opp.finishRank;
 
+                // Mini abanico visual de cartas ocultas del rival
+                const visibleBacks = Math.min(7, opp.hand.length);
+                let miniFanHtml = '';
+                for (let b = 0; b < visibleBacks; b++) {
+                    const rot = visibleBacks === 1 ? 0 : ((b / (visibleBacks - 1)) - 0.5) * 34;
+                    miniFanHtml += `<span class="inline-block w-3.5 h-5 rounded-[3px] bg-gradient-to-br from-rose-600 to-zinc-900 border border-amber-300/80 shadow -ml-1.5 first:ml-0" style="transform: rotate(${rot}deg)"></span>`;
+                }
+
                 return `
                     <div id="opponentSeat_${opp.seatIndex}"
                          style="left: ${xPct}%; top: ${yPct}%; transform: translate(-50%, -50%);"
@@ -2930,6 +3379,7 @@
                             </div>
                             ${unoAlert ? `<span class="absolute -top-2.5 -right-2 px-1.5 py-0.5 rounded-full bg-amber-400 text-zinc-950 font-black text-[9px] animate-bounce shadow">¡SIN UNO!</span>` : ''}
                         </div>
+                        ${visibleBacks > 0 ? `<div class="flex items-center justify-center -mt-1.5 pointer-events-none">${miniFanHtml}</div>` : ''}
                     </div>
                 `;
             }).join('');
@@ -2995,6 +3445,7 @@
                     `${marginStyle} transform: translateY(${liftY}px) rotate(${rot}deg); z-index: ${idx + 1};`
                 );
             }).join('');
+
             // Interacción táctil / ratón + efecto brillo 3D
             handContainer.querySelectorAll('.uno-card').forEach(cardEl => {
                 const cId = cardEl.dataset.cardId;
@@ -3136,7 +3587,7 @@
             showToast(`Código ${code} copiado al portapapeles`, "success");
         };
 
-        document.getElementById('btnLeaveLobby').onclick = leaveRoomToHome;
+        document.getElementById('btnLeaveLobby').onclick = () => leaveRoomToHome(false);
 
         document.getElementById('modeFfaBtn').onclick = async () => {
             if (!state.room || state.room.hostId !== currentUserId) return;
@@ -3186,6 +3637,17 @@
             await syncRoomToCloud();
         };
 
+        document.getElementById('visPublicBtn').onclick = async () => {
+            if (!state.room || state.room.hostId !== currentUserId) return;
+            state.room.isPublic = true;
+            await syncRoomToCloud();
+        };
+        document.getElementById('visPrivateBtn').onclick = async () => {
+            if (!state.room || state.room.hostId !== currentUserId) return;
+            state.room.isPublic = false;
+            await syncRoomToCloud();
+        };
+
         document.getElementById('btnFillBots').onclick = async () => {
             if (!state.room || (state.isOnline && state.hostId !== currentUserId)) return;
             let botIdx = 0;
@@ -3209,7 +3671,22 @@
 
         // Controles en Mesa de Juego
         document.getElementById('drawDeckBtn').onclick = handleLocalDrawCard;
-        document.getElementById('btnQuitGame').onclick = leaveRoomToHome;
+        document.getElementById('btnQuitGame').onclick = () => leaveRoomToHome(false);
+
+        document.getElementById('btnSortHand').onclick = () => {
+            const room = state.room;
+            if (!room) return;
+            const mySeat = room.seats.find(s => s.id === currentUserId);
+            if (!mySeat || !mySeat.hand) return;
+            const colorOrder = { red: 1, yellow: 2, green: 3, blue: 4, wild: 5 };
+            mySeat.hand.sort((a, b) => {
+                const cDiff = (colorOrder[a.color] || 9) - (colorOrder[b.color] || 9);
+                if (cDiff !== 0) return cDiff;
+                return String(a.value).localeCompare(String(b.value), undefined, { numeric: true });
+            });
+            sfx.playCardSlide(1.25);
+            renderCurrentView();
+        };
 
         document.getElementById('btnCallUno').onclick = async () => {
             const room = state.room;
@@ -3245,8 +3722,14 @@
         document.getElementById('btnChallengeDraw4').onclick = () => resolveDraw4Challenge(true);
 
         // Victoria y Revancha
-        document.getElementById('btnVictoryHome').onclick = leaveRoomToHome;
-        document.getElementById('btnPlayAgain').onclick = dealAndStartGame;
+        document.getElementById('btnVictoryHome').onclick = () => leaveRoomToHome(false);
+        document.getElementById('btnPlayAgain').onclick = () => {
+            if (state.isOnline && state.room?.hostId !== currentUserId) {
+                showToast("Solo el anfitrión puede iniciar la revancha.", "warn");
+                return;
+            }
+            dealAndStartGame();
+        };
 
         // Sonido, Reglas y Chat
         document.getElementById('btnToggleSound').onclick = (e) => {
@@ -3273,25 +3756,35 @@
             state.room.chat = state.room.chat || [];
             state.room.chat.push({ sender: state.playerName, text });
             if (state.room.chat.length > 30) state.room.chat.shift();
-            const list = document.getElementById('chatMessagesList');
-            list.innerHTML = state.room.chat.map(m => `<div><strong class="text-amber-300">${m.sender}:</strong> <span class="text-zinc-200">${m.text}</span></div>`).join('');
-            list.scrollTop = list.scrollHeight;
+            renderChatAndReactionsFromRoom(state.room);
             await syncRoomToCloud();
         };
 
         document.querySelectorAll('.react-btn').forEach(btn => {
-            btn.onclick = () => {
+            btn.onclick = async () => {
                 const emoji = btn.dataset.react;
                 const badge = document.getElementById('localPlayerBadge');
-                if (!badge) return;
-                const rect = badge.getBoundingClientRect();
-                const bubble = document.createElement('div');
-                bubble.className = 'fixed z-50 text-3xl reaction-bubble pointer-events-none';
-                bubble.style.left = `${rect.left + rect.width / 2}px`;
-                bubble.style.top = `${rect.top - 10}px`;
-                bubble.textContent = emoji;
-                document.body.appendChild(bubble);
-                setTimeout(() => bubble.remove(), 2400);
+                if (badge) {
+                    const rect = badge.getBoundingClientRect();
+                    const bubble = document.createElement('div');
+                    bubble.className = 'fixed z-50 text-3xl reaction-bubble pointer-events-none';
+                    bubble.style.left = `${rect.left + rect.width / 2}px`;
+                    bubble.style.top = `${rect.top - 10}px`;
+                    bubble.textContent = emoji;
+                    document.body.appendChild(bubble);
+                    setTimeout(() => bubble.remove(), 2400);
+                }
+                if (state.room) {
+                    const mySeat = state.room.seats.find(s => s.id === currentUserId);
+                    if (mySeat) {
+                        state.room.lastReaction = {
+                            id: `${Date.now()}_${Math.random()}`,
+                            seatIndex: mySeat.seatIndex,
+                            emoji
+                        };
+                        await syncRoomToCloud();
+                    }
+                }
             };
         });
 
