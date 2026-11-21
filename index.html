@@ -2367,6 +2367,7 @@
         function canPlayCard(card, room, comboChain = null) {
             if (!card || !room) return false;
             if (card.value === 'chaos_mystery') return true;
+            if (card.mimicked && !room.pendingStack) return true;
             const top = room.discardPile[room.discardPile.length - 1];
             if (room.pendingStack) {
                 const stack = room.pendingStack;
@@ -2823,7 +2824,7 @@
                 if (seat.isBot) {
                     if (room.pendingStack?.type === 'draw2') mimicChoice = { value:'draw2', color:room.activeColor, type:'action' };
                     else if (room.pendingStack?.type === 'draw4') mimicChoice = { value:'wild_draw4', color:'wild', type:'wild' };
-                    else if (room.pendingStack?.type === 'chaos') mimicChoice = { value:'chaos_draw200', color:room.activeColor, type:'chaos' };
+                    else if (room.pendingStack?.type === 'chaos') mimicChoice = { value:'chaos_shield', color:room.activeColor, type:'chaos' };
                     else mimicChoice = { value:String(Math.floor(Math.random() * 10)), color:room.activeColor, type:'number' };
                 } else {
                     state.pendingMysteryCardId = cardId;
