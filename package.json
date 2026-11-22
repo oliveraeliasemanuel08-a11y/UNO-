@@ -20,8 +20,8 @@
       "output": "release"
     },
     "files": [
-      "index.html",
       "main.cjs",
+      "preload.cjs",
       "package.json"
     ],
     "asar": true,
