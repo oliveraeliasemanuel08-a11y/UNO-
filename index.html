@@ -1207,7 +1207,7 @@
         </div>
     </div>
 
-    <div id="stackPenaltyModal" class="hidden fixed inset-0 z-[94] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-none">
+    <div id="stackPenaltyModal" class="hidden fixed top-20 right-3 z-[94] p-2 pointer-events-none">
         <div class="pointer-events-auto bg-zinc-900 border-2 border-rose-400/60 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl">
             <div class="text-4xl mb-2">💥</div>
             <h3 class="font-uno text-2xl font-bold text-rose-300">¡Defiéndete o acepta!</h3>
@@ -4369,6 +4369,41 @@
         updateAvatarStudioUI();updateClubWalletUI();loadClubSettings();
         showDeviceSetup(false);
         renderCurrentView();
+
+        // Aviso de nueva versión: solo alerta a quienes ya estaban dentro de una sala.
+        (function watchClubUpdates() {
+            const commitsUrl = 'https://api.github.com/repos/oliveraeliasemanuel08-a11y/UNO-/commits/main';
+            let knownCommit = null;
+            let updateAlertShown = false;
+            async function checkForUpdate() {
+                try {
+                    const response = await fetch(commitsUrl, {
+                        cache: 'no-store',
+                        headers: { 'Accept': 'application/vnd.github+json' }
+                    });
+                    if (!response.ok) return;
+                    const commit = await response.json();
+                    const latestSha = commit && commit.sha;
+                    if (!latestSha) return;
+                    if (knownCommit === null) {
+                        knownCommit = latestSha;
+                        return;
+                    }
+                    if (latestSha !== knownCommit) {
+                        knownCommit = latestSha;
+                        const isInsideRoom = !!state.room && ['lobby', 'playing'].includes(state.room.status);
+                        if (isInsideRoom && !updateAlertShown) {
+                            updateAlertShown = true;
+                            window.alert('Hay una actualización en camino. Por favor, cierra el juego y vuelve a abrirlo.');
+                        }
+                    }
+                } catch (error) {
+                    console.warn('No se pudo comprobar si hay actualizaciones de UNO! CLUB:', error);
+                }
+            }
+            checkForUpdate();
+            setInterval(checkForUpdate, 45000);
+        })();
     </script>
 </body>
 </html>
