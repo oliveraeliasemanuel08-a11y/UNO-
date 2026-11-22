@@ -1,0 +1,52 @@
+{
+  "name": "uno-club-desktop",
+  "version": "1.0.0",
+  "description": "UNO! CLUB - Aplicación de escritorio para Windows",
+  "author": "UNO! CLUB",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win nsis portable"
+  },
+  "devDependencies": {
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "club.uno.desktop",
+    "productName": "UNO! CLUB",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "index.html",
+      "main.cjs",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "UNO! CLUB"
+    }
+  }
+}
