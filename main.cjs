@@ -1,5 +1,6 @@
 const { app, BrowserWindow, shell } = require("electron");
-const path = require("node:path");
+
+const GAME_URL = "https://oliveraeliasemanuel08-a11y.github.io/UNO-/";
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -12,14 +13,16 @@ function createWindow() {
     autoHideMenuBar: true,
     title: "UNO! CLUB",
     webPreferences: {
-      preload: path.join(__dirname, "preload.cjs"),
+      preload: require("node:path").join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
     }
   });
 
-  win.loadFile(path.join(__dirname, "index.html"));
+  // Carga la versión publicada en GitHub Pages para conservar Firebase
+  // y evitar restricciones CORS de módulos ES al abrir archivos file://.
+  win.loadURL(GAME_URL);
   win.once("ready-to-show", () => win.show());
 
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -30,7 +33,7 @@ function createWindow() {
   });
 
   win.webContents.on("will-navigate", (event, url) => {
-    if (!url.startsWith("file://")) {
+    if (!url.startsWith(GAME_URL)) {
       event.preventDefault();
       if (url.startsWith("https://") || url.startsWith("http://")) {
         shell.openExternal(url);
@@ -41,7 +44,6 @@ function createWindow() {
 
 app.whenReady().then(() => {
   createWindow();
-
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
