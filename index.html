@@ -1513,7 +1513,13 @@
             db = getFirestore(app);
             auth = getAuth(app);
 
-            await signInAnonymously(auth);
+            // Esperar a que Firebase restaure la sesión guardada antes de autenticar.
+            // Si ya existe una sesión anónima, reutilizarla: crear otra cambia el UID
+            // y puede hacer que el jugador parezca un asiento fantasma en la sala.
+            await auth.authStateReady();
+            if (!auth.currentUser) {
+                await signInAnonymously(auth);
+            }
 
             if (!auth.currentUser) {
                 throw new Error("No se pudo iniciar sesión");
