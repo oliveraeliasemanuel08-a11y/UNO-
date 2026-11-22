@@ -1622,14 +1622,15 @@
         // =========================================================
         const AVATAR_SKIN_PALETTE = ['#ffdbac', '#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#5c3818'];
         const AVATAR_HAIR_PALETTE = ['#18181b', '#451a03', '#b45309', '#facc15', '#dc2626', '#2563eb', '#9333ea', '#e2e8f0'];
-        const AVATAR_SHIRT_PALETTE = ['#ef4444', '#2563eb', '#16a34a', '#eab308', '#9333ea', '#f97316', '#f8fafc', '#18181b'];
+        const AVATAR_SHIRT_PALETTE = ['#ef4444', '#2563eb', '#16a34a', '#eab308', '#9333ea', '#f97316', '#f8fafc', '#18181b', '#38bdf8', '#f472b6'];
         const AVATAR_BEARD_STYLES = ['Afeitado', 'Barba corta', 'Barba completa', 'Bigote'];
         const AVATAR_FRAME_PALETTE = [
             { id: 'gold',    hex: '#facc15', bg: '#422006' },
             { id: 'rose',    hex: '#f43f5e', bg: '#4c0519' },
             { id: 'emerald', hex: '#10b981', bg: '#022c22' },
             { id: 'blue',    hex: '#3b82f6', bg: '#172554' },
-            { id: 'purple',  hex: '#a855f7', bg: '#3b0764' }
+            { id: 'purple',  hex: '#a855f7', bg: '#3b0764' },
+            { id: 'neon', hex: '#22d3ee', bg: '#083344' }
         ];
         const AVATAR_HAIR_STYLES = ['Corto','Copete','Largo','Rizos','Mohicano','Calvo','Despeinado','Punk','Ondulado'];
         const AVATAR_FACE_STYLES = ['Confiado','Sonriente','Pícaro','Sorpresa','Serio','Guiño','Furioso'];
@@ -3471,6 +3472,7 @@
             }
 
             if (state.room.status === 'finished') {
+                awardMatchPointsIfNeeded(state.room, mySeat);
                 renderVictoryModal();
                 victoryModal.classList.remove('hidden');
             } else {
