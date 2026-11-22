@@ -583,7 +583,8 @@
         }
 
         body.performance-low .uno-card{box-shadow:0 3px 8px rgba(0,0,0,.4)!important}body.no-shadows .uno-card,body.no-shadows .table-oval-3d{box-shadow:none!important}body.animations-off *,body.animations-off *:before,body.animations-off *:after{animation:none!important;transition-duration:0s!important}body.animations-reduced *,body.animations-reduced *:before,body.animations-reduced *:after{animation-duration:.25s!important;transition-duration:.15s!important}body.compact-ui #homeScreen .rounded-3xl{padding:.75rem!important}body.large-ui button,body.large-ui input,body.large-ui select{font-size:1.05rem}
-    </style>
+            .card-motion-off .uno-card { animation: none !important; transition: none !important; }
+</style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
     <div id="deviceSetupModal" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-5">
@@ -4238,6 +4239,8 @@
         };
 
         document.getElementById('btnStartMatch').onclick = dealAndStartGame;
+
+        document.getElementById('btnQuitGame').addEventListener('click', (e) => { if (readClubSettings().confirmExit === 'on' && state.room?.status === 'playing' && !window.confirm('¿Seguro que quieres salir de la partida?')) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
 
         // Controles en Mesa de Juego
         document.getElementById('drawDeckBtn').onclick = handleLocalDrawCard;
