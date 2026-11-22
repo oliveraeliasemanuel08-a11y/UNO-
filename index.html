@@ -544,6 +544,15 @@
             transform: translateY(-34px) scale(1.42) rotate(0deg) !important;
         }
 
+        /* Perfiles de rendimiento UNO! CLUB: menú y mesa */
+        body.uno-no-glow *,body.uno-menu-lite #homeScreen *,body.uno-match-lite #gameScreen * { text-shadow:none !important; }
+        body.uno-no-glow .shadow,body.uno-no-glow [class*="shadow-"] { box-shadow:none !important; }
+        body.uno-menu-lite #homeScreen .hero-card-float-1,body.uno-menu-lite #homeScreen .hero-card-float-2,body.uno-menu-lite #homeScreen .hero-card-float-3 { animation:none !important; }
+        body.uno-match-lite #gameScreen .animate-card-drop,body.uno-match-lite #gameScreen .animate-screen-shake,body.uno-match-lite #gameScreen .spin-cw,body.uno-match-lite #gameScreen .spin-ccw { animation:none !important; }
+        body.uno-opponents-minimal #opponentsLayer .mini-opponent-cards { display:none !important; }
+        body.performance-low #vfxCanvas { display:none !important; }
+        body.performance-low .uno-card-glare { display:none !important; }
+
         /* Preferencia de dispositivo y adaptación móvil */
         body.mobile-mode { overflow: hidden; }
         body.mobile-mode #gameScreen { height: 100dvh; min-height: 100dvh; }
@@ -617,7 +626,15 @@
 <label class="rounded-2xl bg-zinc-900 p-3 text-sm">Tamaño de interfaz<select id="settingScale" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="normal">Normal</option><option value="large">Grande</option><option value="compact">Compacta</option></select></label>
 <label class="rounded-2xl bg-zinc-900 p-3 text-sm">Movimiento de mesa<select id="settingTableMotion" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Activado</option><option value="off">Quieto</option></select></label>
 <label class="rounded-2xl bg-zinc-900 p-3 text-sm">Notificaciones<select id="settingNotifications" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Activadas</option><option value="off">Desactivadas</option></select></label>
-<label class="rounded-2xl bg-zinc-900 p-3 text-sm">Idioma<select id="settingLanguage" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="es">Español</option></select></label><label class="rounded-2xl bg-zinc-900 p-3 text-sm">Efectos de reacciones<select id="settingReactionEffects" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Activados</option><option value="off">Desactivados</option></select></label><label class="rounded-2xl bg-zinc-900 p-3 text-sm">Animación de cartas<select id="settingCardMotion" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Activada</option><option value="off">Reducida</option></select></label><label class="rounded-2xl bg-zinc-900 p-3 text-sm">Confirmar salida<select id="settingConfirmExit" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Preguntar antes de salir</option><option value="off">Salir directamente</option></select></label></div><div class="flex gap-2 p-4 border-t border-white/10"><button id="btnResetSettings" class="px-4 py-2 rounded-xl bg-zinc-800 text-sm">Restaurar</button><button id="btnSaveSettings" class="ml-auto px-5 py-2 rounded-xl bg-sky-500 text-zinc-950 font-extrabold text-sm">Guardar ajustes</button></div></div></div>
+<label class="rounded-2xl bg-zinc-900 p-3 text-sm">Idioma<select id="settingLanguage" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="es">Español</option></select></label><label class="rounded-2xl bg-zinc-900 p-3 text-sm">Efectos de reacciones<select id="settingReactionEffects" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Activados</option><option value="off">Desactivados</option></select></label><label class="rounded-2xl bg-zinc-900 p-3 text-sm">Animación de cartas<select id="settingCardMotion" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Activada</option><option value="off">Reducida</option></select></label><label class="rounded-2xl bg-zinc-900 p-3 text-sm">Confirmar salida<select id="settingConfirmExit" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Preguntar antes de salir</option><option value="off">Salir directamente</option></select></label>
+<div class="sm:col-span-2 rounded-2xl border border-emerald-400/25 bg-emerald-950/30 p-3"><p class="font-extrabold text-emerald-300 mb-1">📱 Optimización móvil avanzada</p><p class="text-[11px] text-zinc-400 mb-3">Ajustes independientes para reducir el consumo en el menú y durante las partidas.</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<label class="rounded-xl bg-zinc-900 p-3 text-sm">Perfil de rendimiento<select id="settingMobilePreset" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="auto">Automático</option><option value="performance">Máximo rendimiento</option><option value="balanced">Equilibrado</option><option value="quality">Calidad visual</option></select></label>
+<label class="rounded-xl bg-zinc-900 p-3 text-sm">Límite de FPS<select id="settingFpsLimit" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="30">30 FPS (más batería)</option><option value="45">45 FPS</option><option value="60">60 FPS</option></select></label>
+<label class="rounded-xl bg-zinc-900 p-3 text-sm">Efectos del menú<select id="settingMenuEffects" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Activados</option><option value="off">Reducir al mínimo</option></select></label>
+<label class="rounded-xl bg-zinc-900 p-3 text-sm">Efectos durante partidas<select id="settingMatchEffects" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Activados</option><option value="off">Modo competitivo ligero</option></select></label>
+<label class="rounded-xl bg-zinc-900 p-3 text-sm">Brillos y desenfoques<select id="settingGlowEffects" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="on">Normales</option><option value="off">Desactivados</option></select></label>
+<label class="rounded-xl bg-zinc-900 p-3 text-sm">Cartas de rivales<select id="settingOpponentCards" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="normal">Normales</option><option value="minimal">Vista simple</option></select></label>
+</div></div></div><div class="flex gap-2 p-4 border-t border-white/10"><button id="btnResetSettings" class="px-4 py-2 rounded-xl bg-zinc-800 text-sm">Restaurar</button><button id="btnSaveSettings" class="ml-auto px-5 py-2 rounded-xl bg-sky-500 text-zinc-950 font-extrabold text-sm">Guardar ajustes</button></div></div></div>
 <div id="storeModal" class="hidden fixed inset-0 z-[210] bg-black/90 backdrop-blur-md flex items-center justify-center p-3"><div class="w-full max-w-4xl max-h-[92dvh] overflow-y-auto rounded-3xl border border-amber-300/30 bg-zinc-950 shadow-2xl"><div class="sticky top-0 z-10 flex items-center justify-between p-4 bg-zinc-950/95 border-b border-white/10"><div><h2 class="font-uno text-3xl text-amber-300">🛍️ Tienda del Club</h2><p class="text-xs text-zinc-400">Comprá cosméticos con puntos de partidas online</p></div><div class="flex items-center gap-3"><span class="text-amber-300 font-extrabold">🪙 <b id="clubPointsBalance">0</b></span><button id="btnCloseStore" class="text-2xl text-zinc-400">✕</button></div></div><div class="p-4"><div class="flex gap-2 mb-4"><input id="storeSearchInput" type="search" placeholder="Buscar accesorios, pelos, ropa..." class="flex-1 min-w-0 rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-sm text-white"><select id="storeCategoryFilter" class="rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-sm text-white"><option value="all">Todo</option><option value="hair">Pelos</option><option value="acc">Accesorios</option><option value="shirt">Remeras</option><option value="face">Expresiones</option><option value="beard">Barbas</option><option value="frame">Marcos</option></select></div><div id="storeItemsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div></div></div></div>
     <!-- Notificación / Toast elegante (sin alert()) -->
     <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex flex-col items-center gap-2 pointer-events-none w-full max-w-md px-4"></div>
@@ -2178,8 +2195,12 @@
                 runRiffleCycle();
             }
 
-            loop() {
-                if (this.ctx && this.canvas) {
+            loop(timestamp = 0) {
+                const fps=Math.max(15,Math.min(60,Number(window.UNO_FX_FPS)||45));
+                const frameMs=1000/fps;
+                if(!this.lastFrameAt||timestamp-this.lastFrameAt>=frameMs){
+                this.lastFrameAt=timestamp-(timestamp-this.lastFrameAt||0)%frameMs;
+                if (this.ctx && this.canvas && !document.hidden) {
                     const ctx = this.ctx;
                     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -2264,7 +2285,8 @@
                         ctx.restore();
                     }
                 }
-                requestAnimationFrame(() => this.loop());
+                }
+                requestAnimationFrame((t) => this.loop(t));
             }
         }
         const vfx = new UnoVisualEffects();
@@ -4053,9 +4075,9 @@
         function openClubStore(){renderClubStore();document.getElementById('storeModal').classList.remove('hidden')}
         document.getElementById('storeSearchInput')?.addEventListener('input',renderClubStore);
         document.getElementById('storeCategoryFilter')?.addEventListener('change',renderClubStore);
-        const DEFAULT_CLUB_SETTINGS={quality:'high',animations:'all',particles:'on',shadows:'on',sound:'on',volume:70,scale:'normal',tableMotion:'on',notifications:'on',language:'es',reactionEffects:'on',cardMotion:'on',confirmExit:'on'};
+        const DEFAULT_CLUB_SETTINGS={quality:'high',animations:'all',particles:'on',shadows:'on',sound:'on',volume:70,scale:'normal',tableMotion:'on',notifications:'on',language:'es',reactionEffects:'on',cardMotion:'on',confirmExit:'on',mobilePreset:'auto',fpsLimit:'45',menuEffects:'on',matchEffects:'on',glowEffects:'on',opponentCards:'normal'};
         function readClubSettings(){try{return {...DEFAULT_CLUB_SETTINGS,...JSON.parse(localStorage.getItem('uno_club_settings')||'{}')}}catch(e){return {...DEFAULT_CLUB_SETTINGS}}}
-        function applyClubSettings(c){document.body.classList.toggle('performance-low',c.quality==='low');document.body.classList.toggle('card-motion-off',c.cardMotion==='off');document.body.dataset.reactionEffects=c.reactionEffects||'on';document.body.classList.toggle('animations-off',c.animations==='off');document.body.classList.toggle('animations-reduced',c.animations==='reduced'||c.quality==='balanced');document.body.classList.toggle('no-shadows',c.shadows==='off'||c.quality==='low');document.body.classList.toggle('compact-ui',c.scale==='compact');document.body.classList.toggle('large-ui',c.scale==='large');const cv=document.getElementById('vfxCanvas');if(cv){cv.style.display=c.particles==='off'||c.quality==='low'?'none':'block';cv.style.opacity=c.particles==='low'&&c.quality!=='low'?'0.35':'1'}if(c.tableMotion==='off')document.getElementById('centerDirectionRing')?.classList.remove('spin-cw','spin-ccw');sfx.enabled=c.sound==='on'&&Number(c.volume)>0}
+        function applyClubSettings(c){const mobile=document.body.classList.contains('mobile-mode')||window.matchMedia('(max-width: 767px)').matches;const preset=mobile?(c.mobilePreset==='auto'?'performance':c.mobilePreset):'quality';const lite=preset==='performance';const balanced=preset==='balanced';document.body.classList.toggle('performance-low',c.quality==='low'||lite);document.body.classList.toggle('card-motion-off',c.cardMotion==='off'||lite);document.body.dataset.reactionEffects=c.reactionEffects||'on';document.body.classList.toggle('animations-off',c.animations==='off'||lite);document.body.classList.toggle('animations-reduced',c.animations==='reduced'||c.quality==='balanced'||balanced);document.body.classList.toggle('no-shadows',c.shadows==='off'||c.quality==='low'||lite);document.body.classList.toggle('compact-ui',c.scale==='compact');document.body.classList.toggle('large-ui',c.scale==='large');document.body.classList.toggle('uno-no-glow',c.glowEffects==='off'||lite);document.body.classList.toggle('uno-menu-lite',c.menuEffects==='off'||lite);document.body.classList.toggle('uno-match-lite',c.matchEffects==='off'||lite);document.body.classList.toggle('uno-opponents-minimal',c.opponentCards==='minimal'||lite);window.UNO_FX_FPS=Number(c.fpsLimit)||45;if(lite)window.UNO_FX_FPS=Math.min(window.UNO_FX_FPS,30);const cv=document.getElementById('vfxCanvas');if(cv){cv.style.display=c.particles==='off'||c.quality==='low'||lite?'none':'block';cv.style.opacity=c.particles==='low'&&c.quality!=='low'?'0.25':'1'}if(c.tableMotion==='off'||lite)document.getElementById('centerDirectionRing')?.classList.remove('spin-cw','spin-ccw');sfx.enabled=c.sound==='on'&&Number(c.volume)>0}
         function loadClubSettings(){const c=readClubSettings();Object.entries(c).forEach(([k,v])=>{const e=document.getElementById('setting'+k.charAt(0).toUpperCase()+k.slice(1));if(e)e.value=String(v)});applyClubSettings(c)}
         function openClubSettings(){loadClubSettings();document.getElementById('settingsModal').classList.remove('hidden')}
         function saveClubSettings(){const c={};Object.keys(DEFAULT_CLUB_SETTINGS).forEach(k=>{const e=document.getElementById('setting'+k.charAt(0).toUpperCase()+k.slice(1));if(e)c[k]=e.value});localStorage.setItem('uno_club_settings',JSON.stringify(c));applyClubSettings(c);document.getElementById('settingsModal').classList.add('hidden');showToast('Ajustes guardados en este dispositivo.','success')}
