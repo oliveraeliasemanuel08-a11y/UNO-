@@ -4906,7 +4906,7 @@
 
         // El nombre público se registra una sola vez y se reserva globalmente en Firestore.
         function normalizePlayerUsername(value){
-          return String(value||'').trim().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+          return String(value||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
         }
         async function savePlayerUsername(){
           const input=document.getElementById('playerNameInput'),status=document.getElementById('playerNameStatus'),button=document.getElementById('btnSavePlayerName');
