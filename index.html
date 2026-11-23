@@ -625,6 +625,20 @@
 .tcg-self .tcg-card-3d{transform:perspective(850px) rotateY(-5deg) rotateX(2deg)}
 .tcg-side .tcg-board-card{filter:drop-shadow(0 10px 8px #0009)}
 @media(max-width:640px){.tcg-opponent,.tcg-self{transform:none}.tcg-arena{perspective:none}}
+
+/* Arena épica compartida: funciona tanto contra IA como en PvP */
+.tcg-arena{position:relative;padding:10px;border-radius:22px;background:radial-gradient(ellipse at 50% 50%,#164e6370 0%,#111827 48%,#050610 100%);border:1px solid #67e8f933;box-shadow:inset 0 0 45px #22d3ee18,0 18px 45px #0008}
+.tcg-arena:before{content:"";position:absolute;inset:5px;border-radius:18px;border:1px solid #ffffff12;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 54px,#ffffff06 55px),repeating-linear-gradient(90deg,transparent 0 54px,#ffffff06 55px)}
+.tcg-side{z-index:1;backdrop-filter:blur(5px)}
+.tcg-opponent{border-color:#fb718555!important;box-shadow:0 0 24px #ef444422,inset 0 0 35px #ef444410,0 18px 34px #0008!important}
+.tcg-self{border-color:#34d39966!important;box-shadow:0 0 24px #10b98122,inset 0 0 35px #10b98110,0 18px 34px #0008!important}
+.tcg-opponent .tcg-board-card,.tcg-self .tcg-board-card{animation:tcgFloat 4s ease-in-out infinite}
+.tcg-self .tcg-board-card:nth-child(even),.tcg-opponent .tcg-board-card:nth-child(even){animation-delay:-1.7s}
+@keyframes tcgFloat{0%,100%{translate:0 0}50%{translate:0 -5px}}
+.tcg-card-rare .tcg-card-face:after{content:"";position:absolute;inset:-60%;background:linear-gradient(110deg,transparent 42%,#fff5 49%,#67e8f955 52%,transparent 59%);transform:translateX(-55%) rotate(12deg);animation:tcgFoil 5s ease-in-out infinite;pointer-events:none}
+@keyframes tcgFoil{0%,55%{translate:-35% 0}85%,100%{translate:35% 0}}
+.tcg-pvp-banner{letter-spacing:.12em;text-shadow:0 2px 12px #000}
+@media(prefers-reduced-motion:reduce){.tcg-arena *{animation:none!important}}
 </style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
@@ -4700,6 +4714,7 @@
         }
         function tcgBattleRender(){
           if(!tcgBattle)return;const b=tcgBattle,p=b.player,c=b.cpu;
+          const meLabel=document.getElementById('tcgMeLabel'),opLabel=document.getElementById('tcgOpponentLabel');if(meLabel)meLabel.textContent=tcgOnline?'🧑 Tu equipo':'🧑 Tu equipo';if(opLabel)opLabel.textContent=tcgOnline?'⚔️ Rival online':'🤖 Rival IA';
           const cardView=(x,small=false)=>{if(!x)return '<div class="text-xs text-zinc-600 p-5">Espacio vacío</div>';const pct=Math.max(0,(x.hp-x.damage)/Math.max(1,x.maxHp)*100);const glow=({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca';const rarity=['V','EX','VMAX','VSTAR','Ultra Rare','Legendary'].includes(x.rarity);return '<div class="tcg-card-3d '+(small?'tcg-board-card ':'')+(rarity?'tcg-card-rare ':'')+'"><div class="tcg-card-face" style="--tcg-glow:'+glow+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><span class="tcg-card-ribbon">'+(x.kind==='Character'?'PERSONAJE':x.kind==='Energy'?'ENERGÍA':x.kind==='Supporter'?'ENTRENADOR':x.kind==='Stadium'?'ESTADIO':'OBJETO')+'</span><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b><div class="tcg-card-power">'+(x.hp-x.damage)+' / '+x.maxHp+' PS</div><div class="h-1.5 bg-black/50 rounded-full mt-1 overflow-hidden"><div class="h-full bg-emerald-400" style="width:'+pct+'%"></div></div><div class="tcg-card-energy">'+x.energies.map(()=>'<i></i>').join('')+'</div><div class="text-[8px] text-center mt-1 text-cyan-100">'+x.energies.length+' energías adjuntas</div></div></div>'};
           document.getElementById('tcgCpuActive').innerHTML=cardView(c.active);document.getElementById('tcgPlayerActive').innerHTML=cardView(p.active);
           document.getElementById('tcgCpuBench').innerHTML=c.bench.map(x=>cardView(x,true)).join('');document.getElementById('tcgPlayerBench').innerHTML=p.bench.map((x,i)=>'<button data-tcg-bench="'+i+'">'+cardView(x,true)+'</button>').join('');
