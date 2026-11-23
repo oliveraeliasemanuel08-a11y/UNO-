@@ -983,6 +983,12 @@
                 </div>
             </div>
 
+            <!-- Recompensa diaria -->
+            <section id="dailyRewardPanel" class="mt-5 rounded-2xl border border-amber-300/25 bg-gradient-to-r from-amber-950/50 via-zinc-900 to-emerald-950/40 p-4 sm:p-5">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="flex items-center gap-3"><div class="text-4xl">🎁</div><div><div class="text-[10px] font-black tracking-[.2em] text-amber-300">RECOMPENSA DIARIA</div><h2 class="font-uno text-xl text-white">Tu premio de hoy</h2><p id="dailyRewardStatus" class="text-xs text-zinc-300 mt-1">Entrá cada día para conseguir más monedas.</p></div></div><div class="flex items-center gap-3"><div class="text-right"><div id="dailyRewardAmount" class="font-black text-2xl text-amber-300">🪙 100</div><div id="dailyRewardDay" class="text-[10px] text-zinc-400">DÍA 1 DE 7</div></div><button id="btnClaimDailyReward" type="button" class="rounded-xl bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black text-xs px-4 py-3">RECLAMAR</button></div></div>
+              <div class="grid grid-cols-7 gap-1.5 mt-4" id="dailyRewardTrack"><div>D1 · 🪙100</div><div>D2 · 🪙150</div><div>D3 · 🪙200</div><div>D4 · 🪙250</div><div>D5 · 🪙300</div><div>D6 · 🪙400</div><div>D7 · 🪙500</div></div>
+            </section>
+
             <!-- Cuerpo en 2 Columnas: Estudio de Avatar a la izquierda / Modos de Juego a la derecha -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-6 items-stretch">
 
@@ -4475,6 +4481,23 @@
           {id:'frame_purple',name:'Marco violeta',price:520,field:'frame',value:4,emoji:'💜',category:'frame',rarity:'Épico'}
         ];
         function ownedClubItems(){try{return JSON.parse(localStorage.getItem('uno_club_owned')||'[]')}catch(e){return []}}
+        const CLUB_DAILY_REWARDS=[100,150,200,250,300,400,500];
+        function clubLocalDate(d=new Date()){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+        function clubDateOffset(date,days){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+days);return clubLocalDate(d)}
+        function renderDailyReward(){
+          const last=localStorage.getItem('uno_club_daily_last')||'',today=clubLocalDate(),yesterday=clubDateOffset(today,-1);let streak=Math.max(0,Math.min(7,Number(localStorage.getItem('uno_club_daily_streak')||0)));
+          if(last!==today&&last!==yesterday)streak=0;const nextDay=streak>=7?1:streak+1,claimed=last===today,amount=CLUB_DAILY_REWARDS[claimed?Math.max(0,streak-1):nextDay-1];
+          const amountEl=document.getElementById('dailyRewardAmount'),dayEl=document.getElementById('dailyRewardDay'),status=document.getElementById('dailyRewardStatus'),btn=document.getElementById('btnClaimDailyReward'),track=document.getElementById('dailyRewardTrack');
+          if(amountEl)amountEl.textContent='🪙 '+amount;if(dayEl)dayEl.textContent='DÍA '+(claimed?Math.max(1,streak):nextDay)+' DE 7';
+          if(status)status.textContent=claimed?'¡Premio de hoy reclamado! Volvé mañana para continuar tu racha.':(streak?'¡Racha de '+streak+' día(s)! No pierdas el ritmo.':'Reclamá tu premio y empezá una racha de 7 días.');
+          if(btn){btn.disabled=claimed;btn.textContent=claimed?'✓ RECLAMADO':'RECLAMAR';btn.classList.toggle('opacity-50',claimed);btn.classList.toggle('cursor-not-allowed',claimed)}
+          if(track)track.innerHTML=CLUB_DAILY_REWARDS.map((v,i)=>'<div class="rounded-lg border p-2 text-center text-[10px] '+(i<streak?'border-emerald-400/40 bg-emerald-950/50 text-emerald-200':i===nextDay-1&&!claimed?'border-amber-300/50 bg-amber-950/50 text-amber-200':'border-white/10 bg-black/30 text-zinc-400')+'">D'+(i+1)+'<br>🪙'+v+(i<streak?' ✓':'')+'</div>').join('');
+        }
+        function claimDailyReward(){
+          const today=clubLocalDate(),last=localStorage.getItem('uno_club_daily_last')||'';if(last===today){renderDailyReward();return}
+          const streak=last===clubDateOffset(today,-1)?Math.min(7,Number(localStorage.getItem('uno_club_daily_streak')||0)+1):1,reward=CLUB_DAILY_REWARDS[(streak-1)%7],balance=Math.max(0,Number(localStorage.getItem('uno_club_points')||0));
+          localStorage.setItem('uno_club_points',String(balance+reward));localStorage.setItem('uno_club_daily_last',today);localStorage.setItem('uno_club_daily_streak',String(streak));updateClubWalletUI();renderDailyReward();showToast('¡Reclamaste '+reward+' monedas! Racha: '+streak+'/7 días.','success');
+        }
         function updateClubWalletUI(){const e=document.getElementById('clubPointsBalance');if(e)e.textContent=Number(localStorage.getItem('uno_club_points')||0).toLocaleString('es-AR')}
         function getDailyStoreItems(){const day=new Date().toISOString().slice(0,10);let seed=0;for(let i=0;i<day.length;i++)seed=(seed*31+day.charCodeAt(i))>>>0;const pool=[...CLUB_STORE_ITEMS];for(let i=pool.length-1;i>0;i--){seed=(seed*1664525+1013904223)>>>0;const j=seed%(i+1);[pool[i],pool[j]]=[pool[j],pool[i]]}return pool.slice(0,10)}
         function updateDailyStoreClock(){const el=document.getElementById('storeRefreshCountdown');if(!el)return;const now=new Date(),next=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+1)),ms=next-now,h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);el.textContent='Nueva selección en '+h+' h '+m+' min'}
@@ -5026,6 +5049,7 @@
 
         // Botones del Menú Principal
         document.getElementById('btnOpenSettings').onclick=openClubSettings;document.getElementById('btnOpenSettingsGame').onclick=openClubSettings;document.getElementById('btnOpenStore').onclick=openClubStore;document.getElementById('btnOpenStoreGame').onclick=openClubStore;
+        document.getElementById('btnClaimDailyReward')?.addEventListener('click',claimDailyReward);renderDailyReward();
         document.getElementById('btnCloseSettings').onclick=()=>document.getElementById('settingsModal').classList.add('hidden');document.getElementById('btnCloseStore').onclick=()=>document.getElementById('storeModal').classList.add('hidden');
         document.getElementById('btnQuickSolo').onclick = () => createNewRoom(false);
         document.getElementById('btnCreateOnline').onclick = () => createNewRoom(true);
