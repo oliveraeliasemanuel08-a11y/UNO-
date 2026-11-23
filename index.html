@@ -4759,7 +4759,7 @@
         const arcadeEsc = v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         function arcadeOnlineRef(code){return doc(db,'artifacts',appId,'public','data','uno_rooms',code);}
         function arcadeOnlinePlayer(){return {id:currentUserId,name:state.playerName||'Jugador',avatar:state.playerAvatar?.avatar||'🙂'};}
-        function arcadeOnlineOpen(){clearTimeout(arcade.timer);document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeGamePanel').classList.add('hidden');}
+        function arcadeOnlineOpen(){clearTimeout(arcade.timer);document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');}
         async function arcadeOnlineCreate(mode){
           if(arcadeOnline.busy)return;arcadeOnline.busy=true;
           try{
@@ -4792,7 +4792,7 @@
               tx.update(ref,{seats,updatedAt:Date.now()});
             });
             arcadeOnline.code=code;arcadeOnline.selectedCard=null;await arcadeOnlineSubscribe(code);
-            document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeGamePanel').classList.remove('hidden');
+            document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');
           }catch(e){console.error('Arcade join:',e);showToast(e.message||'No se pudo entrar a la sala.','danger');}
           finally{arcadeOnline.busy=false;}
         }
