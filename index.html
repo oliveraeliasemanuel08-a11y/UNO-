@@ -3188,7 +3188,7 @@
                 code,
                 matchId:'match_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
                 hostId: currentUserId,
-                isPublic: true,
+                isPublic: !competitiveMode,
                 turnDuration: 20,
                 turnStartedAt: Date.now(),
                 status: 'lobby',
@@ -4694,7 +4694,7 @@
         function escapeLeaderboardText(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
         function renderPlayerRankBadge(uid){
           const id=String(uid||''),p=competitiveProfiles.get(id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??1000),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank);
-          if(idx<7)return '';
+          if(idx<7)return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="hidden" title="Rango '+rank.name+'"></span>';
           return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/55 px-1.5 py-0.5 text-[9px] font-black text-amber-100 whitespace-nowrap" title="'+rank.name+' · '+rating+' rating">'+renderRankEmblem(rank,18)+'<span>'+rank.name+'</span></span>';
         }
         function refreshRankBadgeElements(){document.querySelectorAll('[data-rank-player-id]').forEach(el=>{const uid=el.getAttribute('data-rank-player-id');el.outerHTML=renderPlayerRankBadge(uid)})}
