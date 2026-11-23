@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO! CLUB v2.0.0 — Mesa Oficial Online & Equipos</title>
+    <title>UNO! CLUB v2.3.0 — Mesa Oficial Online & Equipos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -564,7 +564,36 @@
         .arcade-playing-card{width:clamp(48px,8vw,76px);aspect-ratio:2.5/3.5;border:3px solid #fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:1000;font-size:clamp(17px,3vw,27px);color:white;text-shadow:0 2px 4px #0009;box-shadow:0 5px 12px #0007;flex:0 0 auto}
         .arcade-poker-card{width:clamp(42px,7vw,66px);aspect-ratio:2.5/3.5;border-radius:9px;background:#f8fafc;color:#111827;display:flex;flex-direction:column;justify-content:space-between;padding:5px;font-weight:900;box-shadow:0 5px 12px #0007;flex:0 0 auto}
         .arcade-poker-card.red{color:#dc2626}
-        .arcade-seat{background:#0b1714;border:1px solid #ffffff18;border-radius:14px;padding:10px;min-width:0}
+
+        .arcade-seat{background:linear-gradient(145deg,#102b22,#071710);border:1px solid rgba(226,190,116,.24);border-radius:15px;padding:11px;min-width:0;box-shadow:inset 0 1px 0 #ffffff12,0 7px 18px #0005}
+        /* Mesa común UNO!: todos los modos comparten la presentación de una partida normal */
+        .arcade-felt-board{position:relative;isolation:isolate;overflow:hidden;border:9px solid #4a2918;border-radius:30px;padding:clamp(12px,2.4vw,24px);background:radial-gradient(ellipse at 50% 42%,#19724d 0%,#105238 43%,#082d20 76%,#04170f 100%);box-shadow:inset 0 0 0 2px #c99a54, inset 0 0 70px #00190f,0 14px 34px #0009}
+        .arcade-felt-board:before{content:"UNO! CLUB";position:absolute;z-index:-1;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-12deg);font:1000 clamp(46px,10vw,100px)/1 'Fredoka',sans-serif;letter-spacing:-.07em;color:#ffffff08;white-space:nowrap;pointer-events:none}
+        .arcade-felt-board:after{content:"";position:absolute;inset:7px;border:1px solid #e8c88735;border-radius:20px;pointer-events:none}
+        .arcade-felt-board>*{position:relative}
+        .arcade-table-label{display:flex;justify-content:center;align-items:center;gap:9px;margin:0 auto 14px;color:#d7f5df;font-size:10px;font-weight:1000;letter-spacing:.22em;text-shadow:0 2px 5px #001}
+        .arcade-table-label:before,.arcade-table-label:after{content:"";height:1px;width:min(12vw,70px);background:linear-gradient(90deg,transparent,#d9c28c99)}
+        .arcade-table-label:after{transform:scaleX(-1)}
+        .arcade-playing-card{position:relative;width:clamp(58px,8vw,82px);aspect-ratio:2.5/3.5;border:3px solid #fff;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:1000;font-size:clamp(20px,3.3vw,30px);color:white;text-shadow:0 2px 4px #0009;box-shadow:0 7px 14px #0009, inset 0 0 0 2px #ffffff65;flex:0 0 auto;overflow:hidden;transform:rotate(-1deg);transition:transform .16s,filter .16s}
+        .arcade-playing-card:before{content:"";position:absolute;inset:8% 13%;border:2px solid #ffffffb8;border-radius:50%;transform:rotate(-28deg);background:linear-gradient(145deg,#ffffff20,#00000012);box-shadow:inset 0 0 8px #0003}
+        .arcade-playing-card:after{content:"";position:absolute;inset:3px;border:1px solid #ffffff75;border-radius:8px;pointer-events:none}
+        .arcade-playing-card>*{position:relative;z-index:1}
+        .arcade-playing-card:hover:not(:disabled){transform:translateY(-8px) rotate(0) scale(1.04);filter:brightness(1.1)}
+        .arcade-card-corner{position:absolute!important;z-index:2!important;top:4px;left:6px;font-size:10px;line-height:1;text-shadow:0 1px 3px #000}
+        .arcade-card-corner.bottom{top:auto;left:auto;right:6px;bottom:4px;transform:rotate(180deg)}
+        .arcade-card-symbol{font-family:'Fredoka',sans-serif;font-size:clamp(25px,4vw,38px);font-weight:1000;line-height:1;text-shadow:0 3px 5px #0008,-1px -1px 0 #fff5,1px 1px 0 #fff5}
+        .arcade-poker-card{position:relative;width:clamp(58px,8vw,78px);aspect-ratio:2.5/3.5;border:3px solid #fff;border-radius:13px;background:linear-gradient(145deg,#fff,#e8e8e8 60%,#cbd5e1);color:#111827;display:flex;flex-direction:column;justify-content:space-between;padding:6px;font-weight:1000;box-shadow:0 7px 14px #0009,inset 0 0 0 2px #cbd5e1;flex:0 0 auto;overflow:hidden}
+        .arcade-poker-card:before{content:"";position:absolute;inset:13% 13%;border:2px solid currentColor;border-radius:50%;transform:rotate(-25deg);opacity:.24}
+        .arcade-poker-card.red{color:#dc2626}
+        .arcade-poker-card .poker-center{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(27px,4vw,39px);text-shadow:0 1px 0 #fff8}
+        .arcade-poker-card .poker-corner{position:relative;z-index:1;font-size:12px;line-height:1}
+        .arcade-poker-card .poker-corner.bottom{align-self:flex-end;transform:rotate(180deg)}
+        .arcade-rules-panel{border:1px solid #d6b56b55;background:linear-gradient(145deg,#10291fdd,#07130fdd);border-radius:18px;padding:14px;margin-top:14px}
+        .arcade-rules-panel h4{font:800 13px 'Inter',sans-serif;color:#f6d58a;letter-spacing:.08em;margin-bottom:8px}
+        .arcade-rules-panel ol{padding-left:20px;display:grid;gap:6px;color:#e5eee8;font-size:12px;line-height:1.5}
+        .arcade-rules-panel li::marker{color:#f5c66d;font-weight:900}
+        @media(max-width:640px){#arcadeScreen{padding:10px!important}.arcade-card{padding:14px!important}.arcade-playing-card{width:54px}.arcade-poker-card{width:52px}.arcade-felt-board{border-width:6px;border-radius:22px;padding:10px}.arcade-rules-panel{padding:11px}}
+
         @media(max-width:640px){#arcadeScreen{padding:10px!important}.arcade-card{padding:14px!important}.arcade-playing-card{width:48px}.arcade-poker-card{width:42px}}
 
         /* Preferencia de dispositivo y adaptación móvil */
@@ -763,7 +792,7 @@
 </style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
-    <div id="gameVersionBadge" class="fixed top-2 left-2 z-[180] rounded-lg border border-emerald-300/30 bg-black/75 px-2.5 py-1 text-[10px] font-black tracking-wider text-emerald-200 shadow-lg pointer-events-none">UNO! CLUB v2.2.0</div>
+    <div id="gameVersionBadge" class="fixed top-2 left-2 z-[180] rounded-lg border border-emerald-300/30 bg-black/75 px-2.5 py-1 text-[10px] font-black tracking-wider text-emerald-200 shadow-lg pointer-events-none">UNO! CLUB v2.3.0</div>
     <div id="deviceSetupModal" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-5">
         <div class="w-full max-w-md rounded-3xl border border-amber-300/30 bg-zinc-950 p-6 text-center shadow-2xl">
             <div class="text-4xl mb-3">🎮</div>
@@ -4471,7 +4500,7 @@
           for(let k=0;k<4;k++){d.push({id:'u'+id++,color:'wild',value:'wild'},{id:'u'+id++,color:'wild',value:'wild_draw4'});}
           return arcadeShuffle(d);
         }
-        function arcadeCardFace(c){return c.value==='skip'?'⊘':c.value==='reverse'?'↻':c.value==='draw2'?'+2':c.value==='wild'?'★':c.value==='wild_draw4'?'+4':c.value;}
+        function arcadeCardFace(c){const label=c.value==='skip'?'⊘':c.value==='reverse'?'↻':c.value==='draw2'?'+2':c.value==='wild'?'★':c.value==='wild_draw4'?'+4':String(c.value);return '<span class="arcade-card-corner">'+label+'</span><span class="arcade-card-symbol">'+label+'</span><span class="arcade-card-corner bottom">'+label+'</span>';}
         function arcadeUnoCard(c,clickable=false,extra=''){const bg=c.color==='wild'?'linear-gradient(135deg,#dc2626 0 25%,#2563eb 25% 50%,#16a34a 50% 75%,#eab308 75%)':arcadeColorHex[c.color];return '<button '+(clickable?'data-arcade-card="'+c.id+'"':'disabled')+' class="arcade-playing-card '+extra+'" style="background:'+bg+';'+(clickable?'cursor:pointer':'')+'">'+arcadeCardFace(c)+'</button>';}
         function arcadeOpenGame(mode){
           clearTimeout(arcade.timer);arcade.mode=mode;
@@ -4481,14 +4510,14 @@
           document.getElementById('arcadeGameEyebrow').textContent=meta[0];document.getElementById('arcadeGameTitle').textContent=meta[1];document.getElementById('arcadeGameSubtitle').textContent=meta[2];
           if(mode==='poker') arcadeStartPoker(); else if(mode==='battle') arcadeStartBattle(); else arcadeStartRobado();
         }
-        function arcadeRender(html){document.getElementById('arcadeGameContent').innerHTML=html;}
+        function arcadeRender(html){document.getElementById('arcadeGameContent').innerHTML='<div class="arcade-felt-board"><div class="arcade-table-label">MESA DE JUEGO · UNO! CLUB</div>'+html+'</div>';}
         function arcadeHome(){clearTimeout(arcade.timer);arcade.game=null;arcade.mode=null;document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeGamePanel').classList.add('hidden');document.getElementById('homeScreen').classList.remove('hidden');}
         function arcadeBackToModes(){clearTimeout(arcade.timer);arcade.game=null;document.getElementById('arcadeGamePanel').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}
         function arcadeStartAgain(){if(arcade.mode)arcadeOpenGame(arcade.mode);}
 
         // UNO! POK — Texas Hold'em con fichas virtuales y evaluación real de manos.
         function pokerDeck(){const suits=['♠','♥','♦','♣'],d=[];for(const suit of suits)for(let v=2;v<=14;v++)d.push({v,suit});return arcadeShuffle(d);}
-        function pokerCard(c){const red=c.suit==='♥'||c.suit==='♦';const v=c.v===14?'A':c.v===13?'K':c.v===12?'Q':c.v===11?'J':c.v;return '<div class="arcade-poker-card '+(red?'red':'')+'"><span>'+v+c.suit+'</span><span class="text-center text-2xl">'+c.suit+'</span><span class="self-end">'+v+c.suit+'</span></div>';}
+        function pokerCard(c){const red=c.suit==='♥'||c.suit==='♦';const v=c.v===14?'A':c.v===13?'K':c.v===12?'Q':c.v===11?'J':c.v;return '<div class="arcade-poker-card '+(red?'red':'')+'"><span class="poker-corner">'+v+'<br>'+c.suit+'</span><span class="poker-center">'+c.suit+'</span><span class="poker-corner bottom">'+v+'<br>'+c.suit+'</span></div>';}
         function pokerCombos(a,k){if(k===0)return [[]];if(a.length<k)return [];const [h,...tail]=a;return pokerCombos(tail,k-1).map(x=>[h,...x]).concat(pokerCombos(tail,k));}
         function pokerEval5(cards){
           const vals=cards.map(c=>c.v).sort((a,b)=>b-a),counts={};vals.forEach(v=>counts[v]=(counts[v]||0)+1);
@@ -4873,7 +4902,7 @@
           const meta=arcadeModeMeta[mode];if(!meta)return;arcadeOnline.selectedMode=mode;
           document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.remove('hidden');
           document.getElementById('arcadeSetupEmoji').textContent=meta.emoji;document.getElementById('arcadeSetupTitle').textContent=meta.title;
-          document.getElementById('arcadeSetupRules').textContent=({poker:'Texas Hold’em: cada jugador recibe 2 cartas privadas. Se revelan 5 cartas comunitarias en flop, turn y river. Apostá, igualá o retirate para ganar el pozo de fichas virtuales.',battle:'Cada jugador comienza con 100 HP y 7 cartas UNO. Jugá cartas para atacar al siguiente rival, curarte con verde o ganar escudo con reversa. El último en pie gana.',robado:'Inspirado en la Casita Robada argentina. Reparto de 3 cartas, 4 en el centro. Igualá números/valores para capturar cartas o robar toda una casita por su carta superior.'})[mode];
+          document.getElementById('arcadeSetupRules').innerHTML=({poker:'<div class="arcade-rules-panel"><h4>♠ REGLAS DE UNO! POK</h4><ol><li>Cada jugador recibe 2 cartas privadas. En la mesa se revelan 5 cartas comunitarias: 3 en el flop, 1 en el turn y 1 en el river.</li><li>Combiná tus 2 cartas con las comunitarias para formar la mejor mano de póker de 5 cartas.</li><li>En tu turno podés <b>Igualar</b> la apuesta actual, <b>Subir +20</b> fichas o <b>Retirarte</b>.</li><li>Si todos se retiran menos uno, esa persona gana el pozo. Si llegan al final, gana la mejor combinación.</li><li>Empezás con 1000 fichas virtuales. Ciegas iniciales: 10 y 20. No hay dinero real.</li></ol></div>',battle:'<div class="arcade-rules-panel"><h4>⚔️ REGLAS DE UNO! BATALLA</h4><ol><li>Todos comienzan con <b>100 puntos de vida</b> y 7 cartas UNO.</li><li>En tu turno elegí una carta de tu mano para atacar al siguiente rival que siga vivo.</li><li>Las cartas numéricas hacen daño según su valor. Las cartas especiales tienen efectos: <b>Salto</b> causa 16 de daño y <b>Reversa</b> te da 18 puntos de escudo.</li><li>Las cartas verdes normales te curan. La vida nunca supera los 100 puntos; el escudo absorbe daño antes que la vida.</li><li>Si te quedás sin cartas, recibís hasta 4 nuevas. También podés robar una carta y pasar el turno.</li><li>Cuando tu vida llega a 0 quedás eliminado. Gana el último jugador que permanezca en pie.</li></ol></div>',robado:'<div class="arcade-rules-panel"><h4>🏠 REGLAS DE UNO! ROBADO</h4><ol><li>Cada jugador recibe 3 cartas y se colocan 4 cartas boca arriba en el centro.</li><li>Elegí una carta de tu mano. Si coincide en valor con una carta del centro, tocá esa carta para llevarte ambas a tu casita.</li><li>También podés robar la casita de otro jugador: tu carta debe coincidir con la carta que está arriba de su pila. Te llevás toda su casita.</li><li>Si no hay ninguna coincidencia, podés dejar tu carta en el centro para que otro jugador intente capturarla.</li><li>Cuando te quedás sin cartas, recibís hasta 3 nuevas si todavía queda mazo.</li><li>Cuando se termina el mazo y todos vacían su mano, gana quien haya juntado más cartas en su casita.</li></ol></div>'})[mode];
           document.getElementById('arcadeJoinCode').value='';
         }
         document.querySelectorAll('[data-arcade-menu]').forEach(b=>b.addEventListener('click',()=>arcadeShowModeSetup(b.dataset.arcadeMenu)));
