@@ -3174,6 +3174,8 @@
                 id: currentUserId,
                 name: state.playerName,
                 avatar: state.playerAvatar,
+                competitiveRating: getCompetitiveRating(),
+                competitiveRankName: getCompetitiveRank().name,
                 isBot: false,
                 team: competitiveTeams ? 0 : null,
                 hand: [],
@@ -3298,6 +3300,8 @@
                         id: currentUserId,
                         name: state.playerName,
                         avatar: state.playerAvatar,
+                        competitiveRating: getCompetitiveRating(),
+                        competitiveRankName: getCompetitiveRank().name,
                         isBot: false,
                         finishRank: null
                     };
@@ -4265,6 +4269,7 @@
                             <div class="min-w-0">
                                 <div class="flex items-center gap-1">
                                     <span class="text-xs font-extrabold text-white truncate">${occupied ? seat.name : `Asiento ${idx + 1} (Libre)`}</span>
+                                    ${room.competitiveMode && occupied && !seat.isBot ? renderPlayerRankBadge(seat.id) : ''}
                                     ${isSeatHost ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-bold">HOST</span>` : ''}
                                 </div>
                                 ${teamInfo ? `<span class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${teamInfo.badge}">${teamInfo.name}</span>` : `<span class="text-[10px] text-zinc-500">${occupied ? (seat.isBot ? 'Bot IA' : (isMe ? 'Tú' : 'Jugador Online')) : 'Esperando...'}</span>`}
@@ -4735,7 +4740,7 @@
         }
         function escapeLeaderboardText(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
         function renderPlayerRankBadge(uid){
-          const id=String(uid||''),p=competitiveProfiles.get(id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??1000),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank);
+          const id=String(uid||''),p=competitiveProfiles.get(id),seat=state.room?.seats?.find(x=>x&&x.id===id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??seat?.competitiveRating??1000),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank);
           if(idx<12)return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="hidden" title="Rango '+rank.name+'"></span>';
           return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/55 px-1.5 py-0.5 text-[9px] font-black text-amber-100 whitespace-nowrap" title="'+rank.name+' · '+rating+' rating">'+renderRankEmblem(rank,18)+'<span>'+rank.name+'</span></span>';
         }
