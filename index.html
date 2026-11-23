@@ -737,6 +737,16 @@
 @media(max-width:600px){.tcg-reveal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.tcg-reveal-panel{max-height:95dvh;padding:13px}.tcg-reveal-front,.tcg-reveal-back{padding:6px;border-radius:9px}}
 @media(prefers-reduced-motion:reduce){.tcg-reveal-overlay,.tcg-reveal-slot,.tcg-reveal-card-inner,.tcg-card-shine{animation:none!important;transition:none!important}}
 </style>
+<style id="uno-hand-50-cards">
+#localHandContainer.hand-scrollable-cards{max-width:100%;min-width:0;box-sizing:border-box;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#a78bfa #181326}
+#localHandContainer.hand-scrollable-cards .uno-card{flex-shrink:0;transition:transform .18s ease,filter .18s ease}
+#localHandContainer.hand-scrollable-cards .uno-card:hover{z-index:999!important}
+#localHandContainer.hand-many-cards{scroll-snap-type:x proximity}
+#localHandContainer.hand-many-cards .uno-card{scroll-snap-align:start}
+#localHandContainer.hand-scrollable-cards::-webkit-scrollbar{height:7px}
+#localHandContainer.hand-scrollable-cards::-webkit-scrollbar-thumb{background:#8b5cf6;border-radius:10px}
+@media(max-width:600px){#localHandContainer.hand-scrollable-cards{touch-action:pan-x pan-y; -webkit-overflow-scrolling:touch}}
+</style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
     <div id="gameVersionBadge" class="fixed top-2 left-2 z-[180] rounded-lg border border-emerald-300/30 bg-black/75 px-2.5 py-1 text-[10px] font-black tracking-wider text-emerald-200 shadow-lg pointer-events-none">UNO! CLUB v2.1.0</div>
@@ -4071,18 +4081,21 @@
                 return;
             }
 
-            const isCompactHand = total > 12;
-            const maxSpreadDeg = isCompactHand ? Math.min(12, 120 / total) : Math.min(36, total * 4.2);
+            // La mano conserva el abanico normal hasta 50 cartas.
+            // Entre 13 y 50 se puede recorrer horizontalmente sin aplastar las cartas.
+            // El modo súper compacto recién se activa al superar las 50.
+            const isCompactHand = total > 50;
+            const isScrollableHand = total > 12;
+            const maxSpreadDeg = isCompactHand ? Math.min(8, 100 / total) : Math.min(36, total * 4.2);
             const cardWidth = state.deviceMode === 'mobile' ? (window.innerWidth < 500 ? 58 : 76) : 96;
-            // Con muchas cartas se superponen dejando una franja visible de cada una.
-            // El contenedor permite desplazarse horizontalmente para recorrer toda la mano.
-            const visibleStrip = total > 60 ? 9 : (total > 30 ? 13 : 18);
-            const overlapPx = isCompactHand ? -(cardWidth - visibleStrip) : (total > 6 ? -24 : -12);
+            const visibleStrip = state.deviceMode === 'mobile' ? 22 : 30;
+            const overlapPx = isCompactHand ? -(cardWidth - visibleStrip) : (total > 6 ? -18 : -12);
             handContainer.classList.toggle('hand-many-cards', isCompactHand);
-            handContainer.style.justifyContent = isCompactHand ? 'flex-start' : 'center';
-            handContainer.style.overflowX = isCompactHand ? 'auto' : 'visible';
+            handContainer.classList.toggle('hand-scrollable-cards', isScrollableHand);
+            handContainer.style.justifyContent = isScrollableHand ? 'flex-start' : 'center';
+            handContainer.style.overflowX = isScrollableHand ? 'auto' : 'visible';
             handContainer.style.overflowY = 'visible';
-            handContainer.style.paddingBottom = isCompactHand ? '44px' : '';
+            handContainer.style.paddingBottom = isScrollableHand ? '44px' : '';
 
             handContainer.innerHTML = cards.map((card, idx) => {
                 const playable = isMyTurn && canPlayCard(card, room, state.comboChain);
