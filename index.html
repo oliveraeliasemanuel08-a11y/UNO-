@@ -509,6 +509,9 @@
             pointer-events: none;
         }
 
+        .uno-rank-emblem { overflow: visible; filter: drop-shadow(0 2px 3px rgba(0,0,0,.65)) drop-shadow(0 0 5px rgba(255,255,255,.12)); transition: transform .2s ease, filter .2s ease; }
+        .uno-rank-emblem:hover { transform: translateY(-2px) scale(1.08); filter: drop-shadow(0 3px 5px rgba(0,0,0,.75)) drop-shadow(0 0 9px rgba(250,204,21,.35)); }
+
         /* Scrollbar discreta */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
@@ -1039,6 +1042,8 @@
                             </div>
                             <div id="playerIdDisplay" class="w-full mb-1 text-[9px] text-amber-300/80 font-mono tracking-wide break-all">ID: conectando...</div>
                             <input id="playerNameInput" type="text" maxlength="16" placeholder="Tu apodo..." class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-400 rounded-xl px-3 py-2 text-center text-white font-extrabold text-sm focus:outline-none">
+                            <button id="btnSavePlayerName" type="button" class="mt-2 w-full rounded-xl border border-amber-300/40 bg-gradient-to-r from-amber-500 to-yellow-300 px-3 py-2 text-xs font-black text-zinc-950 shadow-lg shadow-amber-950/30 hover:brightness-110">GUARDAR NOMBRE · GRATIS</button>
+                            <p id="playerNameStatus" class="mt-1 text-[10px] text-zinc-400 text-center">Elegí un nombre único. Tu primer nombre es gratis.</p>
                         </div>
 
                         <!-- Selectores de Rasgos del Avatar -->
@@ -4744,10 +4749,13 @@
         }
         function getCompetitiveRank(rating=getCompetitiveRating()){return UNO_COMPETITIVE_RANKS.slice().reverse().find(r=>rating>=r.min)||UNO_COMPETITIVE_RANKS[0]}
         function renderRankEmblem(rank,size=30){
-          const r=typeof rank==='number'?getCompetitiveRank(rank):(rank||UNO_COMPETITIVE_RANKS[0]),i=Math.max(0,UNO_COMPETITIVE_RANKS.indexOf(r)),c=r.colors||UNO_COMPETITIVE_RANKS[0].colors,s=Math.max(16,Math.min(72,Number(size)||30));
+          const r=typeof rank==='number'?getCompetitiveRank(rank):(rank||UNO_COMPETITIVE_RANKS[0]),i=Math.max(0,UNO_COMPETITIVE_RANKS.indexOf(r)),c=r.colors||UNO_COMPETITIVE_RANKS[0].colors,s=Math.max(16,Math.min(84,Number(size)||30));
           const shapes=['M32 3 55 13 57 34 48 51 32 61 16 51 7 34 9 13Z','M32 3 54 11 61 28 53 47 32 61 11 47 3 28 10 11Z','M32 3 57 16 57 42 32 61 7 42 7 16Z','M32 2 49 8 61 25 55 45 32 62 9 45 3 25 15 8Z','M32 3 58 13 54 39 32 61 10 39 6 13Z','M32 2 43 10 57 8 55 23 63 32 55 42 57 56 42 54 32 63 22 54 7 56 9 42 1 32 9 23 7 8 21 10Z','M32 2 60 18 52 48 32 62 12 48 4 18Z','M32 1 39 13 53 5 52 21 64 28 53 37 59 53 41 51 32 64 23 51 5 53 11 37 0 28 12 21 11 5 25 13Z','M32 3 42 10 54 6 54 20 62 29 53 39 54 54 40 51 32 62 24 51 10 54 11 39 2 29 10 20 10 6 22 10Z','M32 1 39 11 52 3 53 18 65 25 55 36 62 51 45 51 32 64 19 51 2 51 9 36 -1 25 11 18 12 3 25 11Z'];
-          const marks=['<path d="M20 35 26 41 32 28 38 41 44 35" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>','<path d="M16 32 24 24 32 31 40 24 48 32M18 40 27 35 32 42 37 35 46 40" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>','<path d="M32 18 35 27 45 27 37 33 40 43 32 37 24 43 27 33 19 27 29 27Z" fill="#fff"/>','<path d="M16 31Q23 19 32 29Q41 19 48 31M18 39Q25 31 32 39Q39 31 46 39" fill="none" stroke="#fff" stroke-width="2.6"/>','<path d="M19 37 22 24 32 32 42 24 45 37 40 43 24 43Z" fill="#fff"/>','<path d="M17 34 22 19 32 28 42 19 47 34 42 43 22 43Z" fill="#fff"/><path d="M22 47H42" stroke="#fff" stroke-width="2.5"/>','<path d="M32 17 44 29 32 46 20 29Z" fill="#fff"/><path d="M32 22V41M24 29H40" stroke="#0f766e" stroke-width="2"/>','<path d="M32 15 37 27 50 32 37 37 32 50 27 37 14 32 27 27Z" fill="#fff"/><path d="M32 22 42 32 32 42 22 32Z" fill="#0284c7"/>','<path d="M17 43Q7 27 18 17Q23 13 27 19M47 43Q57 27 46 17Q41 13 37 19" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M22 43 32 49 42 43" fill="none" stroke="#fff" stroke-width="2.5"/>','<path d="M14 36 19 20 27 29 32 13 37 29 45 20 50 36 44 46 20 46Z" fill="#fff"/><circle cx="32" cy="35" r="5" fill="#be123c"/>'];
-          return '<svg class="shrink-0 drop-shadow" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="unoRankA'+i+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".5" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs><path d="'+shapes[i%shapes.length]+'" fill="url(#unoRankA'+i+')" stroke="'+c[1]+'" stroke-width="2.4"/>'+marks[i%marks.length]+'<text x="32" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".45" stroke-width=".8" paint-order="stroke">'+r.glyph+'</text></svg>';
+          const marks=['<path d="M20 35 26 41 32 28 38 41 44 35" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>','<path d="M16 32 24 24 32 31 40 24 48 32M18 40 27 35 32 42 37 35 46 40" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>','<path d="M32 18 35 27 45 27 37 33 40 43 32 37 24 43 27 33 19 27 29 27Z" fill="#fff"/>','<path d="M16 31Q23 19 32 29Q41 19 48 31M18 39Q25 31 32 39Q39 31 46 39" fill="none" stroke="#fff" stroke-width="2.6"/>','<path d="M19 37 22 24 32 32 42 24 45 37 40 43 24 43Z" fill="#fff"/>','<path d="M17 34 22 19 32 28 42 19 47 34 42 43 22 43Z" fill="#fff"/><path d="M22 47H42" stroke="#fff" stroke-width="2.5"/>','<path d="M32 17 44 29 32 46 20 29Z" fill="#fff"/><path d="M32 22V41M24 29H40" stroke="#0f766e" stroke-width="2"/>','<path d="M32 15 37 27 50 32 37 37 32 50 27 37 14 32 27 27Z" fill="#fff"/><path d="M32 22 42 32 32 42 22 32Z" fill="#0284c7"/>','<path d="M17 43Q7 27 18 17Q23 13 27 19M47 43Q57 27 46 17Q41 13 37 19" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>','<path d="M14 36 19 20 27 29 32 13 37 29 45 20 50 36 44 46 20 46Z" fill="#fff"/><circle cx="32" cy="35" r="5" fill="#be123c"/>'];
+          const shape=shapes[i%shapes.length],mark=marks[i%marks.length],gid='unoRankGradient'+i,glow='unoRankGlow'+i;
+          const stars=i>=18?6:i>=15?5:i>=12?4:i>=9?3:i>=6?2:1;
+          let starBits='';for(let n=0;n<stars;n++){const angle=(Math.PI*2*n/stars)-Math.PI/2,x=32+25*Math.cos(angle),y=32+25*Math.sin(angle);starBits+='<path d="M'+x.toFixed(1)+' '+(y-2.1).toFixed(1)+'l.8 1.5 1.7.3-1.3 1.2.3 1.7-1.5-.8-1.5.8.3-1.7-1.3-1.2 1.7-.3Z" fill="'+c[1]+'" opacity=".9"/>';}
+          return '<svg class="uno-rank-emblem shrink-0" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".48" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient><radialGradient id="'+glow+'"><stop offset="0" stop-color="'+c[1]+'" stop-opacity=".55"/><stop offset="1" stop-color="'+c[2]+'" stop-opacity="0"/></radialGradient></defs><circle cx="32" cy="32" r="31" fill="url(#'+glow+')" opacity=".8"/><circle cx="32" cy="32" r="29" fill="none" stroke="'+c[1]+'" stroke-opacity=".48" stroke-width="1.4"/><path d="'+shape+'" transform="translate(0 1.5)" fill="#000" opacity=".42"/><path d="'+shape+'" fill="url(#'+gid+')" stroke="'+c[1]+'" stroke-width="2.6" stroke-linejoin="round"/><path d="'+shape+'" transform="translate(0 0) scale(.82) translate(7 7)" fill="none" stroke="#fff" stroke-opacity=".42" stroke-width="1.2"/><path d="M17 15Q32 5 47 15" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="2" stroke-linecap="round"/><path d="M18 46Q32 57 46 46" fill="none" stroke="'+c[2]+'" stroke-opacity=".85" stroke-width="2"/>'+starBits+'<g filter="drop-shadow(0 1px 1px #000)">'+mark+'</g><path d="M23 52H41" stroke="#fff" stroke-opacity=".55" stroke-width="1"/><text x="32" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".7" stroke-width="1" paint-order="stroke">'+r.glyph+'</text></svg>';
         }
         function escapeLeaderboardText(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
         function renderPlayerRankBadge(uid){
@@ -4896,14 +4904,69 @@
             syncCompetitiveProfile().catch(()=>{});
         }
 
+        // El nombre público se registra una sola vez y se reserva globalmente en Firestore.
+        function normalizePlayerUsername(value){
+          return String(value||'').trim().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+        }
+        async function savePlayerUsername(){
+          const input=document.getElementById('playerNameInput'),status=document.getElementById('playerNameStatus'),button=document.getElementById('btnSavePlayerName');
+          const desired=String(input?.value||'').trim(),normalized=normalizePlayerUsername(desired);
+          const setStatus=(msg,color='text-zinc-400')=>{if(status){status.className='mt-1 text-[10px] text-center '+color;status.textContent=msg;}};
+          if(!/^[a-z0-9_]{3,16}$/.test(normalized)){setStatus('Usá 3 a 16 caracteres: letras, números o guion bajo.','text-rose-300');showToast('El nombre debe tener entre 3 y 16 caracteres.','warn');return;}
+          const ready=await initFirebase();if(!ready||!db||!currentUser){setStatus('Conectate a Firebase para reservar tu nombre.','text-rose-300');showToast('No se pudo conectar con el servidor.','danger');return;}
+          if(button){button.disabled=true;button.textContent='COMPROBANDO...';}
+          try{
+            const profileRef=doc(db,'artifacts',appId,'public','data','uno_leaderboard',currentUserId);
+            const usernameRef=doc(db,'artifacts',appId,'public','data','uno_usernames',normalized);
+            let result={free:false,charged:0};
+            await runTransaction(db,async tx=>{
+              const profileSnap=await tx.get(profileRef),claimSnap=await tx.get(usernameRef),profile=profileSnap.exists()?profileSnap.data():{};
+              if(claimSnap.exists()&&claimSnap.data().uid!==currentUserId)throw new Error('USERNAME_TAKEN');
+              const oldNormalized=String(profile.usernameNormalized||'');
+              const sameName=oldNormalized===normalized;
+              const hasUsedFree=profile.freeUsernameUsed===true;
+              const free=!hasUsedFree;
+              const balance=Math.max(0,Number(localStorage.getItem('uno_club_points')||0));
+              const charged=(!free&&!sameName)?2000:0;
+              if(charged&&balance<charged)throw new Error('NOT_ENOUGH_COINS');
+              let oldClaimRef=null,oldClaimSnap=null;
+              if(oldNormalized&&oldNormalized!==normalized){
+                oldClaimRef=doc(db,'artifacts',appId,'public','data','uno_usernames',oldNormalized);
+                oldClaimSnap=await tx.get(oldClaimRef);
+              }
+              const updated={...profile,uid:currentUserId,name:desired,usernameNormalized:normalized,freeUsernameUsed:true,usernameCreatedAt:profile.usernameCreatedAt||Date.now(),usernameUpdatedAt:Date.now()};
+              tx.set(usernameRef,{uid:currentUserId,username:desired,normalized,updatedAt:Date.now()});
+              tx.set(profileRef,updated,{merge:true});
+              if(oldClaimRef&&oldClaimSnap?.exists()&&oldClaimSnap.data().uid===currentUserId)tx.delete(oldClaimRef);
+              result={free,charged,sameName};
+            });
+            if(result.charged){const balance=Math.max(0,Number(localStorage.getItem('uno_club_points')||0))-result.charged;localStorage.setItem('uno_club_points',String(balance));updateClubWalletUI();}
+            state.playerName=desired;try{localStorage.setItem('uno_player_name',desired);}catch(e){}
+            if(input)input.value=desired;
+            setStatus(result.sameName?'Este ya es tu nombre actual.':result.free?'¡Nombre reservado! Tu primer nombre fue gratis.':'Nombre cambiado. Se descontaron 2.000 UNOcoins.', 'text-emerald-300');
+            if(button)button.textContent='NOMBRE GUARDADO';
+            await syncCompetitiveProfile();
+            renderCurrentView();
+            showToast(result.sameName?'Ese nombre ya está en tu perfil.':result.free?'¡Tu nombre quedó reservado!':'Nombre actualizado por 2.000 UNOcoins.','success');
+          }catch(error){
+            console.error('Guardar nombre:',error);
+            if(error.message==='USERNAME_TAKEN'){setStatus('Ese nombre ya está en uso. Por favor, utilizá otro.','text-rose-300');showToast('Ese nombre ya está en uso. Por favor, utilizá otro.','warn');}
+            else if(error.message==='NOT_ENOUGH_COINS'){setStatus('Necesitás 2.000 UNOcoins para cambiar tu nombre.','text-rose-300');showToast('No tenés suficientes UNOcoins. Necesitás 2.000.','warn');}
+            else{setStatus('No se pudo guardar. Revisá la conexión y las reglas de Firestore.','text-rose-300');showToast('No se pudo guardar el nombre. Revisá Firebase.','danger');}
+            if(button)button.textContent='GUARDAR NOMBRE';
+          }finally{if(button)button.disabled=false;}
+        }
+
         // Inicializar controles de Inicio y Estudio de Avatar
         const nameInput = document.getElementById('playerNameInput');
+        const saveNameButton=document.getElementById('btnSavePlayerName');
         nameInput.value = state.playerName;
-        nameInput.addEventListener('input', () => {
-            state.playerName = nameInput.value.trim() || 'Jugador';
-            try { localStorage.setItem('uno_player_name', state.playerName); } catch (e) {}
+        nameInput.addEventListener('input',()=>{
+          if(saveNameButton)saveNameButton.textContent='GUARDAR NOMBRE';
+          const status=document.getElementById('playerNameStatus');
+          if(status){status.textContent='Tu primer nombre es gratis; los siguientes cambios cuestan 2.000 UNOcoins.';status.className='mt-1 text-[10px] text-zinc-400 text-center';}
         });
-        nameInput.addEventListener('change',()=>syncCompetitiveProfile().catch(()=>{}));
+        saveNameButton?.addEventListener('click',savePlayerUsername);
 
         document.querySelectorAll('.trait-cycle').forEach(btn => {
             btn.onclick = () => {
