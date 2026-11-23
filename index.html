@@ -4502,7 +4502,7 @@
           arcadeRender('<div class="grid grid-cols-2 md:grid-cols-4 gap-2">'+seats+'</div><div class="mt-5 rounded-2xl bg-emerald-950/60 border border-emerald-400/20 p-4 text-center"><div class="text-[10px] tracking-widest text-emerald-200">POZO TOTAL</div><div class="font-uno text-4xl text-amber-300">🪙 '+g.pot+'</div><div class="text-xs text-zinc-300 mt-1">'+stages[g.stage]+' · '+g.message+'</div><div class="flex justify-center flex-wrap gap-2 mt-4 min-h-[100px] items-center">'+comm+'</div></div><div class="mt-5"><div class="text-xs text-zinc-400 mb-2">TUS CARTAS PRIVADAS</div><div class="flex gap-3 justify-center">'+p.hand.map(pokerCard).join('')+'</div></div>'+(can?'<div class="flex flex-wrap justify-center gap-2 mt-5"><button data-poker-action="fold" class="arcade-action text-rose-200">Retirarme</button><button data-poker-action="call" class="arcade-action text-emerald-200">'+(call?'Igualar 🪙 '+call:'Pasar / Check')+'</button><button data-poker-action="raise" class="arcade-action border-amber-400/40 text-amber-200">Subir +20</button></div>':'<div class="text-center mt-5"><button data-poker-action="again" class="arcade-action text-amber-200">Nueva mano</button></div>')+'<div class="text-center text-[10px] text-zinc-500 mt-4">Las fichas son virtuales y solo se guardan en este navegador.</div>');
         }
         function pokerAward(winners){
-          const g=arcade.game;const share=Math.floor(g.pot/winners.length);winners.forEach(i=>g.players[i].stack+=share);g.pot=0;g.over=true;
+          const g=arcade.game;const share=Math.floor(g.pot/winners.length),remainder=g.pot-share*winners.length;winners.forEach((i,k)=>g.players[i].stack+=share+(k===0?remainder:0));g.pot=0;g.over=true;
           const human=g.players[0];try{localStorage.setItem('uno_pok_chips',String(human.stack));}catch(e){}
           if(winners.includes(0))g.message='¡Ganaste el pozo!';else g.message='Ganó '+g.players[winners[0]].name+'.';
           pokerRender();
@@ -4552,7 +4552,7 @@
           const p=g.players[seat],idx=p.hand.findIndex(c=>c.id===cardId);if(idx<0)return;const c=p.hand.splice(idx,1)[0];
           if(c.color==='green'&&c.value!=='wild'&&c.value!=='wild_draw4'){p.hp=Math.min(100,p.hp+Math.max(8,battlePower(c)));g.log='🌿 Te curaste '+Math.max(8,battlePower(c))+' puntos.';}
           else if(c.value==='reverse'){p.shield+=18;g.log='🛡️ '+p.name+' levantó un escudo de 18.';}
-          else if(c.value==='skip'){const target=battleNextAlive(seat);const dmg=battleDamage(target,16);g.log='💥 '+p.name+' aturdió a '+g.players[target].name+' y causó '+dmg+' de daño.';}
+          else if(c.value==='skip'){const target=battleNextAlive(seat);const dmg=battleDamage(target,16);g.log='💥 '+p.name+' golpeó a '+g.players[target].name+' y causó '+dmg+' de daño.';}
           else {const target=battleNextAlive(seat),dmg=battleDamage(target,battlePower(c));g.log='⚔️ '+p.name+' atacó a '+g.players[target].name+' por '+dmg+' de daño.';}
           if(p.hand.length===0){for(let n=0;n<4;n++)p.hand.push(g.deck.length?g.deck.pop():arcadeUnoDeck().pop());}
           if(g.players.filter(x=>x.alive).length<=1){battleRender();return;}
