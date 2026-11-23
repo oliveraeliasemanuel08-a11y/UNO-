@@ -989,6 +989,15 @@
               <div class="grid grid-cols-7 gap-1.5 mt-4" id="dailyRewardTrack"><div>D1 · 🪙100</div><div>D2 · 🪙150</div><div>D3 · 🪙200</div><div>D4 · 🪙250</div><div>D5 · 🪙300</div><div>D6 · 🪙400</div><div>D7 · 🪙500</div></div>
             </section>
 
+
+            <section id="competitiveRankPanel" class="mt-4 rounded-2xl border border-amber-300/25 bg-gradient-to-br from-zinc-900 via-amber-950/30 to-black p-4 sm:p-5">
+              <div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-[10px] font-black tracking-[.22em] text-amber-300">🏆 CIRCUITO COMPETITIVO</div><h2 class="font-uno text-2xl text-white">Tu camino a la cima</h2><p class="text-xs text-zinc-400">10 divisiones, rating y progreso de temporada</p></div><div class="text-right"><div id="competitiveRankName" class="font-uno text-xl text-amber-200">🥉 Bronce I</div><div id="competitiveRankRating" class="text-xs text-zinc-300">1000 puntos de rating</div></div></div>
+              <div class="mt-3 h-3 overflow-hidden rounded-full bg-black/60 border border-white/10"><div id="competitiveRankProgress" class="h-full rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-white transition-all duration-500" style="width:0%"></div></div>
+              <div class="mt-2 flex items-center justify-between gap-2 text-[10px] text-zinc-400"><span id="competitiveRankNext">Siguiente rango</span><span id="competitiveRankDelta">Ganá partidas para subir</span></div>
+              <div id="competitiveRankLadder" class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-1.5"></div>
+              <div class="mt-3 rounded-xl border border-sky-400/20 bg-sky-950/20 p-3"><div class="flex items-center justify-between gap-2"><b class="text-xs text-sky-200">🎯 Emparejamiento por nivel</b><span id="competitiveMatchBand" class="text-[10px] text-sky-300">Rango cercano</span></div><p class="mt-1 text-[11px] text-zinc-400">La búsqueda competitiva debe priorizar jugadores con rating parecido y ampliar el rango gradualmente si tarda. El emparejamiento automático global requiere una cola segura en Firebase.</p></div>
+            </section>
+
             <!-- Cuerpo en 2 Columnas: Estudio de Avatar a la izquierda / Modos de Juego a la derecha -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-6 items-stretch">
 
@@ -2011,11 +2020,15 @@
             { id: 'emerald', hex: '#10b981', bg: '#022c22' },
             { id: 'blue',    hex: '#3b82f6', bg: '#172554' },
             { id: 'purple',  hex: '#a855f7', bg: '#3b0764' },
-            { id: 'neon', hex: '#22d3ee', bg: '#083344' }
+            { id: 'neon', hex: '#22d3ee', bg: '#083344' },
+            { id: 'diamond', hex: '#e0f2fe', bg: '#164e63' },
+            { id: 'ruby', hex: '#fb7185', bg: '#881337' },
+            { id: 'amethyst', hex: '#c084fc', bg: '#581c87' },
+            { id: 'rainbow', hex: '#f0abfc', bg: '#312e81' }
         ];
-        const AVATAR_HAIR_STYLES = ['Corto','Copete','Largo','Rizos','Mohicano','Calvo','Despeinado','Punk','Ondulado','Afro','Trenzas','Flequillo','Cresta','Raya'];
+        const AVATAR_HAIR_STYLES = ['Corto','Copete','Largo','Rizos','Mohicano','Calvo','Despeinado','Punk','Ondulado','Afro','Trenzas','Flequillo','Cresta','Raya','Doble moño','Rapado lateral','Cola alta','Cabello anime','Corte urbano','Rastas','Melena salvaje','Corte elegante'];
         const AVATAR_FACE_STYLES = ['Confiado','Sonriente','Pícaro','Sorpresa','Serio','Guiño','Furioso'];
-        const AVATAR_ACC_STYLES = ['Ninguno','Gafas VIP','Corona','Gorra UNO','Audífonos','Antifaz','Halo','Auriculares Neon','Pañuelo','Collar Dorado','Gorro','Visor futurista','Máscara neón','Sombrero vaquero','Diadema','Orejas de gato','Alas mini','Lentes pixel'];
+        const AVATAR_ACC_STYLES = ['Ninguno','Gafas VIP','Corona','Gorra UNO','Audífonos','Antifaz','Halo','Auriculares Neon','Pañuelo','Collar Dorado','Gorro','Visor futurista','Máscara neón','Sombrero vaquero','Diadema','Orejas de gato','Alas mini','Lentes pixel','Cuernos dorados','Aureola celestial','Máscara oni','Corona de fuego','Bufanda VIP','Auriculares gamer','Diadema estrella','Monóculo real'];
 
         function getDefaultAvatarConfig(seed = 0) {
             return {
@@ -4399,7 +4412,7 @@
             });
         }
 
-        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const delta=entry.rank===1?30:entry.rank===2?12:entry.rank===3?2:-12;const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')';}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI()}
+        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const delta=entry.rank===1?30:entry.rank===2?12:entry.rank===3?2:-12;const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')';}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI();renderCompetitiveRank()}
         function renderVictoryModal() {
             const room = state.room;
             const podium = room.podium || [];
@@ -4478,8 +4491,40 @@
           {id:'frame_rose',name:'Marco rosa',price:420,field:'frame',value:1,emoji:'🌹',category:'frame',rarity:'Raro'},
           {id:'frame_emerald',name:'Marco esmeralda',price:460,field:'frame',value:2,emoji:'💚',category:'frame',rarity:'Épico'},
           {id:'frame_blue',name:'Marco azul',price:460,field:'frame',value:3,emoji:'💙',category:'frame',rarity:'Épico'},
+          {id:'hair_bun',name:'Doble moño',price:620,field:'hair',value:14,emoji:'🎀',category:'hair',rarity:'Épico'},
+          {id:'hair_sidecut',name:'Rapado lateral',price:680,field:'hair',value:15,emoji:'💈',category:'hair',rarity:'Épico'},
+          {id:'hair_highpony',name:'Cola alta',price:720,field:'hair',value:16,emoji:'💫',category:'hair',rarity:'Legendario'},
+          {id:'hair_anime',name:'Cabello anime',price:950,field:'hair',value:17,emoji:'🌟',category:'hair',rarity:'Legendario'},
+          {id:'hair_dreads',name:'Rastas',price:820,field:'hair',value:19,emoji:'🔥',category:'hair',rarity:'Legendario'},
+          {id:'acc_horns',name:'Cuernos dorados',price:980,field:'acc',value:18,emoji:'😈',category:'acc',rarity:'Legendario'},
+          {id:'acc_halo',name:'Aureola celestial',price:1100,field:'acc',value:19,emoji:'😇',category:'acc',rarity:'Legendario'},
+          {id:'acc_oni',name:'Máscara oni',price:1250,field:'acc',value:20,emoji:'👹',category:'acc',rarity:'Mítico'},
+          {id:'acc_firecrown',name:'Corona de fuego',price:1450,field:'acc',value:21,emoji:'🔥',category:'acc',rarity:'Mítico'},
+          {id:'acc_scarf',name:'Bufanda VIP',price:760,field:'acc',value:22,emoji:'🧣',category:'acc',rarity:'Épico'},
+          {id:'frame_diamond',name:'Marco diamante',price:1600,field:'frame',value:6,emoji:'💎',category:'frame',rarity:'Mítico'},
+          {id:'frame_ruby',name:'Marco rubí',price:1350,field:'frame',value:7,emoji:'❤️‍🔥',category:'frame',rarity:'Mítico'},
+          {id:'frame_amethyst',name:'Marco amatista',price:1450,field:'frame',value:8,emoji:'🔮',category:'frame',rarity:'Mítico'},
+          {id:'frame_rainbow',name:'Marco arcoíris VIP',price:2200,field:'frame',value:9,emoji:'🌈',category:'frame',rarity:'Mítico'},
           {id:'frame_purple',name:'Marco violeta',price:520,field:'frame',value:4,emoji:'💜',category:'frame',rarity:'Épico'}
         ];
+
+        const UNO_COMPETITIVE_RANKS=[
+          {name:'Bronce I',icon:'🥉',min:0,max:799},{name:'Bronce II',icon:'🥉',min:800,max:899},
+          {name:'Plata I',icon:'🥈',min:900,max:999},{name:'Plata II',icon:'🥈',min:1000,max:1099},
+          {name:'Oro I',icon:'🥇',min:1100,max:1249},{name:'Oro II',icon:'🥇',min:1250,max:1399},
+          {name:'Platino',icon:'💠',min:1400,max:1599},{name:'Diamante',icon:'💎',min:1600,max:1849},
+          {name:'Maestro',icon:'⚔️',min:1850,max:2199},{name:'Leyenda',icon:'👑',min:2200,max:999999}
+        ];
+        function getCompetitiveRating(){return Math.max(0,Number(localStorage.getItem('uno_competitive_rating')||1000))}
+        function getCompetitiveRank(rating=getCompetitiveRating()){return UNO_COMPETITIVE_RANKS.slice().reverse().find(r=>rating>=r.min)||UNO_COMPETITIVE_RANKS[0]}
+        function competitiveSearchBand(waitSeconds=0){const radius=Math.min(500,150+Math.floor(Math.max(0,waitSeconds)/12)*50),rating=getCompetitiveRating();return {min:Math.max(0,rating-radius),max:rating+radius,radius}}
+        function renderCompetitiveRank(){
+          const rating=getCompetitiveRating(),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank),next=UNO_COMPETITIVE_RANKS[idx+1],progress=next?Math.max(0,Math.min(100,(rating-rank.min)/(next.min-rank.min)*100)):100,band=competitiveSearchBand();
+          const name=document.getElementById('competitiveRankName'),score=document.getElementById('competitiveRankRating'),bar=document.getElementById('competitiveRankProgress'),nextEl=document.getElementById('competitiveRankNext'),delta=document.getElementById('competitiveRankDelta'),ladder=document.getElementById('competitiveRankLadder'),match=document.getElementById('competitiveMatchBand');
+          if(name)name.textContent=rank.icon+' '+rank.name;if(score)score.textContent=rating.toLocaleString('es-AR')+' puntos de rating';if(bar)bar.style.width=progress+'%';if(nextEl)nextEl.textContent=next?'Próximo: '+next.name+' · '+next.min+' pts':'¡Rango máximo alcanzado!';if(delta)delta.textContent=next?(next.min-rating)+' pts para ascender':'Nivel Leyenda';if(match)match.textContent='±'+band.radius+' rating · '+Math.floor(band.min)+'–'+Math.floor(band.max);
+          if(ladder)ladder.innerHTML=UNO_COMPETITIVE_RANKS.map((r,i)=>'<div class="rounded-lg border p-2 text-center '+(i<=idx?'border-amber-300/40 bg-amber-950/40 text-amber-200':'border-white/10 bg-black/30 text-zinc-500')+'"><div class="text-lg">'+r.icon+'</div><b class="block text-[10px]">'+r.name+'</b><span class="text-[9px]">'+r.min+'+</span></div>').join('');
+        }
+
         function ownedClubItems(){try{return JSON.parse(localStorage.getItem('uno_club_owned')||'[]')}catch(e){return []}}
         const CLUB_DAILY_REWARDS=[100,150,200,250,300,400,500];
         function clubLocalDate(d=new Date()){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
@@ -5049,7 +5094,8 @@
 
         // Botones del Menú Principal
         document.getElementById('btnOpenSettings').onclick=openClubSettings;document.getElementById('btnOpenSettingsGame').onclick=openClubSettings;document.getElementById('btnOpenStore').onclick=openClubStore;document.getElementById('btnOpenStoreGame').onclick=openClubStore;
-        document.getElementById('btnClaimDailyReward')?.addEventListener('click',claimDailyReward);renderDailyReward();
+        document.getElementById('btnClaimDailyReward')?.addEventListener('click',claimDailyReward);
+        renderCompetitiveRank();renderDailyReward();
         document.getElementById('btnCloseSettings').onclick=()=>document.getElementById('settingsModal').classList.add('hidden');document.getElementById('btnCloseStore').onclick=()=>document.getElementById('storeModal').classList.add('hidden');
         document.getElementById('btnQuickSolo').onclick = () => createNewRoom(false);
         document.getElementById('btnCreateOnline').onclick = () => createNewRoom(true);
