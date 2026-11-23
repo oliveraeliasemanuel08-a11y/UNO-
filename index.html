@@ -4474,7 +4474,22 @@
           {id:'energy-electric',name:'Energía eléctrica',type:'Electric',rarity:'Common',kind:'Energy',power:0,emoji:'🟡'},
           {id:'energy-plant',name:'Energía natural',type:'Plant',rarity:'Common',kind:'Energy',power:0,emoji:'🟢'},
           {id:'energy-psychic',name:'Energía psíquica',type:'Psychic',rarity:'Common',kind:'Energy',power:0,emoji:'🟣'},
-          {id:'energy-colorless',name:'Energía neutral',type:'Colorless',rarity:'Common',kind:'Energy',power:0,emoji:'⚪'}
+          {id:'energy-colorless',name:'Energía neutral',type:'Colorless',rarity:'Common',kind:'Energy',power:0,emoji:'⚪'},
+          {id:'lumen',name:'Lumen, fénix del alba',type:'Fire',rarity:'Basic',kind:'Character',power:100,emoji:'🦅'},
+          {id:'coral',name:'Coral, espíritu del arrecife',type:'Water',rarity:'Basic',kind:'Character',power:110,emoji:'🪸'},
+          {id:'voltix',name:'Voltix, zorro relámpago',type:'Electric',rarity:'Basic',kind:'Character',power:90,emoji:'🦊'},
+          {id:'musgo',name:'Musgo, guardián antiguo',type:'Plant',rarity:'Basic',kind:'Character',power:120,emoji:'🍃'},
+          {id:'onyx',name:'Onyx, caballero nocturno',type:'Darkness',rarity:'V',kind:'Character',power:230,emoji:'🗡️'},
+          {id:'aurea',name:'Aurea, emperatriz solar',type:'Psychic',rarity:'EX',kind:'Character',power:250,emoji:'👑'},
+          {id:'titan',name:'Titán, bestia de magma',type:'Fire',rarity:'VMAX',kind:'Character',power:350,emoji:'🌋'},
+          {id:'nebulon',name:'Nebulón, dragón cósmico',type:'Dragon',rarity:'VSTAR',kind:'Character',power:300,emoji:'🐲'},
+          {id:'switch',name:'Cambio táctico',type:'Colorless',rarity:'Uncommon',kind:'Item',power:0,emoji:'🔁'},
+          {id:'shield',name:'Escudo de energía',type:'Colorless',rarity:'Rare',kind:'Item',power:0,emoji:'🛡️'},
+          {id:'captain',name:'Capitana del gremio',type:'Colorless',rarity:'Rare',kind:'Supporter',power:0,emoji:'🧭'},
+          {id:'energy-darkness',name:'Energía oscura',type:'Darkness',rarity:'Common',kind:'Energy',power:0,emoji:'⚫'},
+          {id:'energy-metal',name:'Energía metálica',type:'Metal',rarity:'Common',kind:'Energy',power:0,emoji:'⚙️'},
+          {id:'energy-dragon',name:'Energía dracónica',type:'Dragon',rarity:'Common',kind:'Energy',power:0,emoji:'🐉'},
+          {id:'energy-fighting',name:'Energía de combate',type:'Fighting',rarity:'Common',kind:'Energy',power:0,emoji:'🥊'}
         ];
         const tcgRead=(key,def)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??def}catch(e){return def}};
         let tcgCollection=tcgRead('uno_tcg_collection',{});
@@ -4483,7 +4498,7 @@
         const tcgCard=id=>TCG_CARDS.find(c=>c.id===id);
         function tcgRender(){
           const total=Object.values(tcgCollection).reduce((a,b)=>a+b,0), unique=Object.keys(tcgCollection).length;
-          document.getElementById('tcgCardCount').textContent=total+' cartas';
+          document.getElementById('tcgCardCount').textContent=total+' cartas';tcgUpdatePackWallet();
           document.getElementById('tcgUniqueCount').textContent=unique+' / '+TCG_CARDS.length+' distintas';
           document.getElementById('tcgCollection').innerHTML=TCG_CARDS.filter(c=>tcgCollection[c.id]).map(c=>'<div class="rounded-xl border border-white/10 bg-zinc-900 p-2"><div class="flex justify-between"><span class="text-2xl">'+c.emoji+'</span><b class="text-[9px] text-fuchsia-300">'+c.rarity+'</b></div><b class="block text-[11px] mt-1">'+c.name+'</b><small class="text-zinc-500">'+c.kind+' • '+c.type+' • x'+tcgCollection[c.id]+'</small><button data-tcg-add="'+c.id+'" class="block w-full mt-2 rounded-lg bg-zinc-700 py-1 text-[10px] font-bold">+ Añadir al mazo</button></div>').join('')||'<p class="col-span-full text-center text-xs text-zinc-500 py-8">Todavía no tenés cartas. ¡Abrí tu primer sobre!</p>';
           const counts={};tcgDeck.forEach(id=>counts[id]=(counts[id]||0)+1);
@@ -4494,12 +4509,26 @@
           document.querySelectorAll('[data-tcg-remove]').forEach(b=>b.onclick=()=>{const i=tcgDeck.lastIndexOf(b.dataset.tcgRemove);if(i>=0)tcgDeck.splice(i,1);tcgSave();tcgRender()});
         }
         function tcgAdd(id){if(tcgDeck.length>=60){showToast('El mazo ya tiene 60 cartas.','warn');return}const n=tcgDeck.filter(x=>x===id).length;if(n>=4&&tcgCard(id)?.kind!=='Energy'){showToast('Máximo 4 copias de esta carta.','warn');return}if((tcgCollection[id]||0)<=n){showToast('No tenés más copias de esa carta.','warn');return}tcgDeck.push(id);tcgSave();tcgRender()}
+        const TCG_PACKS={mixed_all:{name:'Sobre mixto',price:100},elemental:{name:'Sobre elemental',price:120},expansion:{name:'Sobre expansión',price:160},special:{name:'Sobre exclusivo',price:250}};
+        function tcgPickWeighted(pool,rareOnly=false){
+          const list=rareOnly?pool.filter(c=>['Rare','EX','V','VMAX','VSTAR','Legendary'].includes(c.rarity)):pool;
+          const candidates=list.length?list:pool;
+          const weights={Common:48,Uncommon:25,Rare:15,EX:6,V:4,VMAX:2,VSTAR:2,Legendary:1};
+          const weighted=candidates.map(card=>({card,weight:weights[card.rarity]||10})),total=weighted.reduce((n,x)=>n+x.weight,0);
+          let roll=Math.random()*total;for(const item of weighted){roll-=item.weight;if(roll<=0)return item.card}return candidates[candidates.length-1];
+        }
+        function tcgUpdatePackWallet(){const el=document.getElementById('tcgWallet');if(el)el.textContent=Number(localStorage.getItem('uno_club_points')||0).toLocaleString('es-AR');}
         function tcgOpenPack(kind){
-          const pool=TCG_CARDS.filter(c=>kind!=='elemental'||['Fire','Water','Electric','Plant','Psychic','Darkness','Metal'].includes(c.type)).filter(c=>kind!=='special'||['VSTAR','VMAX','EX'].includes(c.rarity)).filter(c=>kind!=='expansion'||c.kind!=='Energy');
-          const pulled=[];for(let i=0;i<5;i++){let card;if(i===4&&Math.random()<.7)card=pool.filter(c=>['V','VMAX','VSTAR','EX','Rare'].includes(c.rarity))[Math.floor(Math.random()*pool.filter(c=>['V','VMAX','VSTAR','EX','Rare'].includes(c.rarity)).length)];if(!card)card=pool[Math.floor(Math.random()*pool.length)];pulled.push(card)}
-          pulled.forEach(c=>tcgCollection[c.id]=(tcgCollection[c.id]||0)+1);tcgSave();
-          document.getElementById('tcgPackResult').innerHTML=pulled.map(c=>'<div class="rounded-xl border border-fuchsia-400/30 bg-gradient-to-br from-zinc-800 to-fuchsia-950/50 p-2 text-center"><div class="text-3xl">'+c.emoji+'</div><b class="block text-[10px] mt-1">'+c.name+'</b><span class="text-[9px] text-fuchsia-200">'+c.rarity+'</span></div>').join('');
-          tcgRender();showToast('¡Sobre abierto! Conseguí 5 cartas.','success');
+          const pack=TCG_PACKS[kind];if(!pack)return;
+          const points=Number(localStorage.getItem('uno_club_points')||0);
+          if(points<pack.price){showToast('Te faltan '+(pack.price-points)+' puntos del Club para este sobre.','warn');return}
+          const pool=TCG_CARDS.filter(card=>(kind!=='elemental'||['Fire','Water','Electric','Plant','Psychic','Darkness','Metal','Dragon','Fighting'].includes(card.type))&&(kind!=='special'||['VSTAR','VMAX','EX','V','Legendary'].includes(card.rarity))&&(kind!=='expansion'||card.kind!=='Energy'));
+          if(!pool.length){showToast('No hay cartas disponibles en este sobre.','warn');return}
+          localStorage.setItem('uno_club_points',String(points-pack.price));updateClubWalletUI();tcgUpdatePackWallet();
+          const pulled=[];for(let i=0;i<5;i++)pulled.push(tcgPickWeighted(pool,i===4));
+          pulled.forEach(card=>tcgCollection[card.id]=(tcgCollection[card.id]||0)+1);tcgSave();
+          document.getElementById('tcgPackResult').innerHTML=pulled.map((card,i)=>'<div class="rounded-xl border '+(i===4?'border-amber-300/70 shadow-lg shadow-amber-500/10':'border-fuchsia-400/30')+' bg-gradient-to-br from-zinc-800 to-fuchsia-950/50 p-2 text-center"><div class="text-3xl">'+card.emoji+'</div><b class="block text-[10px] mt-1">'+card.name+'</b><span class="text-[9px] text-fuchsia-200">'+card.rarity+'</span>'+(i===4?'<small class="block text-amber-300 mt-1">★ Carta destacada</small>':'')+'</div>').join('');
+          tcgRender();showToast('¡Sobre abierto! -'+pack.price+' puntos • 5 cartas nuevas.','success');
         }
         document.getElementById('btnOpenTCG').onclick=()=>{document.getElementById('unoTcgModal').classList.remove('hidden');tcgRender()};
         document.getElementById('btnCloseTCG').onclick=()=>document.getElementById('unoTcgModal').classList.add('hidden');
@@ -4508,8 +4537,8 @@
         document.getElementById('tcgAutoDeck').onclick=()=>{tcgDeck=[];const available=TCG_CARDS.filter(c=>(tcgCollection[c.id]||0)>0);if(!available.length){showToast('Abrí sobres para conseguir cartas primero.','warn');return}for(const c of available){const copies=Math.min(c.kind==='Energy'?8:4,tcgCollection[c.id]||0);for(let i=0;i<copies&&tcgDeck.length<60;i++)tcgDeck.push(c.id)}tcgSave();tcgRender();showToast('Mazo armado con tus cartas.','success')};
 
         // Núcleo de combate TCG v1: reglas básicas y rival IA local.
-        const TCG_ATTACKS={nova:[['Pulso astral',2,90],['Supernova',3,180]],voltar:[['Descarga',2,70],['Tormenta voltaica',3,150]],brasa:[['Llama colosal',3,150],['Dragón solar',4,240]],mareas:[['Marea creciente',2,80],['Tsunami',3,170]],brote:[['Látigo de raíces',2,70],['Bosque ancestral',3,160]],umbra:[['Rayo umbrío',2,90],['Noche eterna',4,210]],atlas:[['Golpe de acero',2,80],['Impacto titánico',4,190]],rayo:[['Zarpazo veloz',1,30],['Carrera eléctrica',2,70]],frost:[['Mordida helada',1,30],['Ventisca',3,90]],pyra:[['Chispa',1,20],['Bola de fuego',2,60]]};
-        const TCG_HP={nova:280,voltar:220,brasa:340,mareas:240,brote:240,umbra:290,atlas:260,rayo:90,frost:100,pyra:80};
+        const TCG_ATTACKS={lumen:[['Alas ardientes',1,30],['Renacer solar',2,70]],coral:[['Burbuja marina',1,30],['Marea coralina',2,70]],voltix:[['Chispa veloz',1,30],['Rayo zorro',2,70]],musgo:[['Látigo verde',1,30],['Raíces gigantes',2,80]],onyx:[['Corte sombrío',2,80],['Noche de acero',3,150]],aurea:[['Destello real',2,90],['Corona astral',3,170]],titan:[['Erupción',3,160],['Magma infinito',4,250]],nebulon:[['Aliento cósmico',2,100],['Eclipse dracónico',4,220]],nova:[['Pulso astral',2,90],['Supernova',3,180]],voltar:[['Descarga',2,70],['Tormenta voltaica',3,150]],brasa:[['Llama colosal',3,150],['Dragón solar',4,240]],mareas:[['Marea creciente',2,80],['Tsunami',3,170]],brote:[['Látigo de raíces',2,70],['Bosque ancestral',3,160]],umbra:[['Rayo umbrío',2,90],['Noche eterna',4,210]],atlas:[['Golpe de acero',2,80],['Impacto titánico',4,190]],rayo:[['Zarpazo veloz',1,30],['Carrera eléctrica',2,70]],frost:[['Mordida helada',1,30],['Ventisca',3,90]],pyra:[['Chispa',1,20],['Bola de fuego',2,60]]};
+        const TCG_HP={nova:280,voltar:220,brasa:340,mareas:240,brote:240,umbra:290,atlas:260,rayo:90,frost:100,pyra:80,lumen:100,coral:110,voltix:90,musgo:120,onyx:240,aurea:260,titan:360,nebulon:310};
         let tcgBattle=null;
         function tcgStarterDeck(){const ids=['nova','voltar','brasa','mareas','brote','umbra','atlas','rayo','frost','pyra'];tcgCollection={...tcgCollection};ids.forEach(id=>tcgCollection[id]=Math.max(tcgCollection[id]||0,4));['energy-fire','energy-water','energy-electric','energy-plant','energy-psychic','energy-colorless'].forEach(id=>tcgCollection[id]=Math.max(tcgCollection[id]||0,5));tcgDeck=[];ids.forEach(id=>{for(let i=0;i<4;i++)tcgDeck.push(id)});for(let i=0;i<20;i++)tcgDeck.push(['energy-fire','energy-water','energy-electric','energy-plant','energy-psychic','energy-colorless'][i%6]);tcgSave();tcgRender();showToast('Mazo inicial de 60 cartas creado.','success')}
         function tcgShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -4568,13 +4597,13 @@
         <div class="p-4 sm:p-6 grid lg:grid-cols-[1.1fr_.9fr] gap-5">
           <section class="space-y-4">
             <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
-              <div class="flex justify-between items-center gap-2"><h3 class="font-bold text-lg">🎴 Abrir sobres</h3><span id="tcgCardCount" class="text-xs text-fuchsia-200">0 cartas</span></div>
+              <div class="flex flex-wrap justify-between items-center gap-2"><h3 class="font-bold text-lg">🎴 Abrir sobres</h3><div class="flex items-center gap-3 text-xs"><span class="text-amber-300">🪙 <b id="tcgWallet">0</b> puntos</span><span id="tcgCardCount" class="text-fuchsia-200">0 cartas</span></div></div>
               <p class="text-xs text-zinc-400 mt-1">Probá sobres mezclados, elementales, expansiones y colecciones especiales.</p>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
-                <button data-tcg-pack="mixed_all" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-fuchsia-700 to-indigo-900 text-left"><b class="block text-sm">🌈 Mixto</b><small class="text-[10px]">Todas las rarezas</small></button>
-                <button data-tcg-pack="elemental" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-cyan-700 to-blue-950 text-left"><b class="block text-sm">⚡ Elemental</b><small class="text-[10px]">Tipos y energías</small></button>
-                <button data-tcg-pack="expansion" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-amber-600 to-red-950 text-left"><b class="block text-sm">🚀 Expansión</b><small class="text-[10px]">Cartas especiales</small></button>
-                <button data-tcg-pack="special" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-emerald-700 to-teal-950 text-left"><b class="block text-sm">👑 Colección</b><small class="text-[10px]">Selección exclusiva</small></button>
+                <button data-tcg-pack="mixed_all" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-fuchsia-700 to-indigo-900 text-left"><b class="block text-sm">🌈 Mixto</b><small class="text-[10px]">5 cartas • 🪙 100</small></button>
+                <button data-tcg-pack="elemental" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-cyan-700 to-blue-950 text-left"><b class="block text-sm">⚡ Elemental</b><small class="text-[10px]">5 cartas • 🪙 120</small></button>
+                <button data-tcg-pack="expansion" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-amber-600 to-red-950 text-left"><b class="block text-sm">🚀 Expansión</b><small class="text-[10px]">5 cartas • 🪙 160</small></button>
+                <button data-tcg-pack="special" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-emerald-700 to-teal-950 text-left"><b class="block text-sm">👑 Colección</b><small class="text-[10px]">5 cartas • 🪙 250</small></button>
               </div>
               <div id="tcgPackResult" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4"></div>
             </div>
