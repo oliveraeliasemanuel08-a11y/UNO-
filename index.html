@@ -1913,10 +1913,10 @@
         }
         function chooseCompetitiveBotCard(bot,room,playable){
           const tier=Math.max(0,Math.min(19,Number(bot.competitiveAiTier??room.competitiveAiTier??0)));
-          if(tier<=4)return playable[0];
+          if(tier<=3)return playable[0];
           const counts={red:0,yellow:0,green:0,blue:0};bot.hand.forEach(c=>{if(counts[c.color]!==undefined)counts[c.color]++;});
           const next=room.seats[(bot.seatIndex+room.direction+room.seats.length)%room.seats.length],danger=!!next&&next.hand&&next.hand.length<=2;
-          const score=card=>{let v=counts[card.color]!==undefined?counts[card.color]*2:0;const action=['skip','reverse','draw2','wild_draw4'].includes(card.value);if(action)v+=tier>=6?24:12;if(danger&&action)v+=tier*5;if(card.value==='wild_draw4')v+=tier>=7?8:-18;if(card.value==='wild')v+=tier>=7?-10:2;if(card.value==='draw2'&&danger)v+=18;if(card.value==='skip'&&danger)v+=14;return v;};
+          const score=card=>{let v=counts[card.color]!==undefined?counts[card.color]*2:0;const action=['skip','reverse','draw2','wild_draw4'].includes(card.value);if(action)v+=tier>=13?32:tier>=8?24:12;if(danger&&action)v+=tier*4;if(card.value==='wild_draw4')v+=tier>=16?12:-22;if(card.value==='wild')v+=tier>=14?-16:2;if(card.value==='draw2'&&danger)v+=tier>=10?26:18;if(card.value==='skip'&&danger)v+=tier>=10?22:14;if(tier>=12&&card.color===room.activeColor)v+=5;if(tier>=17&&card.value==='reverse'&&room.seats.filter(x=>x&&x.id&&!x.finishRank).length<=3)v+=12;return v;};
           return playable.slice().sort((a,b)=>score(b)-score(a))[0]||playable[0];
         }
         async function fillCompetitiveBotsAndStart(){
@@ -3175,6 +3175,8 @@
                 id: currentUserId,
                 name: state.playerName,
                 avatar: state.playerAvatar,
+                competitiveRating: getCompetitiveRating(),
+                competitiveRankName: getCompetitiveRank().name,
                 isBot: false,
                 team: competitiveTeams ? 0 : null,
                 hand: [],
@@ -3299,6 +3301,8 @@
                         id: currentUserId,
                         name: state.playerName,
                         avatar: state.playerAvatar,
+                        competitiveRating: getCompetitiveRating(),
+                        competitiveRankName: getCompetitiveRank().name,
                         isBot: false,
                         finishRank: null
                     };
@@ -4074,6 +4078,8 @@
             }
 
             homeEl.classList.add('hidden');
+            document.getElementById('competitiveMenuScreen')?.classList.add('hidden');
+            if(state.room.status!=='lobby')document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');
 
             if (state.room.status === 'lobby') {
                 lobbyEl.classList.remove('hidden');
@@ -4262,6 +4268,7 @@
                             <div class="min-w-0">
                                 <div class="flex items-center gap-1">
                                     <span class="text-xs font-extrabold text-white truncate">${occupied ? seat.name : `Asiento ${idx + 1} (Libre)`}</span>
+                                    ${room.competitiveMode && occupied && !seat.isBot ? renderPlayerRankBadge(seat.id) : ''}
                                     ${isSeatHost ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-bold">HOST</span>` : ''}
                                 </div>
                                 ${teamInfo ? `<span class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${teamInfo.badge}">${teamInfo.name}</span>` : `<span class="text-[10px] text-zinc-500">${occupied ? (seat.isBot ? 'Bot IA' : (isMe ? 'Tú' : 'Jugador Online')) : 'Esperando...'}</span>`}
@@ -4320,7 +4327,7 @@
             const modeText = room.teamMode
                 ? `${room.teamCount} Equipos`
                 : `Podio (${room.podium?.length || 0}/${Math.max(1, room.seats.filter(s => s.id).length - 1)})`;
-            document.getElementById('hudModePill').textContent = (({classic:'🃏 UNO CLÁSICO • ',chaos:'💥 UNO CAOS • ',survival:'❤️ SUPERVIVENCIA • ',turbo:'⚡ UNO TURBO • '})[room.gameMode] || '🃏 UNO CLÁSICO • ') + modeText;
+            document.getElementById('hudModePill').textContent = room.competitiveMode ? '🏆 COMPETITIVO · '+(room.competitiveFormat||'') : ((({classic:'🃏 UNO CLÁSICO • ',chaos:'💥 UNO CAOS • ',survival:'❤️ SUPERVIVENCIA • ',turbo:'⚡ UNO TURBO • '})[room.gameMode] || '🃏 UNO CLÁSICO • ') + modeText);
 
             const banner = document.getElementById('turnStatusBanner');
             if (mySeat && mySeat.finishRank) {
@@ -4584,7 +4591,23 @@
             });
         }
 
-        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const total=Number(room.maxSeats||room.seats?.length||4);const delta=entry.rank===1?({2:35,4:45,6:55,8:65}[total]||35):entry.rank===2?({2:-20,4:20,6:30,8:40}[total]||15):entry.rank===3?({2:-20,4:5,6:15,8:25}[total]||5):entry.rank===4?(total>=6?5:-15):-Math.min(35,10+Math.max(0,entry.rank-4)*4);const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')';showCompetitiveResult(entry,delta,oldRating,nextRating,room);}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))}
+        function awardMatchPointsIfNeeded(room,seat){
+          if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;
+          const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;
+          let entry=(room.podium||[]).find(p=>p.id===currentUserId);
+          if(!entry&&room.teamMode){const won=room.podium[0]?.team===seat.team;entry={id:seat.id,name:seat.name,seatIndex:seat.seatIndex,team:seat.team,rank:won?1:2};}
+          if(!entry)return;
+          const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));
+          let ratingMsg='';
+          if(room.competitiveMode&&state.isOnline){
+            const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000),total=Number(room.maxSeats||room.seats?.length||4);
+            const schedule={2:[35,-25],4:[40,15,-10,-25],6:[50,30,10,-15,-30,-40],8:[60,40,25,10,-15,-30,-45,-55]};
+            const planned=room.teamMode?(entry.rank===1?(total>=8?45:total>=6?40:35):(total>=8?-35:total>=6?-30:-25)):(schedule[total]||schedule[4])[Math.max(0,Math.min(total-1,Number(entry.rank||total)-1))];
+            const nextRating=Math.max(0,oldRating+planned),delta=nextRating-oldRating;localStorage.setItem('uno_competitive_rating',String(nextRating));
+            ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')';showCompetitiveResult(entry,delta,oldRating,nextRating,room);
+          }
+          localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))
+        }
         function renderVictoryModal() {
             const room = state.room;
             const podium = room.podium || [];
@@ -4690,17 +4713,16 @@
           {name:'Gran Maestro',min:2500,max:2799,glyph:'GM',colors:['#be123c','#fecdd3','#881337']},{name:'Leyenda',min:2800,max:999999,glyph:'★',colors:['#be123c','#fde68a','#701a75']}
         ];
         function getCompetitiveRating(){return Math.max(0,Number(localStorage.getItem('uno_competitive_rating')||1000))}
-        function showCompetitiveResult(entry,delta,oldRating,nextRating,room){const modal=document.getElementById('competitiveResultModal');if(!modal)return;const title=document.getElementById('competitiveResultTitle'),place=document.getElementById('competitiveResultPlace'),change=document.getElementById('competitiveResultDelta'),rank=document.getElementById('competitiveResultRank');if(title)title.textContent=entry.rank===1?'¡CAMPEÓN!':entry.rank<=3?'¡BUEN PUESTO!':'PARTIDA FINALIZADA';if(place)place.textContent='Terminaste en el puesto #'+entry.rank+' de '+(room.maxSeats||room.seats.length)+' · '+(room.competitiveFormat||'Competitivo');if(change){change.textContent=(delta>0?'+':'')+delta+' PUNTOS';change.className='font-uno text-4xl mt-4 '+(delta>0?'text-emerald-300':'text-rose-300')}if(rank)rank.textContent=oldRating+' → '+nextRating+' puntos · '+getCompetitiveRank(nextRating).name;modal.classList.remove('hidden');}
+        function showCompetitiveResult(entry,delta,oldRating,nextRating,room){const modal=document.getElementById('competitiveResultModal');if(!modal)return;const title=document.getElementById('competitiveResultTitle'),place=document.getElementById('competitiveResultPlace'),change=document.getElementById('competitiveResultDelta'),rank=document.getElementById('competitiveResultRank');if(title)title.textContent=room.teamMode?(entry.rank===1?'¡TU EQUIPO GANÓ!':'TU EQUIPO PERDIÓ'):entry.rank===1?'¡CAMPEÓN!':entry.rank<=3?'¡BUEN PUESTO!':'PARTIDA FINALIZADA';if(place)place.textContent=room.teamMode?((entry.rank===1?'Victoria':'Derrota')+' de equipo · '+(room.competitiveFormat||'Competitivo')):('Terminaste en el puesto #'+entry.rank+' de '+(room.maxSeats||room.seats.length)+' · '+(room.competitiveFormat||'Competitivo'));if(change){change.textContent=(delta>0?'+':'')+delta+' PUNTOS';change.className='font-uno text-4xl mt-4 '+(delta>0?'text-emerald-300':'text-rose-300')}if(rank)rank.textContent=oldRating+' → '+nextRating+' puntos · '+getCompetitiveRank(nextRating).name;modal.classList.remove('hidden');}
         function getCompetitiveRank(rating=getCompetitiveRating()){return UNO_COMPETITIVE_RANKS.slice().reverse().find(r=>rating>=r.min)||UNO_COMPETITIVE_RANKS[0]}
         function renderRankEmblem(rank,size=30){
           const r=typeof rank==='number'?getCompetitiveRank(rank):(rank||UNO_COMPETITIVE_RANKS[0]),i=Math.max(0,UNO_COMPETITIVE_RANKS.indexOf(r)),c=r.colors||UNO_COMPETITIVE_RANKS[0].colors,s=Math.max(16,Math.min(72,Number(size)||30));
-          const shapes=['M32 3 55 13 57 34 48 51 32 61 16 51 7 34 9 13Z','M32 3 54 11 61 28 53 47 32 61 11 47 3 28 10 11Z','M32 3 57 16 57 42 32 61 7 42 7 16Z','M32 2 49 8 61 25 55 45 32 62 9 45 3 25 15 8Z','M32 3 58 13 54 39 32 61 10 39 6 13Z','M32 2 43 10 57 8 55 23 63 32 55 42 57 56 42 54 32 63 22 54 7 56 9 42 1 32 9 23 7 8 21 10Z','M32 2 60 18 52 48 32 62 12 48 4 18Z','M32 1 39 13 53 5 52 21 64 28 53 37 59 53 41 51 32 64 23 51 5 53 11 37 0 28 12 21 11 5 25 13Z','M32 3 42 10 54 6 54 20 62 29 53 39 54 54 40 51 32 62 24 51 10 54 11 39 2 29 10 20 10 6 22 10Z','M32 1 39 11 52 3 53 18 65 25 55 36 62 51 45 51 32 64 19 51 2 51 9 36 -1 25 11 18 12 3 25 11Z'];
-          const marks=['<path d="M20 35 26 41 32 28 38 41 44 35" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>','<path d="M16 32 24 24 32 31 40 24 48 32M18 40 27 35 32 42 37 35 46 40" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>','<path d="M32 18 35 27 45 27 37 33 40 43 32 37 24 43 27 33 19 27 29 27Z" fill="#fff"/>','<path d="M16 31Q23 19 32 29Q41 19 48 31M18 39Q25 31 32 39Q39 31 46 39" fill="none" stroke="#fff" stroke-width="2.6"/>','<path d="M19 37 22 24 32 32 42 24 45 37 40 43 24 43Z" fill="#fff"/>','<path d="M17 34 22 19 32 28 42 19 47 34 42 43 22 43Z" fill="#fff"/><path d="M22 47H42" stroke="#fff" stroke-width="2.5"/>','<path d="M32 17 44 29 32 46 20 29Z" fill="#fff"/><path d="M32 22V41M24 29H40" stroke="#0f766e" stroke-width="2"/>','<path d="M32 15 37 27 50 32 37 37 32 50 27 37 14 32 27 27Z" fill="#fff"/><path d="M32 22 42 32 32 42 22 32Z" fill="#0284c7"/>','<path d="M17 43Q7 27 18 17Q23 13 27 19M47 43Q57 27 46 17Q41 13 37 19" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M22 43 32 49 42 43" fill="none" stroke="#fff" stroke-width="2.5"/>','<path d="M14 36 19 20 27 29 32 13 37 29 45 20 50 36 44 46 20 46Z" fill="#fff"/><circle cx="32" cy="35" r="5" fill="#be123c"/>'];
-          return '<svg class="shrink-0 drop-shadow" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="unoRankA'+i+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".5" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs><path d="'+shapes[i%shapes.length]+'" fill="url(#unoRankA'+i+')" stroke="'+c[1]+'" stroke-width="2.4"/>'+marks[i%marks.length]+'<text x="32" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".45" stroke-width=".8" paint-order="stroke">'+r.glyph+'</text></svg>';
+          const shapes=["M32 3 55 13 57 34 48 51 32 61 16 51 7 34 9 13Z","M32 2 58 15 54 43 32 62 10 43 6 15Z","M32 2 44 8 59 23 54 48 32 62 10 48 5 23 20 8Z","M32 3 55 11 61 29 50 51 32 62 14 51 3 29 9 11Z","M32 1 47 9 61 25 56 45 32 63 8 45 3 25 17 9Z","M32 2 43 10 57 7 55 24 63 32 55 42 57 57 42 54 32 63 22 54 7 57 9 42 1 32 9 24 7 7 21 10Z","M32 2 60 18 52 48 32 62 12 48 4 18Z","M32 1 39 13 53 5 52 21 64 28 53 37 59 53 41 51 32 64 23 51 5 53 11 37 0 28 12 21 11 5 25 13Z","M32 2 42 10 54 6 54 20 62 29 53 39 54 54 40 51 32 62 24 51 10 54 11 39 2 29 10 20 10 6 22 10Z","M32 1 39 11 52 3 53 18 65 25 55 36 62 51 45 51 32 64 19 51 2 51 9 36 -1 25 11 18 12 3 25 11Z","M32 2 49 5 62 20 58 44 32 62 6 44 2 20 15 5Z","M32 1 61 16 55 48 32 63 9 48 3 16Z","M32 2 46 6 60 18 58 40 46 56 32 63 18 56 6 40 4 18 18 6Z","M32 1 42 8 57 4 55 20 64 32 55 44 57 60 42 56 32 64 22 56 7 60 9 44 0 32 9 20 7 4 22 8Z","M32 1 50 12 63 31 50 51 32 63 14 51 1 31 14 12Z","M32 2 43 7 56 4 60 18 63 32 56 46 43 57 32 63 21 57 8 46 1 32 4 18 17 7Z","M32 1 38 9 52 4 55 17 64 27 58 41 61 54 45 55 32 64 19 55 3 54 6 41 0 27 9 17 12 4 26 9Z","M32 1 45 6 58 14 63 29 56 47 43 58 32 64 21 58 8 47 1 29 6 14 19 6Z","M32 1 39 8 51 3 56 14 64 23 60 37 55 51 43 59 32 64 21 59 9 51 4 37 0 23 8 14 13 3 25 8Z","M32 0 40 8 52 2 56 15 64 24 60 39 54 52 43 60 32 64 21 60 10 52 4 39 0 24 8 15 12 2 24 8Z"],symbols=["⌁","Ⅱ","Ⅲ","✦","✧","◇","◆","✶","✹","✺","⬟","✥","✷","✸","✪","⚔","♜","♛","♔","★"];
+          return '<svg class="shrink-0 drop-shadow" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="unoRankA'+i+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".5" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs><path d="'+shapes[i]+'" fill="url(#unoRankA'+i+')" stroke="'+c[1]+'" stroke-width="2.4"/><text x="32" y="39" text-anchor="middle" font-family="Arial,sans-serif" font-size="21" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".35" stroke-width=".7" paint-order="stroke">'+symbols[i]+'</text><text x="32" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".45" stroke-width=".8" paint-order="stroke">'+r.glyph+'</text></svg>';
         }
         function escapeLeaderboardText(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
         function renderPlayerRankBadge(uid){
-          const id=String(uid||''),p=competitiveProfiles.get(id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??1000),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank);
+          const id=String(uid||''),p=competitiveProfiles.get(id),seat=state.room?.seats?.find(x=>x&&x.id===id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??seat?.competitiveRating??1000),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank);
           if(idx<12)return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="hidden" title="Rango '+rank.name+'"></span>';
           return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/55 px-1.5 py-0.5 text-[9px] font-black text-amber-100 whitespace-nowrap" title="'+rank.name+' · '+rating+' rating">'+renderRankEmblem(rank,18)+'<span>'+rank.name+'</span></span>';
         }
