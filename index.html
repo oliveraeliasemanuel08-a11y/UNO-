@@ -4841,11 +4841,12 @@
         function robadoOnlineNext(g,from){for(let n=1;n<=g.players.length;n++){const i=(from+n)%g.players.length;if(!g.players[i].left)return i;}return from;}
         async function arcadeOnlineRobadoAction(cardId,targetType,targetId){
           await arcadeOnlineMutate((r,g)=>{
-            const i=g.players.findIndex(p=>p.id===currentUserId);if(i<0||g.over||g.turn!==i)return false;const p=g.players[i],ci=p.hand.findIndex(c=>c.id===cardId);if(ci<0)return false;const c=p.hand[ci],rank=robadoOnlineRank(c);
+            const i=g.players.findIndex(p=>p.id===currentUserId);if(i<0||g.over||g.turn!==i)return false;const p=g.players[i];
+            if(targetType==='pass'){if(p.hand.length||g.deck.length)return false;g.log=p.name+' pasó porque no tiene cartas.';g.turn=robadoOnlineNext(g,i);if(g.players.every(x=>!x.hand.length)){const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];arcadeOnlineFinish(r,g,'🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas.');}return true;}
+            const ci=p.hand.findIndex(c=>c.id===cardId);if(ci<0)return false;const c=p.hand[ci],rank=robadoOnlineRank(c);
             if(targetType==='center'){const x=g.center.findIndex(v=>v.id===targetId);if(x<0||robadoOnlineRank(g.center[x])!==rank)return false;const match=g.center.splice(x,1)[0];p.hand.splice(ci,1);p.pile.push(match,c);g.log=p.name+' capturó una carta del centro.';}
             else if(targetType==='player'){const rival=g.players.findIndex((x,j)=>j!==i&&x.id===targetId);if(rival<0||!g.players[rival].pile.length||robadoOnlineRank(g.players[rival].pile.at(-1))!==rank)return false;const stolen=g.players[rival].pile.splice(0);p.hand.splice(ci,1);p.pile.push(...stolen,c);g.log=p.name+' robó la casita de '+g.players[rival].name+'.';}
             else if(targetType==='discard'){if(g.center.some(x=>robadoOnlineRank(x)===rank)||g.players.some((x,j)=>j!==i&&x.pile.length&&robadoOnlineRank(x.pile[x.pile.length-1])===rank))return false;g.center.push(c);p.hand.splice(ci,1);g.log=p.name+' dejó una carta en el centro.';}
-            else if(targetType==='pass'){if(p.hand.length||g.deck.length)return false;g.log=p.name+' pasó porque no tiene cartas.';g.turn=robadoOnlineNext(g,i);if(g.players.every(x=>!x.hand.length)){const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];arcadeOnlineFinish(r,g,'🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas.');}return true;}
             else return false;
             if(!p.hand.length&&g.deck.length)for(let n=0;n<3&&g.deck.length;n++)p.hand.push(g.deck.pop());
             if(!g.deck.length&&g.players.every(x=>!x.hand.length)){const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];arcadeOnlineFinish(r,g,'🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas.');return true;}
