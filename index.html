@@ -4491,6 +4491,31 @@
           {id:'energy-dragon',name:'Energía dracónica',type:'Dragon',rarity:'Common',kind:'Energy',power:0,emoji:'🐉'},
           {id:'energy-fighting',name:'Energía de combate',type:'Fighting',rarity:'Common',kind:'Energy',power:0,emoji:'🥊'}
         ];
+        // Expansión del catálogo: 400 coleccionables únicos, generados con datos deterministas.
+        // Las cartas nuevas se integran al mismo sistema de colección, sobres y mazos.
+        (function tcgExpandCatalog(){
+          const types=['Fire','Water','Electric','Plant','Psychic','Darkness','Fighting','Metal','Dragon','Colorless'];
+          const typeNames={Fire:'Fuego',Water:'Agua',Electric:'Rayo',Plant:'Naturaleza',Psychic:'Psíquico',Darkness:'Oscuridad',Fighting:'Combate',Metal:'Metal',Dragon:'Dragón',Colorless:'Neutral'};
+          const emojis={Fire:['🔥','🌋','☀️','🦅'],Water:['🌊','🧊','🐬','💧'],Electric:['⚡','🔋','🦊','🌩️'],Plant:['🌿','🍃','🌳','🌸'],Psychic:['🔮','🌌','🪄','🧿'],Darkness:['🌑','🦇','🕷️','🖤'],Fighting:['🥊','🐺','💥','🏹'],Metal:['⚙️','🛡️','🤖','🔩'],Dragon:['🐉','🐲','🪽','💠'],Colorless:['⭐','💎','🎭','🌀']};
+          const first=['Astra','Kairo','Nébula','Drako','Zénit','Mistral','Órbita','Sombra','Prisma','Éter','Ragnar','Lúmina','Vórtice','Cobalto','Ícaro','Tempest','Aural','Kronos','Pixel','Solar'];
+          const second=['del horizonte','de la tormenta','del núcleo','del infinito','de la aurora','del abismo','del bosque antiguo','de cristal','del eclipse','del último reino','de la dimensión','del cometa','de la forja','del océano','del tiempo','de la estrella'];
+          const characterRarities=['Basic','Basic','Basic','Uncommon','Rare','EX','V','VSTAR','VMAX'];
+          const characterCount=200, trainerCount=64, itemCount=40, stadiumCount=20, energyCount=40;
+          for(let i=0;i<characterCount;i++){
+            const type=types[i%types.length], rarity=characterRarities[(i*7+i%3)%characterRarities.length];
+            const name=first[(i*7)%first.length]+' '+second[(i*11+Math.floor(i/first.length))%second.length]+' '+String(i+1).padStart(3,'0');
+            const power=rarity==='VMAX'?300+(i%6)*10:rarity==='VSTAR'?250+(i%5)*10:rarity==='V'?210+(i%5)*10:rarity==='EX'?180+(i%5)*10:rarity==='Rare'?140+(i%4)*10:rarity==='Uncommon'?110+(i%4)*10:70+(i%4)*10;
+            TCG_CARDS.push({id:'chronicle-'+String(i+1).padStart(3,'0'),name,type,rarity,kind:'Character',power,emoji:emojis[type][i%4],set:'Crónicas UNO! CLUB'});
+          }
+          const trainerNames=['Maestra del ritmo','Estratega del club','Explorador dimensional','Inventora brillante','Guardián de la liga','Mensajera estelar','Entrenador veterano','Campeona del torneo'];
+          for(let i=0;i<trainerCount;i++)TCG_CARDS.push({id:'trainer-'+String(i+1).padStart(3,'0'),name:trainerNames[i%trainerNames.length]+' '+(i+1),type:'Colorless',rarity:i%12===0?'Ultra Rare':i%4===0?'Rare':'Uncommon',kind:'Supporter',power:0,emoji:['🎓','🧭','🧑‍🚀','🧑‍🔬','🏅','📯','🧢','👑'][i%8],set:'Liga de Entrenadores'});
+          const itemNames=['Poción turbo','Dron explorador','Escudo prismático','Cápsula sorpresa','Radar de energía','Botiquín avanzado','Guantes de combate','Cristal de enfoque'];
+          for(let i=0;i<itemCount;i++)TCG_CARDS.push({id:'item-'+String(i+1).padStart(3,'0'),name:itemNames[i%itemNames.length]+' '+(i+1),type:'Colorless',rarity:i%10===0?'Rare':'Uncommon',kind:'Item',power:0,emoji:['🧪','🚁','🛡️','🎁','📡','🧰','🥊','💎'][i%8],set:'Equipo de Aventureros'});
+          const stadiumNames=['Arena del volcán','Puerto de cristal','Bosque resonante','Torre del trueno','Santuario lunar'];
+          for(let i=0;i<stadiumCount;i++)TCG_CARDS.push({id:'stadium-'+String(i+1).padStart(3,'0'),name:stadiumNames[i%stadiumNames.length]+' '+(i+1),type:types[i%types.length],rarity:i%5===0?'Ultra Rare':'Rare',kind:'Stadium',power:0,emoji:['🏟️','🌋','🌲','⚡','🌙'][i%5],set:'Campos de Batalla'});
+          for(let i=0;i<energyCount;i++){const type=types[i%types.length];TCG_CARDS.push({id:'energy-special-'+String(i+1).padStart(3,'0'),name:'Energía '+typeNames[type]+' '+(i+1),type,rarity:i%8===0?'Rare':'Common',kind:'Energy',power:0,emoji:emojis[type][i%4],set:'Energías especiales'});}
+          if(TCG_CARDS.length!==400)console.warn('UNO! TCG: el catálogo debería tener 400 cartas, tiene',TCG_CARDS.length);
+        })();
         const tcgRead=(key,def)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??def}catch(e){return def}};
         let tcgCollection=tcgRead('uno_tcg_collection',{});
         let tcgDeck=tcgRead('uno_tcg_deck',[]);
