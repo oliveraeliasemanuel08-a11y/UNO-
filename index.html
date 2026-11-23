@@ -4521,7 +4521,7 @@
           const first=['Astra','Kairo','Nébula','Drako','Zénit','Mistral','Órbita','Sombra','Prisma','Éter','Ragnar','Lúmina','Vórtice','Cobalto','Ícaro','Tempest','Aural','Kronos','Pixel','Solar'];
           const second=['del horizonte','de la tormenta','del núcleo','del infinito','de la aurora','del abismo','del bosque antiguo','de cristal','del eclipse','del último reino','de la dimensión','del cometa','de la forja','del océano','del tiempo','de la estrella'];
           const characterRarities=['Basic','Basic','Basic','Uncommon','Rare','EX','V','VSTAR','VMAX'];
-          const characterCount=200, trainerCount=64, itemCount=40, stadiumCount=20, energyCount=40;
+          const characterCount=201, trainerCount=64, itemCount=40, stadiumCount=20, energyCount=40;
           for(let i=0;i<characterCount;i++){
             const type=types[i%types.length], rarity=characterRarities[(i*7+i%3)%characterRarities.length];
             const name=first[(i*7)%first.length]+' '+second[(i*11+Math.floor(i/first.length))%second.length]+' '+String(i+1).padStart(3,'0');
