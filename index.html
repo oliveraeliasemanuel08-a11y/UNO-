@@ -5000,7 +5000,7 @@
         });
         function GenUIcopyArcade(code){const input=document.createElement('textarea');input.value=code;document.body.appendChild(input);input.select();try{document.execCommand('copy');showToast('Código '+code+' copiado.','success');}catch(e){showToast('Código: '+code,'info');}input.remove();}
         document.getElementById('arcadeExitGame').onclick=()=>{if(arcadeOnline.code)arcadeOnlineLeave(true);else arcadeBackToModes();};
-        document.getElementById('btnOpenArcade').onclick=()=>{document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeGamePanel').classList.add('hidden');};
+        document.getElementById('btnOpenArcade').onclick=()=>{document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');};
         document.getElementById('arcadeBackHome').onclick=()=>{if(arcadeOnline.code)arcadeOnlineLeave(false);document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('homeScreen').classList.remove('hidden');};
 
         // Botones del Menú Principal
