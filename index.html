@@ -661,6 +661,29 @@
 .tcg-three-board{width:100%;height:clamp(390px,58vw,620px);min-height:390px;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse,#1d6751,#082b2d 70%);position:relative;touch-action:pan-y}
 .tcg-three-board canvas{display:block;width:100%;height:100%;outline:none}
 @media(max-width:640px){.tcg-three-board{height:430px;min-height:430px}}
+
+/* UNO! CLUB TCG — pantalla de combate independiente */
+#tcgBattleScreen{background:radial-gradient(ellipse at 50% 0%,#123c4b 0%,#07131c 48%,#03070d 100%);overflow:hidden}
+#tcgBattleScreen .tcg-match-header{background:linear-gradient(180deg,#07131df5,#07131dcc);border-bottom:1px solid #67e8f933;box-shadow:0 8px 30px #0008}
+#tcgBattleViewport{height:calc(100dvh - 68px);overflow:auto;overscroll-behavior:contain;padding:12px clamp(8px,2vw,28px) 24px}
+#tcgBattleViewport>#tcgBattleArea{display:flex;flex-direction:column;gap:14px;max-width:1500px;margin:0 auto}
+#tcgBattleArea>.tcg-arena{width:100%;padding:clamp(8px,1.5vw,18px);border-radius:24px;background:radial-gradient(ellipse at 50% 42%,#174e48 0%,#0b2530 58%,#06101a 100%);border:1px solid #6ee7b755;box-shadow:inset 0 0 55px #34d39916,0 24px 65px #0009}
+#tcgThreeBoard{height:clamp(440px,57vh,690px);min-height:440px;border:1px solid #f7d98b55;border-radius:18px;box-shadow:inset 0 0 35px #0008,0 12px 34px #0008}
+#tcgBattleArea #tcgPlayerHand{min-height:170px;align-items:flex-end;padding:12px 10px 20px}
+#tcgBattleArea .tcg-hand-card{flex:0 0 105px;transition:transform .18s ease,filter .18s ease;cursor:pointer}
+#tcgBattleArea .tcg-hand-card:hover{transform:translateY(-13px) scale(1.04);z-index:5}
+#tcgBattleArea .tcg-hand-card.tcg-energy-selected{transform:translateY(-17px);filter:drop-shadow(0 0 12px #facc15);outline:3px solid #facc15;outline-offset:3px;border-radius:13px}
+#tcgBattleArea .tcg-active-target,#tcgBattleArea .tcg-bench-target{cursor:pointer}
+#tcgMatchMenu{position:absolute;inset:68px 0 0;z-index:5;display:flex;align-items:center;justify-content:center;padding:18px;background:#020617bb;backdrop-filter:blur(10px)}
+#tcgMatchMenu.hidden{display:none}
+#tcgMatchMenu .tcg-match-panel{width:min(440px,100%);border:1px solid #67e8f966;border-radius:24px;background:linear-gradient(145deg,#102b3b,#080f1c);padding:22px;box-shadow:0 25px 80px #000c}
+.tcg-match-action{border:1px solid #ffffff24;border-radius:12px;padding:10px 14px;font-size:12px;font-weight:900;white-space:nowrap;background:#ffffff12}
+.tcg-match-action:hover{background:#ffffff22}
+.tcg-match-primary{background:linear-gradient(135deg,#0891b2,#2563eb);border:0;color:white}
+#tcgBattleArea .tcg-hand-panel,#tcgBattleArea .tcg-controls-panel{border:1px solid #ffffff20;box-shadow:0 12px 28px #0005}
+@media(max-width:640px){#tcgBattleScreen .tcg-match-header{min-height:62px}#tcgBattleViewport{height:calc(100dvh - 62px);padding:7px 6px 18px}#tcgThreeBoard{height:440px;min-height:440px}#tcgBattleArea #tcgPlayerHand{min-height:145px}#tcgBattleArea .tcg-hand-card{flex-basis:86px}}
+@media(prefers-reduced-motion:reduce){#tcgBattleScreen *{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
 </style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
@@ -4748,27 +4771,28 @@
           try{const scene=new THREE.Scene();scene.background=new THREE.Color('#07191d');scene.fog=new THREE.Fog('#07191d',17,32);const camera=new THREE.PerspectiveCamera(37,1,.1,100);camera.position.set(0,12,17);camera.lookAt(0,0,0);
             const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;host.replaceChildren(renderer.domElement);
             scene.add(new THREE.HemisphereLight('#d8f4ff','#10251d',2));const key=new THREE.DirectionalLight('#fff1c9',3);key.position.set(-5,12,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);const rim=new THREE.PointLight('#42d9ff',45,22);rim.position.set(5,5,-5);scene.add(rim);
-            const root=new THREE.Group();scene.add(root);const cards=new THREE.Group();root.add(cards);const base=new THREE.Mesh(new THREE.BoxGeometry(15,.65,11),new THREE.MeshStandardMaterial({color:'#6b3d20',roughness:.55}));base.position.y=-.38;base.receiveShadow=true;base.castShadow=true;root.add(base);
+            const root=new THREE.Group();scene.add(root);const cards=new THREE.Group();root.add(cards);const hitTargets=new THREE.Group();root.add(hitTargets);const base=new THREE.Mesh(new THREE.BoxGeometry(15,.65,11),new THREE.MeshStandardMaterial({color:'#6b3d20',roughness:.55}));base.position.y=-.38;base.receiveShadow=true;base.castShadow=true;root.add(base);
             const trim=new THREE.Mesh(new THREE.BoxGeometry(14.5,.12,10.5),new THREE.MeshStandardMaterial({color:'#d6ad58',metalness:.7,roughness:.28}));trim.position.y=-.02;root.add(trim);
             const felt=new THREE.Mesh(new THREE.BoxGeometry(14.1,.12,10.1),new THREE.MeshStandardMaterial({color:'#17634b',roughness:.92}));felt.position.y=.06;felt.receiveShadow=true;root.add(felt);
             const lineMat=new THREE.MeshStandardMaterial({color:'#d6f4d8',transparent:true,opacity:.48});
             for(const z of [-.45,.45]){const line=new THREE.Mesh(new THREE.BoxGeometry(13.3,.012,.025),lineMat);line.position.set(0,.13,z*2);root.add(line)}
             const zone=(x,z,w,d,color)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,.025,d),new THREE.MeshStandardMaterial({color,transparent:true,opacity:.24,roughness:1}));m.position.set(x,.14,z);root.add(m);const edge=new THREE.Mesh(new THREE.BoxGeometry(w+.04,.035,d+.04),new THREE.MeshStandardMaterial({color,wireframe:true,transparent:true,opacity:.7}));edge.position.set(x,.145,z);root.add(edge)};
             zone(0,-3.45,5.3,2.1,'#f87171');zone(0,-1.45,9.5,1.6,'#fb7185');zone(0,1.4,9.5,1.6,'#34d399');zone(0,3.45,5.3,2.1,'#4ade80');
-            tcg3d={...tcg3d,scene,camera,renderer,root,cards};const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};tcg3d.resize=resize;new ResizeObserver(resize).observe(host);resize();
+            tcg3d={...tcg3d,scene,camera,renderer,root,cards,hitTargets};const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('pointerup',ev=>{const rect=renderer.domElement.getBoundingClientRect();pointer.x=((ev.clientX-rect.left)/rect.width)*2-1;pointer.y=-((ev.clientY-rect.top)/rect.height)*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(tcg3d.hitTargets.children,false)[0];if(hit&&hit.object.userData.energyTarget!==undefined)tcgHandleBoardTarget(hit.object.userData.energyTarget);});const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};tcg3d.resize=resize;new ResizeObserver(resize).observe(host);resize();
             const loop=()=>{tcg3d.raf=requestAnimationFrame(loop);root.rotation.y=Math.sin(performance.now()*.00018)*.008;renderer.render(scene,camera)};loop();
           }catch(e){console.error('TCG 3D init:',e);host.innerHTML='<div class="p-6 text-center text-amber-100">No se pudo iniciar el renderizador 3D. Recargá la página o activá la aceleración por hardware.</div>'}
         }
-        function tcg3dRender(b){const host=document.getElementById('tcgThreeBoard');if(!host||!b)return;tcg3dInit();if(!tcg3d.root)return;const p=b.player,c=b.cpu;const sig=JSON.stringify([p.active?.uid,p.active?.damage,p.active?.energies?.length,p.bench.map(x=>[x.uid,x.damage,x.energies.length]),c.active?.uid,c.active?.damage,c.bench.map(x=>[x.uid,x.damage]),p.deck.length,p.prizes,c.deck.length,c.prizes]);if(sig===tcg3d.signature)return;tcg3d.signature=sig;
-          const root=tcg3d.root,cards=tcg3d.cards;while(cards.children.length){const obj=cards.children.pop();obj.traverse?.(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m.map)m.map.dispose();m.dispose()})}})}
+        function tcg3dRender(b){const host=document.getElementById('tcgThreeBoard');if(!host||!b)return;tcg3dInit();if(!tcg3d.root)return;const p=b.player,c=b.cpu;const sig=JSON.stringify([p.active?.uid,p.active?.damage,p.active?.energies,p.bench.map(x=>[x.uid,x.damage,x.energies]),c.active?.uid,c.active?.damage,c.active?.energies,c.bench.map(x=>[x.uid,x.damage,x.energies]),p.deck.length,p.prizes,c.deck.length,c.prizes,b.selectedEnergy]);if(sig===tcg3d.signature)return;tcg3d.signature=sig;
+          const root=tcg3d.root,cards=tcg3d.cards,hitTargets=tcg3d.hitTargets;while(cards.children.length){const obj=cards.children.pop();obj.traverse?.(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m.map)m.map.dispose();m.dispose()})}})}while(hitTargets.children.length){const obj=hitTargets.children.pop();obj.geometry?.dispose();obj.material?.dispose()}
+          const addTarget=(x,z,w,d,target)=>{const hit=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({transparent:true,opacity:.001,depthWrite:false,side:THREE.DoubleSide}));hit.rotation.x=-Math.PI/2;hit.position.set(x,.28,z);hit.userData.energyTarget=target;hitTargets.add(hit);if(b.selectedEnergy){const glow=new THREE.Mesh(new THREE.PlaneGeometry(w*.92,d*.92),new THREE.MeshBasicMaterial({color:'#facc15',transparent:true,opacity:.16,depthWrite:false,side:THREE.DoubleSide}));glow.rotation.x=-Math.PI/2;glow.position.set(x,.205,z);cards.add(glow);const edge=new THREE.Mesh(new THREE.BoxGeometry(w,.035,d),new THREE.MeshStandardMaterial({color:'#facc15',emissive:'#f59e0b',emissiveIntensity:1.1,transparent:true,opacity:.85}));edge.position.set(x,.19,z);cards.add(edge)}};
           const addCard=(card,x,z,scale=1,back=false)=>{if(!card&&!back)return;const tex=tcg3dCardTexture(card,back);const side=new THREE.MeshStandardMaterial({color:'#e8d8ae',roughness:.5});const face=new THREE.MeshStandardMaterial({map:tex,roughness:.42});const mesh=new THREE.Mesh(new THREE.BoxGeometry(1.22*scale,.075,1.72*scale),[side,side,face,side,side,side]);mesh.position.set(x,.24,z);mesh.rotation.x=-.13;mesh.castShadow=true;mesh.receiveShadow=true;cards.add(mesh);const shadow=new THREE.Mesh(new THREE.PlaneGeometry(1.35*scale,1.85*scale),new THREE.ShadowMaterial({opacity:.25}));shadow.rotation.x=-Math.PI/2;shadow.position.set(x,.145,z);cards.add(shadow)};
-          addCard(c.active,0,-3.35,1.08);c.bench.slice(0,5).forEach((x,i)=>addCard(x,(i-2)*1.65,-1.55,.67));addCard(p.active,0,3.35,1.08);p.bench.slice(0,5).forEach((x,i)=>addCard(x,(i-2)*1.65,1.55,.67));
+          addCard(c.active,0,-3.35,1.08);addTarget(0,-3.35,1.9,2.35,'opponent');c.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,-1.55,.67);x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.55+(j%2)*.28,-2.15-Math.floor(j/2)*.28,.27));});c.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),-1.12-(j%3)*.34,-3.25-Math.floor(j/3)*.45,.32));addCard(p.active,0,3.35,1.08);addTarget(0,3.35,1.9,2.35,'active');p.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,1.55,.67);addTarget(bx,1.55,1.48,1.55,String(i));x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.55+(j%2)*.28,2.12+Math.floor(j/2)*.28,.27));});p.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),1.12+(j%3)*.34,3.25+Math.floor(j/3)*.45,.32));
           for(let i=0;i<Math.min(4,p.deck.length);i++)addCard(null,5.55,3.3-i*.045,.56,true);for(let i=0;i<Math.min(4,c.deck.length);i++)addCard(null,-5.55,-3.3+i*.045,.56,true);
           for(let i=0;i<Math.min(6,p.prizes);i++)addCard(null,5.45+(i%2)*.38,1.2+Math.floor(i/2)*.42,.35,true);for(let i=0;i<Math.min(6,c.prizes);i++)addCard(null,-5.45-(i%2)*.38,-1.2-Math.floor(i/2)*.42,.35,true);
         }
 
         function tcgBattleRender(){
-          if(!tcgBattle)return;const b=tcgBattle,p=b.player,c=b.cpu;tcg3dRender(b);
+          if(!tcgBattle)return;const b=tcgBattle,p=b.player,c=b.cpu;tcgShowBattleScreen();tcg3dRender(b);
           const meLabel=document.getElementById('tcgMeLabel'),opLabel=document.getElementById('tcgOpponentLabel');if(meLabel)meLabel.textContent=tcgOnline?'🧑 Tu equipo':'🧑 Tu equipo';if(opLabel)opLabel.textContent=tcgOnline?'⚔️ Rival online':'🤖 Rival IA';
           const cardView=(x,small=false)=>{if(!x)return '<div class="text-xs text-zinc-600 p-5">Espacio vacío</div>';const pct=Math.max(0,(x.hp-x.damage)/Math.max(1,x.maxHp)*100);const glow=({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca';const rarity=['V','EX','VMAX','VSTAR','Ultra Rare','Legendary'].includes(x.rarity);return '<div class="tcg-card-3d '+(small?'tcg-board-card ':'')+(rarity?'tcg-card-rare ':'')+'"><div class="tcg-card-face" style="--tcg-glow:'+glow+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><span class="tcg-card-ribbon">'+(x.kind==='Character'?'PERSONAJE':x.kind==='Energy'?'ENERGÍA':x.kind==='Supporter'?'ENTRENADOR':x.kind==='Stadium'?'ESTADIO':'OBJETO')+'</span><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b><div class="tcg-card-power">'+(x.hp-x.damage)+' / '+x.maxHp+' PS</div><div class="h-1.5 bg-black/50 rounded-full mt-1 overflow-hidden"><div class="h-full bg-emerald-400" style="width:'+pct+'%"></div></div><div class="tcg-card-energy">'+x.energies.map(()=>'<i></i>').join('')+'</div><div class="text-[8px] text-center mt-1 text-cyan-100">'+x.energies.length+' energías adjuntas</div></div></div>'};
           document.getElementById('tcgCpuActive').innerHTML='<div class="tcg-zone-label">POKÉMON ACTIVO</div>'+cardView(c.active);document.getElementById('tcgPlayerActive').innerHTML='<button type="button" data-tcg-energy-target="active" class="tcg-active-target"><span class="tcg-zone-label">POKÉMON ACTIVO · tocá para adjuntar energía</span>'+cardView(p.active)+'</button>';
@@ -4776,7 +4800,7 @@
           document.getElementById('tcgCpuPrizes').textContent=c.prizes+' premios';document.getElementById('tcgPlayerPrizes').textContent=p.prizes+' premios';
           document.getElementById('tcgBattleTurn').textContent=b.over?'Partida terminada':b.turn==='player'?'🟢 Tu turno':(tcgOnline?'🔴 Turno del rival':'Turno de la IA');document.getElementById('tcgBattleStatus').textContent=b.over?'Duelo finalizado':b.turn!=='player'?(tcgOnline?'Esperando la jugada del rival…':'La IA está jugando…'):b.phase==='draw'?'Robá una carta para comenzar':b.phase==='main'?'Jugá cartas, adjuntá energía y atacá':'Turno terminado';
           document.getElementById('tcgBattleLog').innerHTML=b.log.map(x=>'<div>• '+x+'</div>').join('');
-          document.getElementById('tcgPlayerHand').innerHTML=p.hand.map((id,i)=>{const x=tcgCard(id);return x?'<button data-tcg-hand="'+i+'" class="tcg-hand-card tcg-card-3d text-left"><div class="tcg-card-face" style="--tcg-glow:'+(({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca')+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b><div class="tcg-card-power">'+x.kind+'</div></div></button>':''}).join('');
+          document.getElementById('tcgPlayerHand').innerHTML=p.hand.map((id,i)=>{const x=tcgCard(id);return x?'<button data-tcg-hand="'+i+'" class="tcg-hand-card tcg-card-3d text-left '+(b.selectedEnergy===id?'tcg-energy-selected':'')+'"><div class="tcg-card-face" style="--tcg-glow:'+(({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca')+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b><div class="tcg-card-power">'+x.kind+'</div></div></button>':''}).join('');
           document.getElementById('tcgHandCount').textContent=p.hand.length+' cartas • mazo '+p.deck.length;
           ['tcgDrawTurn','tcgAttachEnergy','tcgRetreat','tcgEndTurn'].forEach(id=>document.getElementById(id).disabled=b.over||b.turn!=='player');
           const attackButton=document.getElementById('tcgAttack');if(attackButton)attackButton.disabled=b.over||b.turn!=='player'||b.phase!=='main';
@@ -4806,6 +4830,56 @@
         document.getElementById('tcgDrawTurn').onclick=tcgDrawTurn;document.getElementById('tcgAttachEnergy').onclick=tcgAttachEnergy;document.getElementById('tcgEndTurn').onclick=tcgEndPlayerTurn;
         document.getElementById('tcgRetreat').onclick=()=>{const b=tcgBattle;if(!b||b.turn!=='player'||b.phase!=='main'||!b.player.bench.length)return;const cost=b.player.active.energies.length?1:0;if(b.player.active.energies.length<cost){showToast('No tenés energía para retirarte.','warn');return}const old=b.player.active;b.player.active=b.player.bench.shift();if(cost)old.energies.pop();b.player.bench.push(old);tcgLog('Retiraste al personaje activo.');tcgBattleRender()};
         const tcgAttackBtn=document.createElement('button');tcgAttackBtn.id='tcgAttack';tcgAttackBtn.className='rounded-lg bg-rose-700 p-2 text-xs font-bold';tcgAttackBtn.textContent='⚔️ Atacar';document.getElementById('tcgEndTurn').parentElement.insertBefore(tcgAttackBtn,document.getElementById('tcgEndTurn'));tcgAttackBtn.onclick=tcgAttack;
+
+        // La arena se desacopla del lobby: el HUD de partida vive en su propia pantalla.
+        let tcgBattleAnchor=null;
+        function tcgShowBattleScreen(){
+          const screen=document.getElementById('tcgBattleScreen'),area=document.getElementById('tcgBattleArea'),viewport=document.getElementById('tcgBattleViewport');
+          if(!screen||!area||!viewport)return;
+          if(area.parentElement!==viewport){
+            if(!tcgBattleAnchor){tcgBattleAnchor=document.createComment('TCG battle area placeholder');area.parentNode.insertBefore(tcgBattleAnchor,area);}
+            viewport.appendChild(area);
+          }
+          area.classList.remove('hidden');screen.classList.remove('hidden');
+          requestAnimationFrame(()=>{tcg3d.resize?.();});
+        }
+        function tcgHideBattleScreen(returnToLobby=true){
+          const screen=document.getElementById('tcgBattleScreen'),area=document.getElementById('tcgBattleArea');
+          if(screen)screen.classList.add('hidden');
+          if(area&&tcgBattleAnchor&&tcgBattleAnchor.parentNode){tcgBattleAnchor.parentNode.insertBefore(area,tcgBattleAnchor.nextSibling);tcgBattleAnchor.remove();tcgBattleAnchor=null;}
+          if(area)area.classList.add('hidden');
+          const menu=document.getElementById('tcgMatchMenu');if(menu)menu.classList.add('hidden');
+          const viewport=document.getElementById('tcgBattleViewport');if(viewport)viewport.style.pointerEvents='';
+          if(returnToLobby)document.getElementById('unoTcgModal')?.classList.remove('hidden');
+        }
+        function tcgHandleBoardTarget(target){
+          const b=tcgBattle;if(!b||b.over||b.turn!=='player'||b.phase!=='main')return;
+          if(b.selectedEnergy){tcgAttachEnergy(target);return;}
+          if(target!=='active'){
+            const i=Number(target),p=b.player;if(!Number.isInteger(i)||!p.bench[i])return;
+            [p.active,p.bench[i]]=[p.bench[i],p.active];tcgLog('Promoviste '+p.active.name+' al puesto Activo.');tcgBattleRender();
+          }
+        }
+        function tcgToggleMatchMenu(){
+          const menu=document.getElementById('tcgMatchMenu'),viewport=document.getElementById('tcgBattleViewport');if(!menu)return;
+          const opening=menu.classList.contains('hidden');menu.classList.toggle('hidden',!opening);
+          if(viewport)viewport.style.pointerEvents=opening?'none':'';
+        }
+        document.getElementById('tcgMatchSettings')?.addEventListener('click',tcgToggleMatchMenu);
+        document.getElementById('tcgMatchPause')?.addEventListener('click',tcgToggleMatchMenu);
+        document.getElementById('tcgMatchResume')?.addEventListener('click',tcgToggleMatchMenu);
+        document.getElementById('tcgMatchExit')?.addEventListener('click',()=>{
+          const msg=tcgOnline?'¿Querés abandonar esta sala online?':'¿Querés salir de la partida actual?';
+          if(!confirm(msg))return;
+          if(tcgOnline)tcgOnlineExit(true);
+          tcgBattle=null;tcgHideBattleScreen(true);
+        });
+        document.getElementById('tcgMatchLeave')?.addEventListener('click',()=>{
+          if(!confirm('¿Abandonar la partida y volver al lobby TCG?'))return;
+          if(tcgOnline)tcgOnlineExit(true);
+          tcgBattle=null;tcgHideBattleScreen(true);
+        });
+        document.getElementById('tcgMatchSound')?.addEventListener('change',e=>{window.tcgMatchSoundEnabled=!!e.target.checked;});
     </script>
 
     <div id="unoTcgModal" class="hidden fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
@@ -4859,6 +4933,31 @@
             </div>
           </section>
           </section>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="tcgBattleScreen" class="hidden fixed inset-0 z-[260]">
+      <header class="tcg-match-header relative z-[6] flex min-h-[68px] items-center justify-between gap-3 px-3 sm:px-6 py-2">
+        <div class="min-w-0"><div class="font-uno text-xl sm:text-2xl text-cyan-200">UNO! <span class="text-amber-300">TCG</span></div><div class="text-[9px] sm:text-[10px] tracking-[.2em] text-cyan-100/60">ARENA DE COMBATE · PARTIDA EN CURSO</div></div>
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <button id="tcgMatchSettings" class="tcg-match-action" title="Configuración">⚙️ <span class="hidden sm:inline">Configuración</span></button>
+          <button id="tcgMatchPause" class="tcg-match-action" title="Pausar">Ⅱ <span class="hidden sm:inline">Pausa</span></button>
+          <button id="tcgMatchExit" class="tcg-match-action border-rose-400/40 text-rose-200" title="Salir de la partida">↩ <span class="hidden sm:inline">Salir</span></button>
+        </div>
+      </header>
+      <main id="tcgBattleViewport"></main>
+      <div id="tcgMatchMenu" class="hidden">
+        <div class="tcg-match-panel">
+          <div class="text-[10px] tracking-[.25em] text-cyan-300 font-black">MENÚ DE PARTIDA</div>
+          <h2 class="font-uno text-3xl text-white mt-1">Pausa y configuración</h2>
+          <p class="text-xs text-slate-300 mt-2">La partida queda en esta pantalla. Podés continuar cuando quieras.</p>
+          <label class="flex items-center justify-between gap-3 rounded-xl bg-white/5 p-3 mt-4 text-sm"><span>✨ Efectos y animaciones</span><input id="tcgMatchSound" type="checkbox" checked class="h-5 w-5 accent-cyan-400"></label>
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <button id="tcgMatchResume" class="tcg-match-action tcg-match-primary">▶ Continuar</button>
+            <button id="tcgMatchLeave" class="tcg-match-action text-rose-200 border-rose-400/40">🚪 Abandonar</button>
+          </div>
         </div>
       </div>
     </div>
