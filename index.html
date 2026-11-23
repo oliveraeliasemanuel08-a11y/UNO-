@@ -681,6 +681,7 @@
 
                 <div class="flex items-center gap-2">
                     <button id="btnOpenSettings" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-sky-300" title="Configuración">⚙️</button>
+                    <button id="btnOpenTCG" class="px-3 py-2 rounded-xl bg-zinc-900 border border-fuchsia-400/30 text-fuchsia-300" title="UNO! TCG">🃏 TCG</button>
                     <button id="btnOpenStore" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-amber-300" title="Tienda">🛍️</button>
                     <button id="btnOpenRulesHome" class="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-amber-300 transition-colors cursor-pointer">
                         📜 Reglas
@@ -4451,6 +4452,97 @@
             setInterval(checkForUpdate, 90000);
             setInterval(() => { const store = document.getElementById('storeModal'); if (store && !store.classList.contains('hidden')) { const day = new Date().toISOString().slice(0,10); if (window.__unoStoreDay !== day) { window.__unoStoreDay = day; renderClubStore(); showToast('🛍️ ¡La tienda recibió una nueva selección diaria!', 'success'); } updateDailyStoreClock(); } }, 30000);
         })();
-    </script>
+    
+        // UNO! TCG — primera fase funcional: colección, sobres y mazo local.
+        const TCG_CARDS = [
+          {id:'nova',name:'Nova, guardiana estelar',type:'Psychic',rarity:'VSTAR',kind:'Character',power:260,emoji:'🌌'},
+          {id:'voltar',name:'Voltar, núcleo eléctrico',type:'Electric',rarity:'V',kind:'Character',power:210,emoji:'⚡'},
+          {id:'brasa',name:'Brasa, dragón solar',type:'Fire',rarity:'VMAX',kind:'Character',power:330,emoji:'🐉'},
+          {id:'mareas',name:'Mareas, reina abisal',type:'Water',rarity:'EX',kind:'Character',power:230,emoji:'🌊'},
+          {id:'brote',name:'Brote, titán del bosque',type:'Plant',rarity:'EX',kind:'Character',power:220,emoji:'🌿'},
+          {id:'umbra',name:'Umbra, sombra eterna',type:'Darkness',rarity:'VSTAR',kind:'Character',power:280,emoji:'🌑'},
+          {id:'atlas',name:'Atlas, coloso de acero',type:'Metal',rarity:'V',kind:'Character',power:240,emoji:'🛡️'},
+          {id:'rayo',name:'Rayo, corredor salvaje',type:'Electric',rarity:'Basic',kind:'Character',power:90,emoji:'🏃'},
+          {id:'frost',name:'Frost, lobo glacial',type:'Water',rarity:'Basic',kind:'Character',power:100,emoji:'🐺'},
+          {id:'pyra',name:'Pyra, chispa rebelde',type:'Fire',rarity:'Basic',kind:'Character',power:80,emoji:'🔥'},
+          {id:'medic',name:'Botiquín de emergencia',type:'Colorless',rarity:'Uncommon',kind:'Item',power:0,emoji:'🧰'},
+          {id:'scanner',name:'Escáner táctico',type:'Colorless',rarity:'Uncommon',kind:'Item',power:0,emoji:'📡'},
+          {id:'mentor',name:'Entrenador legendario',type:'Colorless',rarity:'Rare',kind:'Supporter',power:0,emoji:'🎓'},
+          {id:'arena',name:'Estadio: Núcleo central',type:'Colorless',rarity:'Rare',kind:'Stadium',power:0,emoji:'🏟️'},
+          {id:'energy-fire',name:'Energía de fuego',type:'Fire',rarity:'Common',kind:'Energy',power:0,emoji:'🔴'},
+          {id:'energy-water',name:'Energía de agua',type:'Water',rarity:'Common',kind:'Energy',power:0,emoji:'🔵'},
+          {id:'energy-electric',name:'Energía eléctrica',type:'Electric',rarity:'Common',kind:'Energy',power:0,emoji:'🟡'},
+          {id:'energy-plant',name:'Energía natural',type:'Plant',rarity:'Common',kind:'Energy',power:0,emoji:'🟢'},
+          {id:'energy-psychic',name:'Energía psíquica',type:'Psychic',rarity:'Common',kind:'Energy',power:0,emoji:'🟣'},
+          {id:'energy-colorless',name:'Energía neutral',type:'Colorless',rarity:'Common',kind:'Energy',power:0,emoji:'⚪'}
+        ];
+        const tcgRead=(key,def)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??def}catch(e){return def}};
+        let tcgCollection=tcgRead('uno_tcg_collection',{});
+        let tcgDeck=tcgRead('uno_tcg_deck',[]);
+        const tcgSave=()=>{localStorage.setItem('uno_tcg_collection',JSON.stringify(tcgCollection));localStorage.setItem('uno_tcg_deck',JSON.stringify(tcgDeck));};
+        const tcgCard=id=>TCG_CARDS.find(c=>c.id===id);
+        function tcgRender(){
+          const total=Object.values(tcgCollection).reduce((a,b)=>a+b,0), unique=Object.keys(tcgCollection).length;
+          document.getElementById('tcgCardCount').textContent=total+' cartas';
+          document.getElementById('tcgUniqueCount').textContent=unique+' / '+TCG_CARDS.length+' distintas';
+          document.getElementById('tcgCollection').innerHTML=TCG_CARDS.filter(c=>tcgCollection[c.id]).map(c=>'<div class="rounded-xl border border-white/10 bg-zinc-900 p-2"><div class="flex justify-between"><span class="text-2xl">'+c.emoji+'</span><b class="text-[9px] text-fuchsia-300">'+c.rarity+'</b></div><b class="block text-[11px] mt-1">'+c.name+'</b><small class="text-zinc-500">'+c.kind+' • '+c.type+' • x'+tcgCollection[c.id]+'</small><button data-tcg-add="'+c.id+'" class="block w-full mt-2 rounded-lg bg-zinc-700 py-1 text-[10px] font-bold">+ Añadir al mazo</button></div>').join('')||'<p class="col-span-full text-center text-xs text-zinc-500 py-8">Todavía no tenés cartas. ¡Abrí tu primer sobre!</p>';
+          const counts={};tcgDeck.forEach(id=>counts[id]=(counts[id]||0)+1);
+          document.getElementById('tcgDeckList').innerHTML=Object.entries(counts).map(([id,n])=>{const c=tcgCard(id);return c?'<div class="flex items-center justify-between gap-2 rounded-lg bg-zinc-900 px-2 py-1.5 text-xs"><span>'+c.emoji+' '+c.name+' <small class="text-zinc-500">x'+n+'</small></span><button data-tcg-remove="'+id+'" class="text-rose-300 px-2">−</button></div>':''}).join('')||'<p class="text-xs text-zinc-500 py-5 text-center">Tu mazo está vacío.</p>';
+          document.getElementById('tcgDeckCount').textContent=tcgDeck.length+' / 60';
+          document.getElementById('tcgDeckProgress').style.width=Math.min(100,tcgDeck.length/60*100)+'%';
+          document.querySelectorAll('[data-tcg-add]').forEach(b=>b.onclick=()=>tcgAdd(b.dataset.tcgAdd));
+          document.querySelectorAll('[data-tcg-remove]').forEach(b=>b.onclick=()=>{const i=tcgDeck.lastIndexOf(b.dataset.tcgRemove);if(i>=0)tcgDeck.splice(i,1);tcgSave();tcgRender()});
+        }
+        function tcgAdd(id){if(tcgDeck.length>=60){showToast('El mazo ya tiene 60 cartas.','warn');return}const n=tcgDeck.filter(x=>x===id).length;if(n>=4&&tcgCard(id)?.kind!=='Energy'){showToast('Máximo 4 copias de esta carta.','warn');return}if((tcgCollection[id]||0)<=n){showToast('No tenés más copias de esa carta.','warn');return}tcgDeck.push(id);tcgSave();tcgRender()}
+        function tcgOpenPack(kind){
+          const pool=TCG_CARDS.filter(c=>kind!=='elemental'||['Fire','Water','Electric','Plant','Psychic','Darkness','Metal'].includes(c.type)).filter(c=>kind!=='special'||['VSTAR','VMAX','EX'].includes(c.rarity)).filter(c=>kind!=='expansion'||c.kind!=='Energy');
+          const pulled=[];for(let i=0;i<5;i++){let card;if(i===4&&Math.random()<.7)card=pool.filter(c=>['V','VMAX','VSTAR','EX','Rare'].includes(c.rarity))[Math.floor(Math.random()*pool.filter(c=>['V','VMAX','VSTAR','EX','Rare'].includes(c.rarity)).length)];if(!card)card=pool[Math.floor(Math.random()*pool.length)];pulled.push(card)}
+          pulled.forEach(c=>tcgCollection[c.id]=(tcgCollection[c.id]||0)+1);tcgSave();
+          document.getElementById('tcgPackResult').innerHTML=pulled.map(c=>'<div class="rounded-xl border border-fuchsia-400/30 bg-gradient-to-br from-zinc-800 to-fuchsia-950/50 p-2 text-center"><div class="text-3xl">'+c.emoji+'</div><b class="block text-[10px] mt-1">'+c.name+'</b><span class="text-[9px] text-fuchsia-200">'+c.rarity+'</span></div>').join('');
+          tcgRender();showToast('¡Sobre abierto! Conseguí 5 cartas.','success');
+        }
+        document.getElementById('btnOpenTCG').onclick=()=>{document.getElementById('unoTcgModal').classList.remove('hidden');tcgRender()};
+        document.getElementById('btnCloseTCG').onclick=()=>document.getElementById('unoTcgModal').classList.add('hidden');
+        document.querySelectorAll('.tcg-pack').forEach(b=>b.onclick=()=>tcgOpenPack(b.dataset.tcgPack));
+        document.getElementById('tcgClearDeck').onclick=()=>{if(confirm('¿Vaciar el mazo actual?')){tcgDeck=[];tcgSave();tcgRender()}};
+        document.getElementById('tcgAutoDeck').onclick=()=>{tcgDeck=[];const available=TCG_CARDS.filter(c=>(tcgCollection[c.id]||0)>0);if(!available.length){showToast('Abrí sobres para conseguir cartas primero.','warn');return}for(const c of available){const copies=Math.min(c.kind==='Energy'?8:4,tcgCollection[c.id]||0);for(let i=0;i<copies&&tcgDeck.length<60;i++)tcgDeck.push(c.id)}tcgSave();tcgRender();showToast('Mazo armado con tus cartas.','success')};
+</script>
+
+    <div id="unoTcgModal" class="hidden fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
+      <div class="max-w-5xl mx-auto rounded-3xl border border-fuchsia-400/30 bg-gradient-to-br from-zinc-900 via-slate-950 to-fuchsia-950/30 shadow-2xl">
+        <div class="flex items-center justify-between gap-3 p-5 border-b border-white/10">
+          <div><div class="text-[10px] uppercase tracking-[.25em] text-fuchsia-300 font-black">Nuevo modo de cartas coleccionables</div><h2 class="font-uno text-3xl text-white">UNO! <span class="text-fuchsia-300">TCG</span></h2><p class="text-xs text-zinc-400">Colección, sobres y construcción de mazos • progreso guardado en este dispositivo</p></div>
+          <button id="btnCloseTCG" class="rounded-xl bg-zinc-800 px-4 py-2 text-white">✕</button>
+        </div>
+        <div class="p-4 sm:p-6 grid lg:grid-cols-[1.1fr_.9fr] gap-5">
+          <section class="space-y-4">
+            <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+              <div class="flex justify-between items-center gap-2"><h3 class="font-bold text-lg">🎴 Abrir sobres</h3><span id="tcgCardCount" class="text-xs text-fuchsia-200">0 cartas</span></div>
+              <p class="text-xs text-zinc-400 mt-1">Probá sobres mezclados, elementales, expansiones y colecciones especiales.</p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+                <button data-tcg-pack="mixed_all" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-fuchsia-700 to-indigo-900 text-left"><b class="block text-sm">🌈 Mixto</b><small class="text-[10px]">Todas las rarezas</small></button>
+                <button data-tcg-pack="elemental" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-cyan-700 to-blue-950 text-left"><b class="block text-sm">⚡ Elemental</b><small class="text-[10px]">Tipos y energías</small></button>
+                <button data-tcg-pack="expansion" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-amber-600 to-red-950 text-left"><b class="block text-sm">🚀 Expansión</b><small class="text-[10px]">Cartas especiales</small></button>
+                <button data-tcg-pack="special" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-emerald-700 to-teal-950 text-left"><b class="block text-sm">👑 Colección</b><small class="text-[10px]">Selección exclusiva</small></button>
+              </div>
+              <div id="tcgPackResult" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4"></div>
+            </div>
+            <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+              <div class="flex items-center justify-between"><h3 class="font-bold text-lg">📚 Mi colección</h3><span id="tcgUniqueCount" class="text-xs text-zinc-400"></span></div>
+              <div id="tcgCollection" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3 max-h-72 overflow-y-auto pr-1"></div>
+            </div>
+          </section>
+          <section class="rounded-2xl bg-black/30 border border-white/10 p-4">
+            <h3 class="font-bold text-lg">🛠️ Constructor de mazos</h3>
+            <p class="text-xs text-zinc-400 mt-1">Formato previsto: 60 cartas. Máximo 4 copias por carta.</p>
+            <div class="flex items-center justify-between mt-4"><span class="text-sm font-bold">Mazo actual</span><b id="tcgDeckCount" class="text-fuchsia-300">0 / 60</b></div>
+            <div class="h-2 rounded-full bg-zinc-800 mt-2 overflow-hidden"><div id="tcgDeckProgress" class="h-full bg-fuchsia-500" style="width:0%"></div></div>
+            <div id="tcgDeckList" class="space-y-1 mt-3 max-h-64 overflow-y-auto"></div>
+            <div class="grid grid-cols-2 gap-2 mt-4"><button id="tcgAutoDeck" class="rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 p-3 text-xs font-black">✨ Crear mazo inicial</button><button id="tcgClearDeck" class="rounded-xl bg-zinc-700 hover:bg-zinc-600 p-3 text-xs font-bold">Vaciar mazo</button></div>
+            <p id="tcgDeckHint" class="text-[11px] text-zinc-500 mt-3">La colección y el mazo se guardan localmente en este navegador. El combate online y las recompensas sincronizadas se incorporarán en la siguiente fase.</p>
+          </section>
+        </div>
+      </div>
+    </div>
 </body>
 </html>
