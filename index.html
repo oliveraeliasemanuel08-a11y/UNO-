@@ -4638,7 +4638,7 @@
             if(!setup(player))throw new Error('Tu mazo necesita personajes.');
             for(let i=0;i<5;i++){const ix=player.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id)?.rarity==='Basic');if(ix>=0)player.bench.push(tcgCardInstance(player.hand.splice(ix,1)[0]));}
             tcgOnline={code,seat:0,revision:0,unsubscribe:null};
-            await setDoc(ref,{type:'uno_tcg',code,status:'waiting',players:[{id:currentUserId,name:currentUser?.displayName||'Jugador 1',deck:[...tcgDeck]},null],revision:0,createdAt:Date.now(),updatedAt:Date.now()});
+            await setDoc(ref,{type:'uno_tcg',code,hostId:currentUserId,status:'waiting',players:[{id:currentUserId,name:currentUser?.displayName||'Jugador 1',deck:[...tcgDeck]},null],revision:0,createdAt:Date.now(),updatedAt:Date.now()});
             tcgBattle={player,cpu:null,turn:'player',phase:'draw',first:true,log:['Sala creada. Esperando rival…'],selectedEnergy:null,over:false};
             document.getElementById('tcgLeaveOnline').classList.remove('hidden');tcgOnlineSetStatus('Esperando rival…');tcgOnlineListen();showToast('Sala creada: '+code,'success');
           }catch(e){console.error(e);tcgOnline=null;showToast(e.message||'No se pudo crear la sala.','warn');}
