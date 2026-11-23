@@ -4812,8 +4812,10 @@
           const host=document.getElementById('tcgThreeBoard');if(!host||!b)return;tcg3dInit();if(!tcg3d.root)return;
           const p=b.player,c=b.cpu;
           const sig=JSON.stringify([p.active?.uid,p.active?.damage,p.active?.energies,p.bench.map(x=>[x.uid,x.damage,x.energies]),c.active?.uid,c.active?.damage,c.active?.energies,c.bench.map(x=>[x.uid,x.damage,x.energies]),p.hand,p.deck.length,p.prizes,c.deck.length,c.prizes,b.selectedEnergy]);
-          if(sig===tcg3d.signature){tcg3d.renderer.render(tcg3d.scene,tcg3d.camera);return}tcg3d.signature=sig;
-          const cards=tcg3d.cards,hitTargets=tcg3d.hitTargets;cards.clear();hitTargets.clear();
+          if(sig===tcg3d.signature)return;tcg3d.signature=sig;
+          const cards=tcg3d.cards,hitTargets=tcg3d.hitTargets;
+          cards.traverse(o=>{if(!o.isMesh||!o.material)return;const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{if(m&&m!==tcg3d.sideMaterial&&m!==tcg3d.targetMaterial)m.dispose()})});
+          cards.clear();hitTargets.clear();
           const addTarget=(x,z,w,d,target)=>{const hit=new THREE.Mesh(tcg3d.targetGeometry,tcg3d.targetMaterial);hit.rotation.x=-Math.PI/2;hit.position.set(x,.31,z);hit.scale.set(w,d,1);hit.userData.energyTarget=target;hitTargets.add(hit);if(b.selectedEnergy){const glow=new THREE.Mesh(tcg3d.targetGeometry,new THREE.MeshBasicMaterial({color:'#facc15',transparent:true,opacity:.2,depthWrite:false}));glow.rotation.x=-Math.PI/2;glow.position.set(x,.205,z);glow.scale.set(w*.92,d*.92,1);cards.add(glow)}};
           const addCard=(card,x,z,scale=1,back=false,handIndex=null)=>{
             if(!card&&!back)return;
@@ -4846,13 +4848,12 @@
           document.getElementById('tcgCpuPrizes').textContent=c.prizes+' premios';document.getElementById('tcgPlayerPrizes').textContent=p.prizes+' premios';
           document.getElementById('tcgBattleTurn').textContent=b.over?'Partida terminada':b.turn==='player'?'🟢 Tu turno':(tcgOnline?'🔴 Turno del rival':'Turno de la IA');document.getElementById('tcgBattleStatus').textContent=b.over?'Duelo finalizado':b.turn!=='player'?(tcgOnline?'Esperando la jugada del rival…':'La IA está jugando…'):b.phase==='draw'?'Robá una carta para comenzar':b.phase==='main'?'Jugá cartas, adjuntá energía y atacá':'Turno terminado';
           document.getElementById('tcgBattleLog').innerHTML=b.log.map(x=>'<div>• '+x+'</div>').join('');
-          document.getElementById('tcgPlayerHand').innerHTML=p.hand.map((id,i)=>{const x=tcgCard(id);return x?'<button data-tcg-hand="'+i+'" class="tcg-hand-card tcg-card-3d text-left '+(b.selectedEnergy===id?'tcg-energy-selected':'')+'"><div class="tcg-card-face" style="--tcg-glow:'+(({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca')+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b><div class="tcg-card-power">'+x.kind+'</div></div></button>':''}).join('');
+          document.getElementById('tcgPlayerHand').replaceChildren(); // Las cartas de la mano se dibujan directamente en el tablero WebGL.
           document.getElementById('tcgHandCount').textContent=p.hand.length+' cartas • mazo '+p.deck.length;
           ['tcgDrawTurn','tcgAttachEnergy','tcgRetreat','tcgEndTurn'].forEach(id=>document.getElementById(id).disabled=b.over||b.turn!=='player');
           const attackButton=document.getElementById('tcgAttack');if(attackButton)attackButton.disabled=b.over||b.turn!=='player'||b.phase!=='main';
           document.getElementById('tcgDrawTurn').disabled=b.over||b.turn!=='player'||b.phase!=='draw';
           document.getElementById('tcgAttachEnergy').disabled=b.over||b.turn!=='player'||b.phase!=='main'||p.energyAttached;
-          document.querySelectorAll('[data-tcg-hand]').forEach(el=>el.onclick=()=>tcgPlayFromHand(Number(el.dataset.tcgHand)));
           document.querySelectorAll('[data-tcg-energy-target]').forEach(el=>el.onclick=()=>{if(b.selectedEnergy){tcgAttachEnergy(el.dataset.tcgEnergyTarget==='active'?'active':el.dataset.tcgEnergyTarget);return}if(el.hasAttribute('data-tcg-bench')&&b.turn==='player'&&b.phase==='main'){const i=Number(el.dataset.tcgBench);if(!p.bench[i])return;[p.active,p.bench[i]]=[p.bench[i],p.active];tcgLog('Promoviste '+p.active.name+' al puesto Activo.');tcgBattleRender()}});
           if(tcgOnline&&!tcgApplyingRemote)tcgOnlinePublish();
         }
