@@ -4586,6 +4586,93 @@
         const TCG_ATTACKS={lumen:[['Alas ardientes',1,30],['Renacer solar',2,70]],coral:[['Burbuja marina',1,30],['Marea coralina',2,70]],voltix:[['Chispa veloz',1,30],['Rayo zorro',2,70]],musgo:[['Látigo verde',1,30],['Raíces gigantes',2,80]],onyx:[['Corte sombrío',2,80],['Noche de acero',3,150]],aurea:[['Destello real',2,90],['Corona astral',3,170]],titan:[['Erupción',3,160],['Magma infinito',4,250]],nebulon:[['Aliento cósmico',2,100],['Eclipse dracónico',4,220]],nova:[['Pulso astral',2,90],['Supernova',3,180]],voltar:[['Descarga',2,70],['Tormenta voltaica',3,150]],brasa:[['Llama colosal',3,150],['Dragón solar',4,240]],mareas:[['Marea creciente',2,80],['Tsunami',3,170]],brote:[['Látigo de raíces',2,70],['Bosque ancestral',3,160]],umbra:[['Rayo umbrío',2,90],['Noche eterna',4,210]],atlas:[['Golpe de acero',2,80],['Impacto titánico',4,190]],rayo:[['Zarpazo veloz',1,30],['Carrera eléctrica',2,70]],frost:[['Mordida helada',1,30],['Ventisca',3,90]],pyra:[['Chispa',1,20],['Bola de fuego',2,60]]};
         const TCG_HP={nova:280,voltar:220,brasa:340,mareas:240,brote:240,umbra:290,atlas:260,rayo:90,frost:100,pyra:80,lumen:100,coral:110,voltix:90,musgo:120,onyx:240,aurea:260,titan:360,nebulon:310};
         let tcgBattle=null;
+        let tcgOnline=null;
+        let tcgApplyingRemote=false;
+        function tcgOnlineRef(code){return doc(db,'artifacts',appId,'public','data','uno_rooms','TCG-'+code);}
+        function tcgOnlineSetStatus(msg){const el=document.getElementById('tcgOnlineStatus');if(el)el.textContent=msg;}
+        function tcgOnlineSerialize(){
+          if(!tcgBattle||!tcgOnline)return null;
+          const sides=[];sides[tcgOnline.seat]=tcgBattle.player;sides[1-tcgOnline.seat]=tcgBattle.cpu;
+          return {sides,turnSeat:tcgBattle.turn==='player'?tcgOnline.seat:1-tcgOnline.seat,phase:tcgBattle.phase,first:!!tcgBattle.first,over:!!tcgBattle.over,log:tcgBattle.log||[],stadium:tcgBattle.stadium||null,updatedAt:Date.now()};
+        }
+        async function tcgOnlinePublish(){
+          if(!tcgOnline||!tcgBattle||tcgApplyingRemote||tcgOnline.seat==null)return;
+          try{
+            const payload=tcgOnlineSerialize();
+            await runTransaction(db,async tx=>{
+              const ref=tcgOnlineRef(tcgOnline.code),snap=await tx.get(ref);
+              if(!snap.exists())throw new Error('La sala ya no existe.');
+              const data=snap.data();
+              if(data.status!=='playing')throw new Error('La partida no está activa.');
+              if(data.revision!==tcgOnline.revision)throw new Error('La partida cambió en otro dispositivo. Esperá la sincronización.');
+              tx.update(ref,{battle:payload,revision:(data.revision||0)+1,updatedAt:Date.now()});
+            });
+            tcgOnline.revision++;
+          }catch(e){console.error('TCG sync:',e);showToast(e.message||'No se pudo sincronizar la jugada.','warn');}
+        }
+        function tcgOnlineListen(){
+          if(!tcgOnline)return;
+          tcgOnline.unsubscribe=onSnapshot(tcgOnlineRef(tcgOnline.code),snap=>{
+            if(!snap.exists()){tcgOnlineSetStatus('Sala cerrada');showToast('La sala TCG fue cerrada.','warn');tcgOnlineExit(false);return;}
+            const data=snap.data();tcgOnline.revision=data.revision||0;
+            const info=document.getElementById('tcgOnlineRoomInfo');if(info)info.textContent='Sala '+tcgOnline.code+' • '+(data.players||[]).filter(Boolean).length+'/2 jugadores';
+            if(data.status==='waiting'){tcgOnlineSetStatus('Esperando rival…');return;}
+            if(data.status!=='playing'||!data.battle)return;
+            const raw=data.battle,me=raw.sides[tcgOnline.seat],op=raw.sides[1-tcgOnline.seat];if(!me||!op)return;
+            tcgApplyingRemote=true;
+            tcgBattle={player:me,cpu:op,turn:raw.turnSeat===tcgOnline.seat?'player':'cpu',phase:raw.phase,first:raw.first,log:raw.log||[],stadium:raw.stadium,selectedEnergy:null,over:raw.over};
+            document.getElementById('tcgBattleArea').classList.remove('hidden');
+            document.getElementById('tcgBattleResult').classList.toggle('hidden',!tcgBattle.over);
+            if(tcgBattle.over)document.getElementById('tcgBattleResult').innerHTML='<div class="text-xl">🏁 Partida finalizada</div>';
+            tcgBattleRender();tcgApplyingRemote=false;
+            tcgOnlineSetStatus(tcgBattle.over?'Finalizada':tcgBattle.turn==='player'?'Tu turno':'Turno del rival');
+          },err=>{console.error(err);tcgOnlineSetStatus('Error de conexión');showToast('Error escuchando la sala TCG. Revisá las reglas de Firestore.','warn');});
+        }
+        async function tcgOnlineCreate(){
+          if(!firebaseReady||!db||!currentUser){showToast('Esperá a que Firebase termine de conectar.','warn');return;}
+          if(tcgDeck.length!==60){showToast('Necesitás un mazo de 60 cartas. Creá el mazo inicial o completá el tuyo.','warn');return;}
+          try{
+            let code,ref,snap;do{code=Math.random().toString(36).slice(2,8).toUpperCase();ref=tcgOnlineRef(code);snap=await getDoc(ref)}while(snap.exists());
+            const player=tcgMakeSide(tcgDeck);for(let i=0;i<7;i++)player.hand.push(player.deck.pop());
+            const setup=side=>{let ix=side.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id)?.rarity==='Basic');if(ix<0)ix=side.hand.findIndex(id=>tcgCard(id)?.kind==='Character');if(ix<0)return false;side.active=tcgCardInstance(side.hand.splice(ix,1)[0]);side.prizes=6;return true};
+            if(!setup(player))throw new Error('Tu mazo necesita personajes.');
+            for(let i=0;i<5;i++){const ix=player.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id)?.rarity==='Basic');if(ix>=0)player.bench.push(tcgCardInstance(player.hand.splice(ix,1)[0]));}
+            tcgOnline={code,seat:0,revision:0,unsubscribe:null};
+            await setDoc(ref,{type:'uno_tcg',code,status:'waiting',players:[{id:currentUserId,name:currentUser?.displayName||'Jugador 1',deck:[...tcgDeck]},null],revision:0,createdAt:Date.now(),updatedAt:Date.now()});
+            tcgBattle={player,cpu:null,turn:'player',phase:'draw',first:true,log:['Sala creada. Esperando rival…'],selectedEnergy:null,over:false};
+            document.getElementById('tcgLeaveOnline').classList.remove('hidden');tcgOnlineSetStatus('Esperando rival…');tcgOnlineListen();showToast('Sala creada: '+code,'success');
+          }catch(e){console.error(e);tcgOnline=null;showToast(e.message||'No se pudo crear la sala.','warn');}
+        }
+        async function tcgOnlineJoin(){
+          if(!firebaseReady||!db||!currentUser){showToast('Esperá a que Firebase termine de conectar.','warn');return;}
+          if(tcgDeck.length!==60){showToast('Necesitás un mazo de 60 cartas.','warn');return;}
+          const code=(document.getElementById('tcgJoinCode').value||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){showToast('Ingresá un código de 6 caracteres.','warn');return;}
+          try{
+            const ref=tcgOnlineRef(code);let result;
+            await runTransaction(db,async tx=>{
+              const snap=await tx.get(ref);if(!snap.exists())throw new Error('No existe esa sala.');
+              const data=snap.data();if(data.type!=='uno_tcg'||data.status!=='waiting'||data.players?.[1])throw new Error('La sala ya está completa o no acepta jugadores.');
+              const rival=tcgMakeSide(tcgDeck);for(let i=0;i<7;i++)rival.hand.push(rival.deck.pop());
+              const setup=side=>{let ix=side.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id)?.rarity==='Basic');if(ix<0)ix=side.hand.findIndex(id=>tcgCard(id)?.kind==='Character');if(ix<0)return false;side.active=tcgCardInstance(side.hand.splice(ix,1)[0]);side.prizes=6;return true};
+              if(!setup(rival))throw new Error('Tu mazo necesita personajes.');
+              for(let i=0;i<5;i++){const ix=rival.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id)?.rarity==='Basic');if(ix>=0)rival.bench.push(tcgCardInstance(rival.hand.splice(ix,1)[0]));}
+              const first=Math.random()<.5?0:1;
+              const hostDeck=data.players[0].deck;
+              const host=tcgMakeSide(hostDeck);for(let i=0;i<7;i++)host.hand.push(host.deck.pop());
+              if(!setup(host))throw new Error('El mazo del anfitrión no tiene personaje básico.');
+              for(let i=0;i<5;i++){const ix=host.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id)?.rarity==='Basic');if(ix>=0)host.bench.push(tcgCardInstance(host.hand.splice(ix,1)[0]));}
+              const sides=[host,rival];
+              result={sides,first};
+              tx.update(ref,{players:[data.players[0],{id:currentUserId,name:currentUser?.displayName||'Jugador 2'}],status:'playing',revision:1,battle:{sides,turnSeat:first,phase:'draw',first:true,over:false,log:['¡Comienza el duelo online!']},updatedAt:Date.now()});
+            });
+            tcgOnline={code,seat:1,revision:1,unsubscribe:null};document.getElementById('tcgLeaveOnline').classList.remove('hidden');tcgOnlineSetStatus('Conectando partida…');tcgOnlineListen();showToast('¡Te uniste a la sala '+code+'!','success');
+          }catch(e){console.error(e);showToast(e.message||'No se pudo entrar a la sala.','warn');}
+        }
+        async function tcgOnlineExit(removeRoom=true){
+          if(!tcgOnline)return;const old=tcgOnline;tcgOnline=null;if(old.unsubscribe)old.unsubscribe();
+          if(removeRoom&&old.seat===0&&db){try{await deleteDoc(tcgOnlineRef(old.code))}catch(e){console.warn(e)}}
+          document.getElementById('tcgLeaveOnline').classList.add('hidden');document.getElementById('tcgOnlineRoomInfo').textContent='';tcgOnlineSetStatus('Desconectado');tcgBattle=null;document.getElementById('tcgBattleArea').classList.add('hidden');
+        }
         function tcgStarterDeck(){const ids=['nova','voltar','brasa','mareas','brote','umbra','atlas','rayo','frost','pyra'];tcgCollection={...tcgCollection};ids.forEach(id=>tcgCollection[id]=Math.max(tcgCollection[id]||0,4));['energy-fire','energy-water','energy-electric','energy-plant','energy-psychic','energy-colorless'].forEach(id=>tcgCollection[id]=Math.max(tcgCollection[id]||0,5));tcgDeck=[];ids.forEach(id=>{for(let i=0;i<4;i++)tcgDeck.push(id)});for(let i=0;i<20;i++)tcgDeck.push(['energy-fire','energy-water','energy-electric','energy-plant','energy-psychic','energy-colorless'][i%6]);tcgSave();tcgRender();showToast('Mazo inicial de 60 cartas creado.','success')}
         function tcgShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
         function tcgMakeSide(deck){return {deck:tcgShuffle([...deck]),hand:[],active:null,bench:[],discard:[],prizes:6,energyAttached:false,playedSupporter:false,turnDrawn:false}}
@@ -4614,6 +4701,7 @@
           document.getElementById('tcgAttachEnergy').disabled=b.over||b.turn!=='player'||b.phase!=='main'||p.energyAttached;
           document.querySelectorAll('[data-tcg-hand]').forEach(el=>el.onclick=()=>tcgPlayFromHand(Number(el.dataset.tcgHand)));
           document.querySelectorAll('[data-tcg-bench]').forEach(el=>el.onclick=()=>{if(b.turn!=='player'||b.phase!=='main')return;const i=Number(el.dataset.tcgBench);[p.active,p.bench[i]]=[p.bench[i],p.active];tcgLog('Cambiaste tu personaje activo.');tcgBattleRender()});
+          if(tcgOnline&&!tcgApplyingRemote)tcgOnlinePublish();
         }
         function tcgDrawTurn(){const p=tcgBattle.player;if(p.deck.length){p.hand.push(p.deck.pop());tcgLog('Robaste una carta.')}tcgBattle.phase='main';tcgBattle.first=false;tcgBattleRender()}
         function tcgPlayFromHand(i){const b=tcgBattle;if(!b||b.turn!=='player'||b.phase!=='main')return;const p=b.player,id=p.hand[i],c=tcgCard(id);if(!c)return;
@@ -4626,9 +4714,12 @@
         function tcgAttachEnergy(){const b=tcgBattle,p=b.player;if(b.selectedEnergy){const id=b.selectedEnergy,ix=p.hand.indexOf(id);if(ix<0)return;p.hand.splice(ix,1);p.active.energies.push(id);p.energyAttached=true;b.selectedEnergy=null;tcgLog('Adjuntaste una energía a tu activo.')}else{const ix=p.hand.findIndex(id=>tcgCard(id)?.kind==='Energy');if(ix<0){showToast('No tenés energías en la mano.','warn');return}p.active.energies.push(p.hand.splice(ix,1)[0]);p.energyAttached=true;tcgLog('Adjuntaste una energía a tu activo.')}tcgBattleRender()}
         function tcgAttack(){const b=tcgBattle,p=b.player,active=p.active,attacks=TCG_ATTACKS[active.id]||[];const atk=attacks.find(a=>active.energies.length>=a[1]);if(!atk){showToast('No tenés energía suficiente para atacar.','warn');return}const target=b.cpu.active;target.damage+=atk[2];tcgLog(active.name+' usó '+atk[0]+' e hizo '+atk[2]+' de daño.');if(target.damage>=target.hp){b.cpu.discard.push(target.id);if(b.cpu.prizes>0)b.cpu.prizes--;if(b.cpu.bench.length){b.cpu.active=b.cpu.bench.shift();tcgLog('El rival promocionó un personaje de su banca.')}else{tcgBattleFinish('player');return}}if(b.cpu.prizes<=0){tcgBattleFinish('player');return}b.phase='attackDone';tcgBattleRender()}
         function tcgBattleFinish(winner){const b=tcgBattle;b.over=true;const el=document.getElementById('tcgBattleResult');el.classList.remove('hidden');el.innerHTML=winner==='player'?'<div class="text-2xl">🏆 ¡VICTORIA!</div><p class="text-sm mt-1">Ganaste el duelo de prueba contra la IA.</p>':'<div class="text-2xl">🤖 La IA ganó</div><p class="text-sm mt-1">¡Probá otro mazo y volvé a intentarlo!</p>';tcgLog(winner==='player'?'¡Ganaste la partida!':'La IA ganó la partida.');tcgBattleRender()}
-        function tcgEndPlayerTurn(){const b=tcgBattle;if(!b||b.over||b.turn!=='player')return;if(b.phase!=='attackDone'){if(b.phase==='draw'){tcgDrawTurn();}if(b.phase==='main'){showToast('Podés atacar antes de terminar el turno.','warn');return}}b.turn='cpu';b.phase='draw';tcgBattleRender();setTimeout(tcgCpuTurn,650)}
+        function tcgEndPlayerTurn(){const b=tcgBattle;if(!b||b.over||b.turn!=='player')return;if(b.phase!=='attackDone'){if(b.phase==='draw'){tcgDrawTurn();}if(b.phase==='main'){showToast('Podés atacar antes de terminar el turno.','warn');return}}b.turn='cpu';b.phase='draw';tcgBattleRender();if(tcgOnline){tcgOnlinePublish();return}setTimeout(tcgCpuTurn,650)}
         function tcgCpuTurn(){const b=tcgBattle;if(!b||b.over)return;const c=b.cpu;if(c.deck.length)c.hand.push(c.deck.pop());let ei=c.hand.findIndex(id=>tcgCard(id)?.kind==='Energy');if(ei>=0)c.active.energies.push(c.hand.splice(ei,1)[0]);let bi=c.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id).rarity==='Basic');if(bi>=0&&c.bench.length<5)c.bench.push(tcgCardInstance(c.hand.splice(bi,1)[0]));const atk=(TCG_ATTACKS[c.active.id]||[]).find(a=>c.active.energies.length>=a[1]);if(atk){b.player.active.damage+=atk[2];tcgLog('La IA usó '+atk[0]+' e hizo '+atk[2]+' de daño.');if(b.player.active.damage>=b.player.active.hp){if(b.player.prizes>0)b.player.prizes--;if(b.player.bench.length){b.player.active=b.player.bench.shift();tcgLog('Tu personaje activo cayó: elegí uno de la banca en tu próximo turno.')}else{tcgBattleFinish('cpu');return}}}b.turn='player';b.phase='draw';b.player.energyAttached=false;b.player.playedSupporter=false;b.selectedEnergy=null;tcgBattleRender()}
-        document.getElementById('tcgBattleStart').onclick=()=>{if(tcgDeck.length!==60){tcgStarterDeck()}tcgBeginBattle()};
+        document.getElementById('tcgBattleStart').onclick=()=>{if(tcgOnline){showToast('Salí de la sala online para jugar contra la IA.','warn');return}if(tcgDeck.length!==60){tcgStarterDeck()}tcgBeginBattle()};
+        document.getElementById('tcgCreateOnline').onclick=tcgOnlineCreate;
+        document.getElementById('tcgJoinOnline').onclick=tcgOnlineJoin;
+        document.getElementById('tcgLeaveOnline').onclick=()=>tcgOnlineExit(true);
         document.getElementById('tcgDrawTurn').onclick=tcgDrawTurn;document.getElementById('tcgAttachEnergy').onclick=tcgAttachEnergy;document.getElementById('tcgEndTurn').onclick=tcgEndPlayerTurn;
         document.getElementById('tcgRetreat').onclick=()=>{const b=tcgBattle;if(!b||b.turn!=='player'||b.phase!=='main'||!b.player.bench.length)return;const cost=b.player.active.energies.length?1:0;if(b.player.active.energies.length<cost){showToast('No tenés energía para retirarte.','warn');return}const old=b.player.active;b.player.active=b.player.bench.shift();if(cost)old.energies.pop();b.player.bench.push(old);tcgLog('Retiraste al personaje activo.');tcgBattleRender()};
         const tcgAttackBtn=document.createElement('button');tcgAttackBtn.id='tcgAttack';tcgAttackBtn.className='rounded-lg bg-rose-700 p-2 text-xs font-bold';tcgAttackBtn.textContent='⚔️ Atacar';document.getElementById('tcgEndTurn').parentElement.insertBefore(tcgAttackBtn,document.getElementById('tcgEndTurn'));tcgAttackBtn.onclick=tcgAttack;
@@ -4667,7 +4758,12 @@
             <div class="grid grid-cols-2 gap-2 mt-4"><button id="tcgAutoDeck" class="rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 p-3 text-xs font-black">✨ Crear mazo inicial</button><button id="tcgClearDeck" class="rounded-xl bg-zinc-700 hover:bg-zinc-600 p-3 text-xs font-bold">Vaciar mazo</button></div>
             <p id="tcgDeckHint" class="text-[11px] text-zinc-500 mt-3">La colección y el mazo se guardan localmente en este navegador. El combate online y las recompensas sincronizadas se incorporarán en la siguiente fase.</p>
 
-          <section class="lg:col-span-2 rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-950/30 to-black/40 p-4">
+          <section class="lg:col-span-2 rounded-2xl border border-emerald-400/25 bg-emerald-950/20 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold text-lg text-emerald-200">🌐 TCG Online sincronizado</h3><p class="text-xs text-zinc-400">Creá una sala o entrá con el código de otro jugador.</p></div><span id="tcgOnlineStatus" class="text-xs text-zinc-400">Desconectado</span></div>
+              <div class="flex flex-wrap gap-2 mt-3"><button id="tcgCreateOnline" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black">＋ Crear sala online</button><input id="tcgJoinCode" maxlength="6" placeholder="CÓDIGO" class="w-28 rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-center font-mono uppercase text-sm"><button id="tcgJoinOnline" class="rounded-xl bg-sky-700 px-4 py-2 text-xs font-black">Unirme</button><button id="tcgLeaveOnline" class="hidden rounded-xl bg-rose-900 px-4 py-2 text-xs font-bold">Salir de sala</button></div>
+              <div id="tcgOnlineRoomInfo" class="text-xs text-emerald-200 mt-2"></div>
+            </section>
+            <section class="lg:col-span-2 rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-950/30 to-black/40 p-4">
             <div class="flex flex-wrap justify-between items-center gap-3"><div><h3 class="font-uno text-2xl text-cyan-200">⚔️ Campo de batalla TCG</h3><p class="text-xs text-zinc-400">Primer formato de prueba: 1 contra 1 contra la IA • seis premios • activo y banca</p></div><button id="tcgBattleStart" class="rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black px-4 py-2 text-sm">⚔️ Iniciar partida</button></div>
             <div id="tcgBattleArea" class="hidden mt-4 space-y-3">
               <div class="grid grid-cols-2 gap-3">
