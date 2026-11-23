@@ -1190,7 +1190,7 @@
 <div class="grid lg:grid-cols-[1.1fr_.9fr] gap-4"><section class="rounded-3xl border border-amber-300/30 bg-gradient-to-br from-zinc-950 via-amber-950/40 to-black p-4 sm:p-6 shadow-2xl">
 <div class="flex items-center justify-between gap-3"><div><div class="text-[10px] tracking-[.24em] text-amber-300 font-black">TU DIVISIÓN ACTUAL</div><h3 id="competitiveMenuRankName" class="font-uno text-3xl text-amber-100 mt-1">Bronce I</h3><p id="competitiveMenuRankRating" class="text-xs text-zinc-300 mt-1">1000 puntos de rating</p></div><div id="competitiveMenuRankEmblem"></div></div>
 <div class="mt-4 h-3 overflow-hidden rounded-full bg-black/60 border border-white/10"><div id="competitiveMenuRankProgress" class="h-full rounded-full bg-gradient-to-r from-amber-600 via-yellow-300 to-white transition-all duration-500" style="width:0%"></div></div><div class="mt-2 flex items-center justify-between gap-2 text-[10px] text-zinc-400"><span id="competitiveMenuRankNext">Siguiente rango</span><span id="competitiveMenuRankDelta">Ganá partidas para subir</span></div><div id="competitiveMenuRankLadder" class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
-<div class="mt-5 rounded-2xl border border-amber-300/20 bg-black/30 p-4"><div class="text-[10px] tracking-[.2em] text-amber-300 font-black">EMPAREJAMIENTO AUTOMÁTICO</div><h3 class="font-uno text-2xl text-white">Encontrá tu próxima mesa</h3><p class="text-xs text-zinc-400 mt-1">Elegí el formato. Buscamos rivales de tu nivel durante 15 segundos.</p><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3" id="competitiveFormatPicker"><button type="button" data-comp-format="2" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">⚔️ 1v1 <small class="block text-[9px]">2 jugadores</small></button><button type="button" data-comp-format="4" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 2v2 <small class="block text-[9px]">4 jugadores</small></button><button type="button" data-comp-format="6" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 3v3 <small class="block text-[9px]">6 jugadores</small></button><button type="button" data-comp-format="8" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 4v4 <small class="block text-[9px]">8 jugadores</small></button></div><button id="btnSearchCompetitiveMatch" class="btn-shimmer relative overflow-hidden w-full mt-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 px-5 py-4 text-base font-black text-zinc-950 shadow-xl">🔍 BUSCAR PARTIDA</button><p class="text-[10px] text-zinc-500 mt-2 text-center">Si no encuentra rivales, completa automáticamente la mesa con IA adaptadas a tu rango.</p></div>
+<div class="mt-5 rounded-2xl border border-amber-300/20 bg-black/30 p-4"><div class="text-[10px] tracking-[.2em] text-amber-300 font-black">EMPAREJAMIENTO AUTOMÁTICO</div><h3 class="font-uno text-2xl text-white">Encontrá tu próxima mesa</h3><p class="text-xs text-zinc-400 mt-1">Elegí el formato. Buscamos rivales de tu nivel durante 15 segundos.</p><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3" id="competitiveFormatPicker"><button type="button" data-comp-format="2" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">⚔️ 1v1 <small class="block text-[9px]">2 jugadores</small></button><button type="button" data-comp-format="4" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 2v2 <small class="block text-[9px]">4 jugadores</small></button><button type="button" data-comp-format="6" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 3v3 <small class="block text-[9px]">6 jugadores</small></button><button type="button" data-comp-format="8" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 4v4 <small class="block text-[9px]">8 jugadores</small></button></div><button id="btnSearchCompetitiveMatch" class="btn-shimmer relative overflow-hidden w-full mt-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 px-5 py-4 text-base font-black text-zinc-950 shadow-xl">🔍 BUSCAR PARTIDA</button><p class="text-[10px] text-zinc-500 mt-2 text-center">Emparejamiento automático por formato y rango. Si no hay rivales, completa con IA adaptadas.</p><div class="grid sm:grid-cols-2 gap-2 mt-4"><button id="btnCreateCompetitivePublic" type="button" class="rounded-xl border border-emerald-300/30 bg-emerald-500/15 px-4 py-3 text-xs font-black text-emerald-100 hover:bg-emerald-500/25">🌐 CREAR SALA PÚBLICA</button><button id="btnCreateCompetitivePrivate" type="button" class="rounded-xl border border-sky-300/30 bg-sky-500/15 px-4 py-3 text-xs font-black text-sky-100 hover:bg-sky-500/25">🔒 CREAR SALA PRIVADA</button></div><p class="text-[10px] text-zinc-500 mt-2 text-center">La sala privada genera un código para compartir. La pública aparece en el listado de salas competitivas.</p><div class="mt-4 rounded-2xl border border-emerald-300/20 bg-black/25 p-3"><div class="flex items-center justify-between gap-2"><h4 class="text-xs font-black text-emerald-200">🌐 SALAS COMPETITIVAS PÚBLICAS</h4><span id="competitivePublicRoomsCount" class="text-[10px] text-zinc-500">En vivo</span></div><div id="competitivePublicRoomsList" class="mt-2 space-y-2 max-h-44 overflow-y-auto"><p class="text-[11px] text-zinc-500 text-center py-3">Cargando salas...</p></div></div></div>
 </section><aside class="space-y-4"><section class="rounded-3xl border border-sky-300/20 bg-gradient-to-br from-sky-950/40 to-zinc-950 p-4"><div class="text-[10px] tracking-[.2em] text-sky-300 font-black">🪪 TU IDENTIFICADOR</div><code id="competitiveMenuPlayerId" class="block break-all rounded-xl bg-black/40 border border-white/10 p-3 mt-3 text-xs text-sky-100">Conectando...</code><button id="btnCopyCompetitiveId" class="mt-2 rounded-lg border border-sky-300/25 bg-sky-950/50 px-3 py-2 text-[10px] font-bold text-sky-100">📋 Copiar mi ID</button></section>
 <section class="rounded-3xl border border-white/10 bg-zinc-950/80 p-4"><h3 class="font-uno text-xl text-white">Leaderboard global</h3><p class="text-xs text-zinc-400 mt-1">Compará rating, rango, victorias y partidas.</p><button id="btnCompetitiveLeaderboard" class="mt-3 w-full rounded-xl border border-amber-300/25 bg-amber-950/40 px-4 py-3 text-xs font-black text-amber-100">🏆 VER LEADERBOARD</button></section>
 <section class="rounded-3xl border border-violet-300/20 bg-violet-950/20 p-4"><div class="text-[10px] tracking-[.2em] text-violet-200 font-black">🤖 IA ADAPTATIVA</div><p class="text-xs text-zinc-300 mt-2">Bronce: IA básica. Plata y Oro: control de colores y cartas de acción. Platino y Diamante: lectura de rivales. Maestro, Gran Maestro y Leyenda: IA estratégica que conserva comodines y prioriza bloquear al jugador más peligroso.</p></section></aside></div></div></section>
@@ -1925,6 +1925,40 @@
           room.seats.forEach((seat,index)=>{if(!seat.id){const p=BOT_PROFILES[index%BOT_PROFILES.length];room.seats[index]={...seat,id:'comp_ai_'+currentUserId+'_'+index+'_'+Date.now(),name:p.name+' · IA '+rank.name,avatar:p.avatar,isBot:true,competitiveAI:true,competitiveAiTier:tier,competitiveDifficulty:rank.name,team:room.teamMode?(index%2):null,hand:[],saidUno:false,finishRank:null};}});
           closeCompetitiveSearch();await dealAndStartGame();
         }
+        async function createCompetitiveRoom(isPublic){
+          if(state.room){showToast('Primero salí de la sala actual para crear otra.','warn');return;}
+          const ready=await initFirebase();
+          if(!ready||!db||!currentUser){showToast('No se pudo conectar al servidor online.','danger');return;}
+          const menu=document.getElementById('competitiveMenuScreen');
+          menu?.classList.add('hidden');
+          try{
+            await createNewRoom(true,true,!!isPublic,false);
+            if(state.room?.competitiveMode){
+              showToast(isPublic?'Sala competitiva pública creada. ¡Esperá rivales!':'Sala competitiva privada creada. Compartí el código de sala.','success');
+              renderCurrentView();
+            }else{
+              menu?.classList.remove('hidden');
+            }
+          }catch(error){
+            console.error('Crear sala competitiva:',error);
+            menu?.classList.remove('hidden');
+            showToast('No se pudo crear la sala competitiva. Revisá Firebase y las reglas de Firestore.','danger');
+          }
+        }
+        function renderCompetitivePublicRooms(rooms){
+          const count=document.getElementById('competitivePublicRoomsCount');
+          const list=document.getElementById('competitivePublicRoomsList');
+          if(!count||!list)return;
+          count.textContent=rooms.length+' abiertas';
+          const competitive=rooms.filter(r=>r.competitiveMode&&r.isPublic!==false);
+          if(!competitive.length){list.innerHTML='<p class="text-[11px] text-zinc-500 text-center py-3">Todavía no hay salas competitivas públicas. ¡Creá la primera!</p>';return;}
+          list.innerHTML=competitive.map(r=>{
+            const host=(r.seats||[]).find(x=>x&&x.id===r.hostId)||(r.seats||[]).find(x=>x&&x.id);
+            const format=r.competitiveFormat||((Number(r.maxSeats||2)===2)?'1v1':(Number(r.maxSeats||4)/2)+'v'+(Number(r.maxSeats||4)/2));
+            return '<div class="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-zinc-950/80 p-2"><div class="min-w-0"><div class="text-xs font-bold text-white truncate">'+escapeLeaderboardText(host?.name||'Anfitrión')+' · '+format+'</div><div class="text-[10px] text-zinc-400">'+(r.seats||[]).filter(x=>x&&x.id).length+'/'+(r.maxSeats||2)+' jugadores · '+escapeLeaderboardText(r.competitiveRankName||'Competitivo')+'</div></div><button type="button" data-join-comp-room="'+escapeLeaderboardText(r.code||'')+'" class="shrink-0 rounded-lg bg-emerald-400 px-3 py-2 text-[10px] font-black text-zinc-950">UNIRSE</button></div>';
+          }).join('');
+          list.querySelectorAll('[data-join-comp-room]').forEach(btn=>btn.addEventListener('click',()=>{document.getElementById('competitiveMenuScreen')?.classList.add('hidden');joinExistingRoom(btn.dataset.joinCompRoom);}));
+        }
         async function startCompetitiveSearch(){
           if(state.room){showToast('Primero salí de la sala actual para buscar una clasificatoria.','warn');return;}
           closeCompetitiveSearch();const ready=await initFirebase();if(!ready||!db||!currentUser){showToast('No se pudo conectar al matchmaking online.','danger');return;}
@@ -1934,14 +1968,14 @@
           set('competitiveSearchTitle','Buscando jugadores...');set('competitiveSearchStatus','Buscando rivales con rating parecido.');set('competitiveSearchCountdown','15');set('competitiveSearchFound','Buscando jugadores reales antes de completar con IA...');
           const bar=document.getElementById('competitiveSearchProgress');if(bar)bar.style.width='0%';
           try{
-            await createNewRoom(true,true);if(!state.room||!state.room.competitiveMode)throw new Error('No se pudo crear la cola.');
+            await createNewRoom(true,true,false,true);if(!state.room||!state.room.competitiveMode)throw new Error('No se pudo crear la cola.');
             const roomsRef=collection(db,'artifacts',appId,'public','data','uno_rooms');
             competitiveQueueUnsub=onSnapshot(roomsRef,snapshot=>{
               const own=state.room;if(!own||!own.competitiveMode||own.status!=='lobby')return;
               const humans=(own.seats||[]).filter(x=>x&&x.id&&!x.isBot);
               if(humans.length>=own.maxSeats){set('competitiveSearchTitle','¡Mesa completa!');set('competitiveSearchStatus','La partida está comenzando.');set('competitiveSearchFound',humans.length+' jugadores reales encontrados.');closeCompetitiveSearch();return;}
               const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),band=competitiveSearchBand(elapsed),candidates=[];
-              snapshot.forEach(d=>{const r=d.data();if(d.id===own.code||!r||!r.competitiveMode||r.status!=='lobby'||!r.hostId||r.hostId>=currentUserId)return;if(Date.now()-Number(r.updatedAt||Date.now())>30000)return;const seats=r.seats||[],occupied=seats.filter(x=>x&&x.id).length;if(occupied>0&&occupied<(r.maxSeats||4)&&Number(r.maxSeats||4)===Number(own.maxSeats||4)&&!!r.teamMode===!!own.teamMode&&Math.abs(Number(r.competitiveRating||1000)-getCompetitiveRating())<=band.radius)candidates.push({...r,code:d.id});});
+              snapshot.forEach(d=>{const r=d.data();if(d.id===own.code||!r||!r.competitiveMode||r.status!=='lobby'||!r.hostId||r.hostId>=currentUserId)return;if(Date.now()-Number(r.updatedAt||Date.now())>30000)return;const seats=r.seats||[],occupied=seats.filter(x=>x&&x.id).length;if(r.competitiveQueue===true&&occupied>0&&occupied<(r.maxSeats||4)&&Number(r.maxSeats||4)===Number(own.maxSeats||4)&&!!r.teamMode===!!own.teamMode&&Math.abs(Number(r.competitiveRating||1000)-getCompetitiveRating())<=band.radius)candidates.push({...r,code:d.id});});
               if(candidates.length&&humans.length===1){
                 candidates.sort((a,b)=>String(a.hostId).localeCompare(String(b.hostId)));const target=candidates[0];closeCompetitiveSearch();overlay?.classList.remove('hidden');set('competitiveSearchTitle','¡Rival encontrado!');set('competitiveSearchStatus','Conectando con '+(target.seats.find(x=>x&&x.id)?.name||'otro jugador')+'...');
                 leaveRoomToHome(false).then(()=>joinExistingRoom(target.code)).then(()=>{document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');}).catch(e=>{console.warn(e);showToast('No se pudo completar el emparejamiento.','warn');});
@@ -2106,6 +2140,7 @@
                 });
                 openRooms.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
                 renderPublicRoomsExplorer(openRooms);
+                renderCompetitivePublicRooms(openRooms);
             }, (err) => {
                 console.warn("Error escuchando salas públicas:", err);
             });
@@ -3165,7 +3200,7 @@
             });
         }
 
-        async function createNewRoom(isOnlineMode = true, competitiveMode = false) {
+        async function createNewRoom(isOnlineMode = true, competitiveMode = false, publicOverride = null, competitiveQueue = false) {
             sfx.init();
             let onlineAvailable = false;
             if (isOnlineMode) {
@@ -3199,7 +3234,8 @@
                 code,
                 matchId:'match_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
                 hostId: currentUserId,
-                isPublic: !competitiveMode,
+                isPublic: publicOverride === null ? !competitiveMode : !!publicOverride,
+                competitiveQueue: !!competitiveQueue,
                 turnDuration: 20,
                 turnStartedAt: Date.now(),
                 status: 'lobby',
@@ -5349,6 +5385,8 @@
          document.getElementById('btnOpenCompetitive')?.addEventListener('click',openCompetitiveMenu);
          document.getElementById('btnCompetitiveBack')?.addEventListener('click',()=>document.getElementById('competitiveMenuScreen')?.classList.add('hidden'));
          document.getElementById('btnSearchCompetitiveMatch')?.addEventListener('click',startCompetitiveSearch);
+         document.getElementById('btnCreateCompetitivePublic')?.addEventListener('click',()=>createCompetitiveRoom(true));
+         document.getElementById('btnCreateCompetitivePrivate')?.addEventListener('click',()=>createCompetitiveRoom(false));
         document.querySelectorAll('[data-comp-format]').forEach(b=>b.addEventListener('click',()=>{selectedCompetitiveSeats=Number(b.dataset.compFormat)||2;localStorage.setItem('uno_competitive_format',String(selectedCompetitiveSeats));renderCompetitiveFormatPicker();}));
         document.getElementById('btnCloseCompetitiveResult')?.addEventListener('click',()=>document.getElementById('competitiveResultModal')?.classList.add('hidden'));
          document.getElementById('btnCancelCompetitiveSearch')?.addEventListener('click',()=>{closeCompetitiveSearch();if(state.room?.competitiveMode&&state.room.status==='lobby')leaveRoomToHome(false);});
