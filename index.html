@@ -705,6 +705,38 @@
 #tcgThreeBoard canvas{display:block;width:100%;height:100%;touch-action:pan-y}
 #tcgThreeBoard{contain:layout paint size}
 </style>
+<style id="tcg-v2-styles">
+.tcg-reveal-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;background:radial-gradient(ellipse at center,#30145cdd,#02030bf2);backdrop-filter:blur(12px);animation:tcgFadeIn .25s ease both}
+.tcg-reveal-overlay.closing{opacity:0;transition:opacity .18s ease}
+.tcg-reveal-panel{width:min(1050px,100%);max-height:94dvh;overflow:auto;border:1px solid #d8b4fe66;border-radius:24px;padding:clamp(14px,3vw,26px);background:linear-gradient(145deg,#17152b,#080b19 65%,#24103b);box-shadow:0 30px 100px #000c}
+.tcg-reveal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(7px,1.5vw,14px);margin-top:20px}
+.tcg-reveal-slot{min-width:0;perspective:1000px;animation:tcgCardEnter .5s cubic-bezier(.2,.8,.2,1) both}
+.tcg-reveal-card{aspect-ratio:2/2.85;perspective:900px;filter:drop-shadow(0 8px 12px #0008)}
+.tcg-reveal-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .72s cubic-bezier(.2,.75,.2,1);transition-delay:var(--card-delay,0ms)}
+.tcg-reveal-slot.revealed .tcg-reveal-card-inner{transform:rotateY(180deg)}
+.tcg-reveal-back,.tcg-reveal-front{position:absolute;inset:0;border:3px solid #f7d98a;border-radius:12px;overflow:hidden;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px;color:white;text-shadow:0 2px 5px #000b}
+.tcg-reveal-back{background:radial-gradient(circle at center,#d946ef,#24104d 55%,#080b19);justify-content:center;border:4px double #f7d98a}
+.tcg-reveal-back b{font:900 clamp(13px,2vw,24px) Arial}.tcg-reveal-back small{font-size:10px;letter-spacing:.3em}
+.tcg-reveal-front{transform:rotateY(180deg);border-width:4px}
+.tcg-card-top{display:flex;justify-content:space-between;width:100%;font-size:clamp(7px,1vw,11px);font-weight:900}
+.tcg-card-art{position:relative;width:100%;flex:1;display:grid;place-items:center;overflow:hidden}
+.tcg-card-name{font-size:clamp(8px,1.2vw,13px);text-align:center;line-height:1.15}.tcg-card-type{font-size:clamp(6px,.9vw,10px);font-weight:800}
+.tcg-art-creature{position:relative;width:70%;height:75%;filter:drop-shadow(0 8px 9px #0008)}
+.tcg-art-body{position:absolute;width:48%;height:56%;left:26%;top:26%;border:3px solid #fff9;border-radius:48% 48% 40% 40%;background:radial-gradient(circle at 35% 25%,#fff8,#ffffff22 30%,#11182788 100%)}
+.tcg-art-orbit{position:absolute;inset:15% 0;border:2px solid #fff9;border-radius:50%;transform:rotate(-35deg)}
+.tcg-art-eye{position:absolute;top:43%;width:9%;height:12%;background:#fff;border-radius:50%;z-index:2}.tcg-art-eye.left{left:38%}.tcg-art-eye.right{right:38%}
+.tcg-art-wing{position:absolute;top:32%;width:38%;height:35%;background:linear-gradient(145deg,#fff9,#ffffff22);border:2px solid #fff9;clip-path:polygon(100% 100%,0 0,28% 100%);z-index:0}.tcg-art-wing.left{left:-2%}.tcg-art-wing.right{right:-2%;transform:scaleX(-1)}
+.tcg-art-energy{position:relative;width:72%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#fff8 12%,#ffffff22 35%,#0008 70%);box-shadow:0 0 25px #fff9,inset 0 0 20px #fff8}
+.tcg-art-core{position:absolute;inset:25%;border-radius:50%;background:radial-gradient(circle at 35% 30%,white,#fff8 35%,#ffffff11 70%);box-shadow:0 0 20px white}
+.tcg-art-ring{position:absolute;inset:8% -18%;border:3px solid #ffffffb8;border-radius:50%;transform:rotate(-35deg)}.tcg-art-ring.second{transform:rotate(55deg);inset:18% -25%;border-color:#fff7}
+.tcg-card-shine{position:absolute;inset:-80% -30%;background:linear-gradient(110deg,transparent 42%,#ffffff30 48%,transparent 55%);transform:translateX(-120%);pointer-events:none}
+.tcg-reveal-slot.revealed .tcg-card-shine{animation:tcgShine 1s .35s ease both}
+.tcg-reveal-card.tcg-featured .tcg-reveal-front{box-shadow:inset 0 0 24px #fbbf2488,0 0 24px #fbbf2466}
+.tcg-no-animations .tcg-reveal-card-inner{transition:none}.tcg-no-animations .tcg-reveal-slot{animation:none}
+@keyframes tcgFadeIn{from{opacity:0}to{opacity:1}}@keyframes tcgCardEnter{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes tcgShine{to{transform:translateX(120%)}}
+@media(max-width:600px){.tcg-reveal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.tcg-reveal-panel{max-height:95dvh;padding:13px}.tcg-reveal-front,.tcg-reveal-back{padding:6px;border-radius:9px}}
+@media(prefers-reduced-motion:reduce){.tcg-reveal-overlay,.tcg-reveal-slot,.tcg-reveal-card-inner,.tcg-card-shine{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
     <div id="gameVersionBadge" class="fixed top-2 left-2 z-[180] rounded-lg border border-emerald-300/30 bg-black/75 px-2.5 py-1 text-[10px] font-black tracking-wider text-emerald-200 shadow-lg pointer-events-none">UNO! CLUB v2.1.0</div>
@@ -4646,7 +4678,18 @@
           document.querySelectorAll('[data-tcg-remove]').forEach(b=>b.onclick=()=>{const i=tcgDeck.lastIndexOf(b.dataset.tcgRemove);if(i>=0)tcgDeck.splice(i,1);tcgSave();tcgRender()});
         }
         function tcgAdd(id){if(tcgDeck.length>=60){showToast('El mazo ya tiene 60 cartas.','warn');return}const n=tcgDeck.filter(x=>x===id).length;if(n>=4&&tcgCard(id)?.kind!=='Energy'){showToast('Máximo 4 copias de esta carta.','warn');return}if((tcgCollection[id]||0)<=n){showToast('No tenés más copias de esa carta.','warn');return}tcgDeck.push(id);tcgSave();tcgRender()}
-        const TCG_PACKS={mixed_all:{name:'Sobre mixto',price:100},elemental:{name:'Sobre elemental',price:120},expansion:{name:'Sobre expansión',price:160},special:{name:'Sobre exclusivo',price:250}};
+        const TCG_VERSION='2.0.0';
+        const TCG_PACKS={
+          mixed_all:{name:'Sobre normal',price:100,count:8,description:'8 cartas variadas'},
+          elemental:{name:'Sobre elemental',price:140,count:8,description:'8 cartas de elementos'},
+          expansion:{name:'Sobre expansión',price:180,count:8,description:'8 cartas sin energías'},
+          special:{name:'Sobre élite',price:280,count:8,description:'8 cartas con rareza mejorada'},
+          mystery:{name:'Mystery Box',price:650,count:1,description:'Una criatura Pokémon sorpresa de cualquier rareza'}
+        };
+        const TCG_BOXES={box_basic:{name:'Caja de sobres',price:450,pack:'mixed_all',packs:5},box_elemental:{name:'Caja elemental',price:620,pack:'elemental',packs:5},box_elite:{name:'Caja élite',price:1250,pack:'special',packs:5}};
+        const tcgSettings=(()=>{try{return {...{animations:true,fastReveal:false,showOdds:true},...JSON.parse(localStorage.getItem('uno_tcg_settings')||'{}')}}catch{return {animations:true,fastReveal:false,showOdds:true}}})();
+        function tcgSaveSettings(){localStorage.setItem('uno_tcg_settings',JSON.stringify(tcgSettings));document.getElementById('tcgModal')?.classList.toggle('tcg-no-animations',!tcgSettings.animations||tcgSettings.fastReveal)}
+        function tcgCardPreview(card,index=0){const palettes={Fire:'from-orange-500 via-red-700 to-rose-950',Water:'from-cyan-300 via-blue-700 to-slate-950',Electric:'from-yellow-200 via-amber-600 to-yellow-950',Plant:'from-lime-300 via-green-700 to-emerald-950',Psychic:'from-fuchsia-300 via-purple-700 to-indigo-950',Darkness:'from-slate-400 via-slate-800 to-black',Metal:'from-slate-200 via-slate-600 to-slate-950',Dragon:'from-violet-300 via-violet-800 to-indigo-950',Fighting:'from-orange-300 via-orange-800 to-red-950',Colorless:'from-slate-200 via-slate-500 to-slate-900'};const bg=palettes[card.type]||palettes.Colorless;const creature=card.kind==='Character';const symbol=creature?'<div class="tcg-art-creature"><span class="tcg-art-orbit"></span><span class="tcg-art-body"></span><span class="tcg-art-eye left"></span><span class="tcg-art-eye right"></span><span class="tcg-art-wing left"></span><span class="tcg-art-wing right"></span></div>':'<div class="tcg-art-energy"><span class="tcg-art-core"></span><span class="tcg-art-ring"></span><span class="tcg-art-ring second"></span></div>';return '<div class="tcg-reveal-card '+(index===7?'tcg-featured':'')+'" style="--card-delay:'+index*75+'ms"><div class="tcg-reveal-card-inner"><div class="tcg-reveal-back"><b>UNO! CLUB</b><small>TCG</small></div><div class="tcg-reveal-front bg-gradient-to-br '+bg+'"><div class="tcg-card-top"><b>'+String(card.rarity||'BÁSICO').toUpperCase()+'</b><small>'+ (creature?(card.power||'')+' PS':'ENERGÍA')+'</small></div><div class="tcg-card-art">'+symbol+'</div><b class="tcg-card-name">'+card.name+'</b><small class="tcg-card-type">'+card.type+' · '+(creature?'POKÉMON':'CARTA')+'</small><i class="tcg-card-shine"></i></div></div></div>'}
         function tcgPickWeighted(pool,rareOnly=false){
           const list=rareOnly?pool.filter(c=>['Rare','EX','V','VMAX','VSTAR','Legendary'].includes(c.rarity)):pool;
           const candidates=list.length?list:pool;
@@ -4655,21 +4698,53 @@
           let roll=Math.random()*total;for(const item of weighted){roll-=item.weight;if(roll<=0)return item.card}return candidates[candidates.length-1];
         }
         function tcgUpdatePackWallet(){const el=document.getElementById('tcgWallet');if(el)el.textContent=Number(localStorage.getItem('uno_club_points')||0).toLocaleString('es-AR');}
-        function tcgOpenPack(kind){
-          const pack=TCG_PACKS[kind];if(!pack)return;
-          const points=Number(localStorage.getItem('uno_club_points')||0);
-          if(points<pack.price){showToast('Te faltan '+(pack.price-points)+' puntos del Club para este sobre.','warn');return}
-          const pool=TCG_CARDS.filter(card=>(kind!=='elemental'||['Fire','Water','Electric','Plant','Psychic','Darkness','Metal','Dragon','Fighting'].includes(card.type))&&(kind!=='special'||['VSTAR','VMAX','EX','V','Legendary'].includes(card.rarity))&&(kind!=='expansion'||card.kind!=='Energy'));
-          if(!pool.length){showToast('No hay cartas disponibles en este sobre.','warn');return}
-          localStorage.setItem('uno_club_points',String(points-pack.price));updateClubWalletUI();tcgUpdatePackWallet();
-          const pulled=[];for(let i=0;i<5;i++)pulled.push(tcgPickWeighted(pool,i===4));
-          pulled.forEach(card=>tcgCollection[card.id]=(tcgCollection[card.id]||0)+1);tcgSave();
-          document.getElementById('tcgPackResult').innerHTML=pulled.map((card,i)=>'<div class="rounded-xl border '+(i===4?'border-amber-300/70 shadow-lg shadow-amber-500/10':'border-fuchsia-400/30')+' bg-gradient-to-br from-zinc-800 to-fuchsia-950/50 p-2 text-center"><div class="text-3xl">'+card.emoji+'</div><b class="block text-[10px] mt-1">'+card.name+'</b><span class="text-[9px] text-fuchsia-200">'+card.rarity+'</span>'+(i===4?'<small class="block text-amber-300 mt-1">★ Carta destacada</small>':'')+'</div>').join('');
-          tcgRender();showToast('¡Sobre abierto! -'+pack.price+' puntos • 5 cartas nuevas.','success');
+        let tcgRevealBusy=false,tcgRevealQueue=[];
+        function tcgPoolFor(kind){return TCG_CARDS.filter(card=>(kind!=='elemental'||['Fire','Water','Electric','Plant','Psychic','Darkness','Metal','Dragon','Fighting'].includes(card.type))&&(kind!=='special'||['VSTAR','VMAX','EX','V','Legendary','Ultra Rare'].includes(card.rarity))&&(kind!=='expansion'||card.kind!=='Energy'))}
+        function tcgRollPack(kind){const pack=TCG_PACKS[kind];const pool=tcgPoolFor(kind);if(!pack||!pool.length)return[];const cards=[];for(let i=0;i<pack.count;i++)cards.push(tcgPickWeighted(pool,i===pack.count-1));return cards}
+        function tcgShowReveal(cards,title,onDone){
+          const old=document.getElementById('tcgRevealOverlay');if(old)old.remove();
+          const overlay=document.createElement('div');overlay.id='tcgRevealOverlay';overlay.className='tcg-reveal-overlay';
+          overlay.innerHTML='<div class="tcg-reveal-panel"><div class="flex items-center justify-between gap-3"><div><p class="text-[10px] uppercase tracking-[.25em] text-fuchsia-300 font-black">Apertura de colección</p><h3 class="font-uno text-2xl">'+title+'</h3><p class="text-xs text-zinc-400" id="tcgRevealProgress">¡Preparando tus cartas!</p></div><button id="tcgRevealClose" class="rounded-lg bg-white/10 px-3 py-2 text-sm">✕</button></div><div id="tcgRevealCards" class="tcg-reveal-grid"></div><div class="flex justify-between items-center gap-2 mt-4"><span class="text-xs text-amber-200" id="tcgRevealCount">0 / '+cards.length+'</span><button id="tcgRevealAll" class="rounded-xl bg-fuchsia-600 px-4 py-2 text-xs font-black">Revelar todas</button></div></div>';
+          document.body.appendChild(overlay);const grid=overlay.querySelector('#tcgRevealCards');
+          grid.innerHTML=cards.map((card,i)=>'<div class="tcg-reveal-slot" data-reveal-index="'+i+'">'+tcgCardPreview(card,i)+'</div>').join('');
+          let shown=0,closed=false;const slots=[...grid.children];const progress=overlay.querySelector('#tcgRevealProgress'),count=overlay.querySelector('#tcgRevealCount');
+          const revealNext=()=>{if(closed||shown>=slots.length)return;slots[shown].classList.add('revealed');shown++;count.textContent=shown+' / '+cards.length;progress.textContent=shown===cards.length?'¡Todas tus cartas reveladas!':'Carta '+shown+' de '+cards.length;if(shown<slots.length&&!tcgSettings.fastReveal&&tcgSettings.animations)window.setTimeout(revealNext,420);};
+          const revealAll=()=>{if(closed)return;slots.forEach(slot=>slot.classList.add('revealed'));shown=slots.length;count.textContent=shown+' / '+cards.length;progress.textContent='¡Todas tus cartas reveladas!';};
+          const close=()=>{if(closed)return;closed=true;overlay.classList.add('closing');window.setTimeout(()=>{overlay.remove();tcgRevealBusy=false;if(onDone)onDone()},180)};
+          overlay.querySelector('#tcgRevealAll').onclick=revealAll;overlay.querySelector('#tcgRevealClose').onclick=close;overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
+          if(!tcgSettings.animations||tcgSettings.fastReveal)revealAll();else window.setTimeout(revealNext,500);
         }
+        function tcgBuy(kind){
+          if(tcgRevealBusy)return;
+          const pack=TCG_PACKS[kind];if(!pack)return;
+          const points=Math.max(0,Number(localStorage.getItem('uno_club_points')||0));
+          if(points<pack.price){showToast('Te faltan '+(pack.price-points)+' puntos del Club para este sobre.','warn');return}
+          const pulled=tcgRollPack(kind);if(pulled.length!==pack.count){showToast('No se pudo preparar el sobre. No se descontaron puntos.','error');return}
+          // Compra y recompensa se guardan juntas para no cobrar sin entregar cartas.
+          localStorage.setItem('uno_club_points',String(points-pack.price));pulled.forEach(card=>tcgCollection[card.id]=(tcgCollection[card.id]||0)+1);tcgSave();updateClubWalletUI();tcgUpdatePackWallet();tcgRender();
+          tcgRevealBusy=true;tcgShowReveal(pulled,pack.name,()=>{showToast('¡Sobre abierto! Recibiste '+pulled.length+' cartas.','success')});
+        }
+        function tcgBuyBox(boxId){
+          if(tcgRevealBusy)return;const box=TCG_BOXES[boxId];if(!box)return;
+          const points=Math.max(0,Number(localStorage.getItem('uno_club_points')||0));
+          if(points<box.price){showToast('Te faltan '+(box.price-points)+' puntos para esta caja.','warn');return}
+          const all=[];for(let i=0;i<box.packs;i++)all.push(...tcgRollPack(box.pack));
+          if(all.length!==box.packs*TCG_PACKS[box.pack].count){showToast('No se pudo preparar la caja. No se cobró nada.','error');return}
+          localStorage.setItem('uno_club_points',String(points-box.price));all.forEach(card=>tcgCollection[card.id]=(tcgCollection[card.id]||0)+1);tcgSave();updateClubWalletUI();tcgUpdatePackWallet();tcgRender();
+          tcgRevealBusy=true;tcgShowReveal(all,box.name+' · '+box.packs+' sobres',()=>showToast('¡Caja abierta! Recibiste '+all.length+' cartas.','success'));
+        }
+        function tcgOpenPack(kind){tcgBuy(kind)}
+        function tcgOpenMysteryBox(){if(tcgRevealBusy)return;const price=900,points=Math.max(0,Number(localStorage.getItem('uno_club_points')||0));if(points<price){showToast('Te faltan '+(price-points)+' puntos para la Mystery Box.','warn');return}const pool=TCG_CARDS.filter(c=>c.kind==='Character');if(!pool.length){showToast('No hay Pokémon disponibles.','error');return}const pulled=[tcgPickWeighted(pool,true)];localStorage.setItem('uno_club_points',String(points-price));tcgCollection[pulled[0].id]=(tcgCollection[pulled[0].id]||0)+1;tcgSave();updateClubWalletUI();tcgUpdatePackWallet();tcgRender();tcgRevealBusy=true;tcgShowReveal(pulled,'MYSTERY BOX',()=>showToast('¡Misterio revelado! Conseguí un Pokémon sorpresa.','success'))}
         document.getElementById('btnOpenTCG').onclick=()=>{document.getElementById('unoTcgModal').classList.remove('hidden');tcgRender()};
         document.getElementById('btnCloseTCG').onclick=()=>document.getElementById('unoTcgModal').classList.add('hidden');
         document.querySelectorAll('.tcg-pack').forEach(b=>b.onclick=()=>tcgOpenPack(b.dataset.tcgPack));
+        document.querySelectorAll('[data-tcg-box]').forEach(b=>b.onclick=()=>tcgBuyBox(b.dataset.tcgBox));
+        document.getElementById('tcgMysteryBox').onclick=tcgOpenMysteryBox;
+        const tcgAnimSetting=document.getElementById('tcgSettingAnimations'),tcgFastSetting=document.getElementById('tcgSettingFast'),tcgOddsSetting=document.getElementById('tcgSettingOdds');
+        if(tcgAnimSetting){tcgAnimSetting.checked=tcgSettings.animations;tcgAnimSetting.onchange=()=>{tcgSettings.animations=tcgAnimSetting.checked;tcgSaveSettings()}}
+        if(tcgFastSetting){tcgFastSetting.checked=tcgSettings.fastReveal;tcgFastSetting.onchange=()=>{tcgSettings.fastReveal=tcgFastSetting.checked;tcgSaveSettings()}}
+        if(tcgOddsSetting){tcgOddsSetting.checked=tcgSettings.showOdds;tcgOddsSetting.onchange=()=>{tcgSettings.showOdds=tcgOddsSetting.checked;tcgSaveSettings()}}
+        tcgSaveSettings();
         document.getElementById('tcgClearDeck').onclick=()=>{if(confirm('¿Vaciar el mazo actual?')){tcgDeck=[];tcgSave();tcgRender()}};
         document.getElementById('tcgAutoDeck').onclick=()=>{tcgDeck=[];const available=TCG_CARDS.filter(c=>(tcgCollection[c.id]||0)>0);if(!available.length){showToast('Abrí sobres para conseguir cartas primero.','warn');return}for(const c of available){const copies=Math.min(c.kind==='Energy'?8:4,tcgCollection[c.id]||0);for(let i=0;i<copies&&tcgDeck.length<60;i++)tcgDeck.push(c.id)}tcgSave();tcgRender();showToast('Mazo armado con tus cartas.','success')};
 
@@ -5027,7 +5102,7 @@
     <div id="unoTcgModal" class="hidden fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
       <div class="max-w-5xl mx-auto rounded-3xl border border-fuchsia-400/30 bg-gradient-to-br from-zinc-900 via-slate-950 to-fuchsia-950/30 shadow-2xl">
         <div class="flex items-center justify-between gap-3 p-5 border-b border-white/10">
-          <div><div class="text-[10px] uppercase tracking-[.25em] text-fuchsia-300 font-black">Nuevo modo de cartas coleccionables</div><h2 class="font-uno text-3xl text-white">UNO! <span class="text-fuchsia-300">TCG</span></h2><p class="text-xs text-zinc-400">Colección, sobres y construcción de mazos • progreso guardado en este dispositivo</p></div>
+          <div><div class="text-[10px] uppercase tracking-[.25em] text-fuchsia-300 font-black">Nuevo modo de cartas coleccionables</div><h2 class="font-uno text-3xl text-white">UNO! <span class="text-fuchsia-300">TCG</span></h2><p class="text-xs text-zinc-400">Colección, tienda, cajas y aperturas animadas • v2.0.0</p></div>
           <button id="btnCloseTCG" class="rounded-xl bg-zinc-800 px-4 py-2 text-white">✕</button>
         </div>
         <div class="p-4 sm:p-6 grid lg:grid-cols-[1.1fr_.9fr] gap-5">
@@ -5035,12 +5110,19 @@
             <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
               <div class="flex flex-wrap justify-between items-center gap-2"><h3 class="font-bold text-lg">🎴 Abrir sobres</h3><div class="flex items-center gap-3 text-xs"><span class="text-amber-300">🪙 <b id="tcgWallet">0</b> puntos</span><span id="tcgCardCount" class="text-fuchsia-200">0 cartas</span></div></div>
               <p class="text-xs text-zinc-400 mt-1">Probá sobres mezclados, elementales, expansiones y colecciones especiales.</p>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
-                <button data-tcg-pack="mixed_all" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-fuchsia-700 to-indigo-900 text-left"><b class="block text-sm">🌈 Mixto</b><small class="text-[10px]">5 cartas • 🪙 100</small></button>
-                <button data-tcg-pack="elemental" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-cyan-700 to-blue-950 text-left"><b class="block text-sm">⚡ Elemental</b><small class="text-[10px]">5 cartas • 🪙 120</small></button>
-                <button data-tcg-pack="expansion" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-amber-600 to-red-950 text-left"><b class="block text-sm">🚀 Expansión</b><small class="text-[10px]">5 cartas • 🪙 160</small></button>
-                <button data-tcg-pack="special" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-emerald-700 to-teal-950 text-left"><b class="block text-sm">👑 Colección</b><small class="text-[10px]">5 cartas • 🪙 250</small></button>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4">
+                <button data-tcg-pack="mixed_all" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-fuchsia-700 to-indigo-900 text-left"><b class="block text-sm">🌈 Sobre normal</b><small class="text-[10px]">8 cartas • 🪙 100</small></button>
+                <button data-tcg-pack="elemental" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-cyan-700 to-blue-950 text-left"><b class="block text-sm">⚡ Elemental</b><small class="text-[10px]">8 cartas • 🪙 140</small></button>
+                <button data-tcg-pack="expansion" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-amber-600 to-red-950 text-left"><b class="block text-sm">🚀 Expansión</b><small class="text-[10px]">8 cartas • 🪙 180</small></button>
+                <button data-tcg-pack="special" class="tcg-pack rounded-xl p-3 bg-gradient-to-br from-emerald-700 to-teal-950 text-left"><b class="block text-sm">👑 Élite</b><small class="text-[10px]">8 cartas • 🪙 280</small></button>
+                <button id="tcgMysteryBox" class="rounded-xl p-3 bg-gradient-to-br from-violet-700 via-fuchsia-800 to-black text-left border border-fuchsia-300/40"><b class="block text-sm">🎁 Mystery Box</b><small class="text-[10px]">1 Pokémon sorpresa • 🪙 900</small></button>
               </div>
+              <div class="mt-4 border-t border-white/10 pt-4"><h4 class="font-bold text-sm text-amber-200">📦 Cajas de sobres</h4><div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
+                <button data-tcg-box="box_basic" class="rounded-xl p-3 bg-zinc-800 border border-white/10 text-left"><b class="block text-xs">Caja básica</b><small class="text-[10px] text-zinc-300">5 sobres normales · 40 cartas • 🪙 450</small></button>
+                <button data-tcg-box="box_elemental" class="rounded-xl p-3 bg-cyan-950 border border-cyan-400/20 text-left"><b class="block text-xs">Caja elemental</b><small class="text-[10px] text-zinc-300">5 sobres elementales · 40 cartas • 🪙 620</small></button>
+                <button data-tcg-box="box_elite" class="rounded-xl p-3 bg-amber-950 border border-amber-300/20 text-left"><b class="block text-xs">Caja élite</b><small class="text-[10px] text-zinc-300">5 sobres élite · 40 cartas • 🪙 1.250</small></button>
+              </div></div>
+              <div class="mt-3 flex flex-wrap gap-3 text-[10px] text-zinc-400"><label class="flex items-center gap-2"><input id="tcgSettingAnimations" type="checkbox" checked> Animaciones fluidas</label><label class="flex items-center gap-2"><input id="tcgSettingFast" type="checkbox"> Revelado rápido</label><label class="flex items-center gap-2"><input id="tcgSettingOdds" type="checkbox" checked> Mostrar rarezas</label></div>
               <div id="tcgPackResult" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4"></div>
             </div>
             <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
