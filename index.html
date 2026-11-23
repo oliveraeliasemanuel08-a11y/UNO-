@@ -1125,6 +1125,7 @@
                     </div>
                     <div class="flex gap-1.5 shrink-0">
                         <button type="button" data-timer="0" class="turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border bg-zinc-900 text-zinc-400 border-zinc-700 cursor-pointer">Sin límite</button>
+                        <button type="button" data-timer="8" class="turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border bg-zinc-900 text-zinc-400 border-zinc-700 cursor-pointer">8s Turbo</button>
                         <button type="button" data-timer="20" class="turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border bg-amber-400 text-zinc-950 border-amber-300 cursor-pointer">20s</button>
                         <button type="button" data-timer="35" class="turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border bg-zinc-900 text-zinc-400 border-zinc-700 cursor-pointer">35s</button>
                     </div>
@@ -3848,10 +3849,12 @@
 
             document.querySelectorAll('.turn-timer-opt').forEach(btn => {
                 const val = Number(btn.dataset.timer);
+                const turboLocked = room.gameMode === 'turbo' && val !== 8;
                 const active = (room.turnDuration ?? 20) === val;
-                btn.className = `turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ${active ? 'bg-amber-400 text-zinc-950 border-amber-300' : 'bg-zinc-900 text-zinc-400 border-zinc-700'}`;
+                btn.disabled = !isHost || turboLocked;
+                btn.className = `turn-timer-opt px-2.5 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ${active ? 'bg-amber-400 text-zinc-950 border-amber-300' : 'bg-zinc-900 text-zinc-400 border-zinc-700'}${btn.disabled ? ' opacity-40 cursor-not-allowed' : ''}`;
                 btn.onclick = async () => {
-                    if (!isHost) return;
+                    if (!isHost || turboLocked) return;
                     room.turnDuration = val;
                     await syncRoomToCloud();
                 };
