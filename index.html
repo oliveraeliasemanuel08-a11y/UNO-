@@ -4718,16 +4718,16 @@
         }
         function robadoBotTurn(){
           const g=arcade.game;if(!g||g.turn<1||g.turn>3)return;arcade.timer=setTimeout(()=>{
-            if(!arcade.game||arcade.mode!=='robado')return;const seatIndex=g.turn,p=g.players[seatIndex];let played=false;
-            for(let i=0;i<p.hand.length&&!played;i++){const c=p.hand[i],rank=robadoRank(c),ci=g.center.findIndex(x=>robadoRank(x)===rank),pi=g.players.findIndex((x,j)=>j!==seatIndex&&x.pile.length&&robadoRank(x.pile[x.pile.length-1])===rank);
-              if(ci>=0){const match=g.center.splice(ci,1)[0];p.hand.splice(i,1);p.pile.push(match,c);g.log='🤖 '+p.name+' capturó una carta del centro.';played=true;}
-              else if(pi>=0){const stolen=g.players[pi].pile.splice(0);p.hand.splice(i,1);p.pile.push(...stolen,c);g.log='🤖 '+p.name+' robó la casita de '+g.players[pi].name+'.';played=true;}
-            }
-            if(!played&&p.hand.length){g.center.push(p.hand.shift());g.log='🤖 '+p.name+' dejó una carta en el centro.';}
+            if(!arcade.game||arcade.mode!=='robado')return;const seatIndex=g.turn,p=g.players[seatIndex];let choice=null;
+            for(const c of p.hand){const rivals=g.players.map((x,j)=>({x,j})).filter(o=>o.j!==seatIndex&&o.x.pile.length&&robadoRank(o.x.pile[o.x.pile.length-1])===robadoRank(c)).sort((a,b)=>b.x.pile.length-a.x.pile.length);if(rivals.length){choice={card:c,type:'player',target:rivals[0].j};break;}}
+            if(!choice)for(const c of p.hand){const ci=g.center.findIndex(x=>robadoRank(x)===robadoRank(c));if(ci>=0){choice={card:c,type:'center',target:ci};break;}}
+            if(choice?.type==='player'){const rival=g.players[choice.target],stolen=rival.pile.splice(0);p.hand.splice(p.hand.findIndex(x=>x.id===choice.card.id),1);p.pile.push(...stolen,choice.card);g.log='🤖 '+p.name+' robó la casita de '+rival.name+' ('+stolen.length+' cartas).';}
+            else if(choice?.type==='center'){const match=g.center.splice(choice.target,1)[0];p.hand.splice(p.hand.findIndex(x=>x.id===choice.card.id),1);p.pile.push(match,choice.card);g.log='🤖 '+p.name+' levantó una carta del centro.';}
+            else if(p.hand.length){g.center.push(p.hand.shift());g.log='🤖 '+p.name+' descartó una carta en el centro.';}
             const next=robadoNextLocal(g,seatIndex);if(next<0)return;g.turn=next;robadoRender();if(g.turn!==0)robadoBotTurn();
           },700);
         }
-        function robadoFinish(){const g=arcade.game;const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];g.log='🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas en su casita.';g.turn=-1;robadoRender();document.getElementById('arcadeGameContent').insertAdjacentHTML('beforeend','<div class="text-center mt-4"><button data-robado-again class="arcade-action text-amber-200">Nueva partida</button></div>');}
+        function robadoFinish(){const g=arcade.game;if(!g||g.over)return;g.over=true;const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];g.log='🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas en su casita.';g.turn=-1;robadoRender();}
 
         document.getElementById('btnOpenArcade').onclick=()=>{document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');};
         document.getElementById('arcadeBackHome').onclick=arcadeHome;
