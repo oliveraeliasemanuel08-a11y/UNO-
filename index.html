@@ -1894,6 +1894,71 @@
         let unsubscribePublicRooms = null;
         let unsubscribeLeaderboard = null;
         const competitiveProfiles = new Map();
+        let competitiveQueueUnsub=null,competitiveSearchInterval=null,competitiveSearchStartedAt=0,competitiveAutoStartLock=false;
+
+
+        function updatePlayerIdDisplay(){
+          const id=String(currentUserId||'No disponible');
+          const a=document.getElementById('playerIdDisplay'),b=document.getElementById('competitiveMenuPlayerId');
+          if(a)a.textContent='ID: '+id;if(b)b.textContent=id;
+        }
+        function openCompetitiveMenu(){document.getElementById('competitiveMenuScreen')?.classList.remove('hidden');renderCompetitiveRank();updatePlayerIdDisplay();}
+        function closeCompetitiveSearch(){
+          if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}
+          if(competitiveQueueUnsub){competitiveQueueUnsub();competitiveQueueUnsub=null;}
+          document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');
+        }
+        function chooseCompetitiveBotCard(bot,room,playable){
+          const tier=Math.max(0,Math.min(9,Number(bot.competitiveAiTier??room.competitiveAiTier??0)));
+          if(tier<=2)return playable[0];
+          const counts={red:0,yellow:0,green:0,blue:0};bot.hand.forEach(c=>{if(counts[c.color]!==undefined)counts[c.color]++;});
+          const next=room.seats[(bot.seatIndex+room.direction+room.seats.length)%room.seats.length],danger=!!next&&next.hand&&next.hand.length<=2;
+          const score=card=>{let v=counts[card.color]!==undefined?counts[card.color]*2:0;const action=['skip','reverse','draw2','wild_draw4'].includes(card.value);if(action)v+=tier>=6?24:12;if(danger&&action)v+=tier*5;if(card.value==='wild_draw4')v+=tier>=7?8:-18;if(card.value==='wild')v+=tier>=7?-10:2;if(card.value==='draw2'&&danger)v+=18;if(card.value==='skip'&&danger)v+=14;return v;};
+          return playable.slice().sort((a,b)=>score(b)-score(a))[0]||playable[0];
+        }
+        async function fillCompetitiveBotsAndStart(){
+          const room=state.room;if(!room||!room.competitiveMode||room.status!=='lobby'||room.hostId!==currentUserId)return;
+          const rank=getCompetitiveRank(),tier=UNO_COMPETITIVE_RANKS.indexOf(rank);room.competitiveAiTier=tier;room.competitiveRankName=rank.name;
+          room.seats.forEach((seat,index)=>{if(!seat.id){const p=BOT_PROFILES[index%BOT_PROFILES.length];room.seats[index]={...seat,id:'comp_ai_'+currentUserId+'_'+index+'_'+Date.now(),name:p.name+' · IA '+rank.name,avatar:p.avatar,isBot:true,competitiveAI:true,competitiveAiTier:tier,competitiveDifficulty:rank.name,team:null,hand:[],saidUno:false,finishRank:null};}});
+          closeCompetitiveSearch();await dealAndStartGame();
+        }
+        async function startCompetitiveSearch(){
+          if(state.room){showToast('Primero salí de la sala actual para buscar una clasificatoria.','warn');return;}
+          closeCompetitiveSearch();const ready=await initFirebase();if(!ready||!db||!currentUser){showToast('No se pudo conectar al matchmaking online.','danger');return;}
+          competitiveAutoStartLock=false;competitiveSearchStartedAt=Date.now();
+          const overlay=document.getElementById('competitiveSearchOverlay');overlay?.classList.remove('hidden');
+          const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+          set('competitiveSearchTitle','Buscando jugadores...');set('competitiveSearchStatus','Buscando rivales con rating parecido.');set('competitiveSearchCountdown','15');set('competitiveSearchFound','Buscando jugadores reales antes de completar con IA...');
+          const bar=document.getElementById('competitiveSearchProgress');if(bar)bar.style.width='0%';
+          try{
+            await createNewRoom(true,true);if(!state.room||!state.room.competitiveMode)throw new Error('No se pudo crear la cola.');
+            const roomsRef=collection(db,'artifacts',appId,'public','data','uno_rooms');
+            competitiveQueueUnsub=onSnapshot(roomsRef,snapshot=>{
+              const own=state.room;if(!own||!own.competitiveMode||own.status!=='lobby')return;
+              const humans=(own.seats||[]).filter(x=>x&&x.id&&!x.isBot);
+              if(humans.length>=2){set('competitiveSearchTitle','¡Rival encontrado!');set('competitiveSearchStatus','La partida está comenzando.');set('competitiveSearchFound',humans.length+' jugadores reales encontrados.');closeCompetitiveSearch();return;}
+              const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),band=competitiveSearchBand(elapsed),candidates=[];
+              snapshot.forEach(d=>{const r=d.data();if(d.id===own.code||!r||!r.competitiveMode||r.status!=='lobby'||!r.hostId||r.hostId>=currentUserId)return;if(Date.now()-Number(r.updatedAt||Date.now())>30000)return;const seats=r.seats||[],occupied=seats.filter(x=>x&&x.id).length;if(occupied>0&&occupied<(r.maxSeats||4)&&Math.abs(Number(r.competitiveRating||1000)-getCompetitiveRating())<=band.radius)candidates.push({...r,code:d.id});});
+              if(candidates.length&&humans.length===1){
+                candidates.sort((a,b)=>String(a.hostId).localeCompare(String(b.hostId)));const target=candidates[0];closeCompetitiveSearch();overlay?.classList.remove('hidden');set('competitiveSearchTitle','¡Rival encontrado!');set('competitiveSearchStatus','Conectando con '+(target.seats.find(x=>x&&x.id)?.name||'otro jugador')+'...');
+                leaveRoomToHome(false).then(()=>joinExistingRoom(target.code)).then(()=>{document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');}).catch(e=>{console.warn(e);showToast('No se pudo completar el emparejamiento.','warn');});
+              }
+            },err=>{console.warn('Cola competitiva:',err);set('competitiveSearchStatus','Problema de conexión. Seguimos intentando...');});
+            competitiveSearchInterval=setInterval(()=>{
+              const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),left=Math.max(0,15-elapsed);set('competitiveSearchCountdown',String(left));if(bar)bar.style.width=Math.min(100,elapsed/15*100)+'%';
+              if(left===0){if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId){const humans=(state.room.seats||[]).filter(x=>x&&x.id&&!x.isBot);if(humans.length<2)fillCompetitiveBotsAndStart().catch(e=>{console.error(e);showToast('No se pudo iniciar la partida competitiva.','danger');});}}
+            },250);
+          }catch(e){console.error('Matchmaking competitivo:',e);closeCompetitiveSearch();showToast('No se pudo iniciar la búsqueda. Revisá conexión y reglas de Firestore.','danger');}
+        }
+        async function searchPlayerById(){
+          const input=document.getElementById('playerLookupInput'),result=document.getElementById('playerLookupResult'),uid=String(input?.value||'').trim();if(!result)return;
+          if(!uid){result.textContent='Pegá un ID válido para buscar.';return;}result.innerHTML='<div class="text-sky-200 text-xs">Buscando perfil...</div>';
+          const ready=await initFirebase();if(!ready||!db){result.textContent='No se pudo conectar con Firebase.';return;}
+          try{const snap=await getDoc(doc(db,'artifacts',appId,'public','data','uno_leaderboard',uid));if(!snap.exists()){result.innerHTML='<b class="text-rose-200">No encontramos ese jugador.</b><p class="text-xs text-zinc-400 mt-1">Revisá que el ID esté completo.</p>';return;}
+            const p={...snap.data(),uid:snap.id},rating=Math.max(0,Number(p.rating)||0),rank=getCompetitiveRank(rating),matches=Number(p.matches||0),wins=Number(p.wins||0),rate=matches?Math.round(wins/matches*100):0;
+            result.innerHTML='<div class="flex items-center gap-3">'+renderCustomAvatarSVG(p.avatar||{},'w-16 h-16')+'<div class="min-w-0"><div class="text-[10px] text-sky-300 font-black">PERFIL ENCONTRADO</div><b class="block text-lg text-white">'+escapeLeaderboardText(p.name||'Jugador')+'</b><span class="text-[10px] text-zinc-400">ID: '+escapeLeaderboardText(p.uid)+'</span></div></div><div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"><div class="rounded-xl bg-black/35 p-3"><span class="block text-[9px] text-zinc-500">RANGO</span><div class="flex items-center gap-1 mt-1">'+renderRankEmblem(rank,25)+'<b class="text-xs text-amber-100">'+rank.name+'</b></div></div><div class="rounded-xl bg-black/35 p-3"><span class="block text-[9px] text-zinc-500">RATING</span><b class="text-lg text-amber-200">'+rating.toLocaleString('es-AR')+'</b></div><div class="rounded-xl bg-black/35 p-3"><span class="block text-[9px] text-zinc-500">PARTIDAS</span><b class="text-lg text-white">'+matches+'</b></div><div class="rounded-xl bg-black/35 p-3"><span class="block text-[9px] text-zinc-500">VICTORIAS</span><b class="text-lg text-emerald-300">'+wins+'</b><span class="block text-[9px] text-zinc-500">'+rate+'% de victorias</span></div></div>';
+          }catch(e){console.error(e);result.textContent='No se pudo consultar el perfil. Revisá las reglas de lectura del leaderboard.';}
+        }
 
         function updateOnlineBadgeUI(status, detail = '') {
             const badge = document.getElementById('onlineStatusBadge');
@@ -1946,6 +2011,7 @@
             currentUser = auth.currentUser;
             currentUserId = currentUser.uid;
             firebaseReady = true;
+            updatePlayerIdDisplay();
 
             updateOnlineBadgeUI('connected', currentUserId);
             startPublicRoomsListener();
@@ -3073,6 +3139,11 @@
                 renderChatAndReactionsFromRoom(data);
                 renderCurrentView();
 
+                if(data.competitiveMode&&data.status==='lobby'&&data.hostId===currentUserId&&(data.seats||[]).filter(x=>x&&x.id&&!x.isBot).length>=2&&!competitiveAutoStartLock){
+                  competitiveAutoStartLock=true;
+                  setTimeout(()=>{if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId)dealAndStartGame().catch(e=>console.error('Inicio competitivo:',e));},350);
+                }
+
                 if (prevStatus === 'lobby' && data.status === 'playing') {
                     vfx.playShuffleSequence();
                 }
@@ -3084,7 +3155,7 @@
             });
         }
 
-        async function createNewRoom(isOnlineMode = true) {
+        async function createNewRoom(isOnlineMode = true, competitiveMode = false) {
             sfx.init();
             let onlineAvailable = false;
             if (isOnlineMode) {
@@ -3128,7 +3199,10 @@
                 straightRule: false,
                 straightColorMode: 'same',
                 gameMode: 'classic',
-                competitiveMode: false,
+                competitiveMode: !!competitiveMode,
+                competitiveRating: competitiveMode ? getCompetitiveRating() : null,
+                competitiveRankName: competitiveMode ? getCompetitiveRank().name : null,
+                competitiveAiTier: competitiveMode ? UNO_COMPETITIVE_RANKS.indexOf(getCompetitiveRank()) : null,
                 pendingStack: null,
                 comboChain: null,
                 seats,
@@ -3940,7 +4014,7 @@
 
                 const playable = bot.hand.filter(c => canPlayCard(c, r, null));
                 if (playable.length > 0) {
-                    const chosen = playable[0];
+                    const chosen = r.competitiveMode ? chooseCompetitiveBotCard(bot,r,playable) : playable[0];
                     // Elegir el color más abundante en su mano si es comodín
                     const counts = { red: 0, yellow: 0, green: 0, blue: 0 };
                     bot.hand.forEach(c => { if (counts[c.color] !== undefined) counts[c.color]++; });
@@ -4612,12 +4686,15 @@
         function getCompetitiveRating(){return Math.max(0,Number(localStorage.getItem('uno_competitive_rating')||1000))}
         function getCompetitiveRank(rating=getCompetitiveRating()){return UNO_COMPETITIVE_RANKS.slice().reverse().find(r=>rating>=r.min)||UNO_COMPETITIVE_RANKS[0]}
         function renderRankEmblem(rank,size=30){
-          const r=typeof rank==='number'?getCompetitiveRank(rank):(rank||UNO_COMPETITIVE_RANKS[0]),i=UNO_COMPETITIVE_RANKS.indexOf(r),c=r.colors||UNO_COMPETITIVE_RANKS[0].colors,id='unoRank'+Math.max(0,i),s=Math.max(16,Math.min(72,Number(size)||30));
-          return '<svg class="shrink-0 drop-shadow" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="'+id+'A" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".48" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient><linearGradient id="'+id+'B" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".72"/><stop offset="1" stop-color="'+c[1]+'" stop-opacity=".08"/></linearGradient></defs><path d="M32 3 54 12 59 31 52 47 32 61 12 47 5 31 10 12Z" fill="url(#'+id+'A)" stroke="'+c[1]+'" stroke-width="2.4"/><path d="M32 9 49 16 53 31 47 43 32 55 17 43 11 31 15 16Z" fill="url(#'+id+'B)" stroke="#fff" stroke-opacity=".65" stroke-width="1.2"/><path d="M32 15 37 25 48 27 40 35 42 47 32 41 22 47 24 35 16 27 27 25Z" fill="'+c[2]+'" stroke="'+c[1]+'" stroke-width="1.5"/><circle cx="32" cy="31" r="10.5" fill="'+c[0]+'" stroke="'+c[1]+'" stroke-width="1.4"/><text x="32" y="35" text-anchor="middle" font-family="Arial,sans-serif" font-size="'+(r.glyph.length>1?'10':'14')+'" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".28" stroke-width=".5" paint-order="stroke">'+r.glyph+'</text><path d="M17 13 20 18M47 13 44 18M12 34 17 35M52 34 47 35" stroke="#fff" stroke-opacity=".7" stroke-width="1.5" stroke-linecap="round"/></svg>';
+          const r=typeof rank==='number'?getCompetitiveRank(rank):(rank||UNO_COMPETITIVE_RANKS[0]),i=Math.max(0,UNO_COMPETITIVE_RANKS.indexOf(r)),c=r.colors||UNO_COMPETITIVE_RANKS[0].colors,s=Math.max(16,Math.min(72,Number(size)||30));
+          const shapes=['M32 3 55 13 57 34 48 51 32 61 16 51 7 34 9 13Z','M32 3 54 11 61 28 53 47 32 61 11 47 3 28 10 11Z','M32 3 57 16 57 42 32 61 7 42 7 16Z','M32 2 49 8 61 25 55 45 32 62 9 45 3 25 15 8Z','M32 3 58 13 54 39 32 61 10 39 6 13Z','M32 2 43 10 57 8 55 23 63 32 55 42 57 56 42 54 32 63 22 54 7 56 9 42 1 32 9 23 7 8 21 10Z','M32 2 60 18 52 48 32 62 12 48 4 18Z','M32 1 39 13 53 5 52 21 64 28 53 37 59 53 41 51 32 64 23 51 5 53 11 37 0 28 12 21 11 5 25 13Z','M32 3 42 10 54 6 54 20 62 29 53 39 54 54 40 51 32 62 24 51 10 54 11 39 2 29 10 20 10 6 22 10Z','M32 1 39 11 52 3 53 18 65 25 55 36 62 51 45 51 32 64 19 51 2 51 9 36 -1 25 11 18 12 3 25 11Z'];
+          const marks=['<path d="M20 35 26 41 32 28 38 41 44 35" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>','<path d="M16 32 24 24 32 31 40 24 48 32M18 40 27 35 32 42 37 35 46 40" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>','<path d="M32 18 35 27 45 27 37 33 40 43 32 37 24 43 27 33 19 27 29 27Z" fill="#fff"/>','<path d="M16 31Q23 19 32 29Q41 19 48 31M18 39Q25 31 32 39Q39 31 46 39" fill="none" stroke="#fff" stroke-width="2.6"/>','<path d="M19 37 22 24 32 32 42 24 45 37 40 43 24 43Z" fill="#fff"/>','<path d="M17 34 22 19 32 28 42 19 47 34 42 43 22 43Z" fill="#fff"/><path d="M22 47H42" stroke="#fff" stroke-width="2.5"/>','<path d="M32 17 44 29 32 46 20 29Z" fill="#fff"/><path d="M32 22V41M24 29H40" stroke="#0f766e" stroke-width="2"/>','<path d="M32 15 37 27 50 32 37 37 32 50 27 37 14 32 27 27Z" fill="#fff"/><path d="M32 22 42 32 32 42 22 32Z" fill="#0284c7"/>','<path d="M17 43Q7 27 18 17Q23 13 27 19M47 43Q57 27 46 17Q41 13 37 19" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M22 43 32 49 42 43" fill="none" stroke="#fff" stroke-width="2.5"/>','<path d="M14 36 19 20 27 29 32 13 37 29 45 20 50 36 44 46 20 46Z" fill="#fff"/><circle cx="32" cy="35" r="5" fill="#be123c"/>'];
+          return '<svg class="shrink-0 drop-shadow" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="unoRankA'+i+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".5" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs><path d="'+shapes[i]+'" fill="url(#unoRankA'+i+')" stroke="'+c[1]+'" stroke-width="2.4"/>'+marks[i]+'<text x="32" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".45" stroke-width=".8" paint-order="stroke">'+r.glyph+'</text></svg>';
         }
         function escapeLeaderboardText(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
         function renderPlayerRankBadge(uid){
-          const id=String(uid||''),p=competitiveProfiles.get(id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??1000),rank=getCompetitiveRank(rating);
+          const id=String(uid||''),p=competitiveProfiles.get(id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??1000),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank);
+          if(idx<7)return '';
           return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/55 px-1.5 py-0.5 text-[9px] font-black text-amber-100 whitespace-nowrap" title="'+rank.name+' · '+rating+' rating">'+renderRankEmblem(rank,18)+'<span>'+rank.name+'</span></span>';
         }
         function refreshRankBadgeElements(){document.querySelectorAll('[data-rank-player-id]').forEach(el=>{const uid=el.getAttribute('data-rank-player-id');el.outerHTML=renderPlayerRankBadge(uid)})}
@@ -4627,7 +4704,10 @@
           const name=document.getElementById('competitiveRankName'),score=document.getElementById('competitiveRankRating'),bar=document.getElementById('competitiveRankProgress'),nextEl=document.getElementById('competitiveRankNext'),delta=document.getElementById('competitiveRankDelta'),ladder=document.getElementById('competitiveRankLadder'),match=document.getElementById('competitiveMatchBand');
           if(name)name.innerHTML='<span class="inline-flex items-center gap-2">'+renderRankEmblem(rank,34)+'<span>'+rank.name+'</span></span>';if(score)score.textContent=rating.toLocaleString('es-AR')+' puntos de rating';if(bar)bar.style.width=progress+'%';if(nextEl)nextEl.textContent=next?'Próximo: '+next.name+' · '+next.min+' pts':'¡Rango máximo alcanzado!';if(delta)delta.textContent=next?(next.min-rating)+' pts para ascender':'Nivel Leyenda';if(match)match.textContent='±'+band.radius+' rating · '+Math.floor(band.min)+'–'+Math.floor(band.max);
           if(ladder)ladder.innerHTML=UNO_COMPETITIVE_RANKS.map((r,i)=>'<div class="rounded-xl border p-2 text-center '+(i<=idx?'border-amber-300/40 bg-amber-950/40 text-amber-200':'border-white/10 bg-black/30 text-zinc-500')+'"><div class="flex justify-center">'+renderRankEmblem(r,34)+'</div><b class="block text-[10px] mt-1">'+r.name+'</b><span class="text-[9px]">'+r.min.toLocaleString('es-AR')+'+ pts</span></div>').join('');
-          refreshRankBadgeElements();
+          const mn=document.getElementById('competitiveMenuRankName'),mr=document.getElementById('competitiveMenuRankRating'),me=document.getElementById('competitiveMenuRankEmblem'),mp=document.getElementById('competitiveMenuRankProgress'),mnext=document.getElementById('competitiveMenuRankNext'),md=document.getElementById('competitiveMenuRankDelta'),ml=document.getElementById('competitiveMenuRankLadder');
+          if(mn)mn.textContent=rank.name;if(mr)mr.textContent=rating.toLocaleString('es-AR')+' puntos de rating';if(me)me.innerHTML=renderRankEmblem(rank,76);if(mp)mp.style.width=progress+'%';if(mnext)mnext.textContent=next?'Próximo: '+next.name:'¡Nivel máximo alcanzado!';if(md)md.textContent=next?(next.min-rating)+' pts para ascender':'Nivel Leyenda';
+          if(ml)ml.innerHTML=UNO_COMPETITIVE_RANKS.map((r,i)=>'<div class="rounded-xl border p-2 text-center '+(i<=idx?'border-amber-300/40 bg-amber-950/40 text-amber-200':'border-white/10 bg-black/30 text-zinc-500')+'"><div class="flex justify-center">'+renderRankEmblem(r,34)+'</div><b class="block text-[10px] mt-1">'+r.name+'</b><span class="text-[9px]">'+r.min.toLocaleString('es-AR')+'+ pts</span></div>').join('');
+          updatePlayerIdDisplay();refreshRankBadgeElements();
         }
         async function syncCompetitiveProfile(){
           if(!firebaseReady||!db||!currentUser)return;
@@ -5243,7 +5323,17 @@
 
         // Botones del Menú Principal
         document.getElementById('btnOpenSettings').onclick=openClubSettings;document.getElementById('btnOpenSettingsGame').onclick=openClubSettings;document.getElementById('btnOpenStore').onclick=openClubStore;document.getElementById('btnOpenStoreGame').onclick=openClubStore;
-         document.getElementById('btnOpenLeaderboard')?.addEventListener('click',openGlobalLeaderboard);document.getElementById('btnCloseLeaderboard')?.addEventListener('click',()=>document.getElementById('leaderboardModal').classList.add('hidden'));document.getElementById('btnRefreshLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
+         document.getElementById('btnOpenLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
+         document.getElementById('btnOpenCompetitive')?.addEventListener('click',openCompetitiveMenu);
+         document.getElementById('btnCompetitiveBack')?.addEventListener('click',()=>document.getElementById('competitiveMenuScreen')?.classList.add('hidden'));
+         document.getElementById('btnSearchCompetitiveMatch')?.addEventListener('click',startCompetitiveSearch);
+         document.getElementById('btnCancelCompetitiveSearch')?.addEventListener('click',()=>{closeCompetitiveSearch();if(state.room?.competitiveMode&&state.room.status==='lobby')leaveRoomToHome(false);});
+         document.getElementById('btnCompetitiveLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
+         document.getElementById('btnOpenPlayerLookup')?.addEventListener('click',()=>{document.getElementById('playerLookupModal')?.classList.remove('hidden');document.getElementById('playerLookupInput')?.focus();});
+         document.getElementById('btnClosePlayerLookup')?.addEventListener('click',()=>document.getElementById('playerLookupModal')?.classList.add('hidden'));
+         document.getElementById('btnSearchPlayerId')?.addEventListener('click',searchPlayerById);
+         document.getElementById('playerLookupInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchPlayerById();});
+         document.getElementById('btnCopyCompetitiveId')?.addEventListener('click',()=>{const id=String(currentUserId||'');if(!id)return;navigator.clipboard?.writeText(id).then(()=>showToast('ID copiado.','success')).catch(()=>showToast('No se pudo copiar el ID.','warn'));});document.getElementById('btnCloseLeaderboard')?.addEventListener('click',()=>document.getElementById('leaderboardModal').classList.add('hidden'));document.getElementById('btnRefreshLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
         document.getElementById('btnClaimDailyReward')?.addEventListener('click',claimDailyReward);
         document.getElementById('clubOpenCollection')?.addEventListener('click',()=>document.getElementById('btnOpenStore')?.click());
         renderCompetitiveRank();renderDailyReward();
