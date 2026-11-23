@@ -614,6 +614,17 @@
 .tcg-card-ultra{background:linear-gradient(145deg,#fef3c7,#f0abfc,#67e8f9,#312e81)}
 @media(max-width:640px){.tcg-board-card{width:104px}.tcg-board-card .tcg-card-face{min-height:132px}.tcg-card-3d{border-radius:11px;padding:4px}.tcg-card-face{border-radius:8px;padding:5px}}
 
+
+/* TCG PvP arena: tablero en perspectiva, optimizado con CSS 3D */
+.tcg-arena{perspective:1100px;transform-style:preserve-3d;gap:14px!important}
+.tcg-side{position:relative;overflow:visible;transform-style:preserve-3d;box-shadow:0 18px 34px #0008,inset 0 1px #ffffff18!important}
+.tcg-opponent{transform:rotateX(5deg) scale(.985);background:linear-gradient(145deg,#35121d99,#090b18)!important}
+.tcg-self{transform:rotateX(-3deg);background:linear-gradient(145deg,#063b3199,#090b18)!important}
+.tcg-opponent:before,.tcg-self:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;border:1px solid #ffffff18;box-shadow:inset 0 0 35px #ffffff08}
+.tcg-opponent .tcg-card-3d{transform:perspective(850px) rotateY(5deg) rotateX(-2deg)}
+.tcg-self .tcg-card-3d{transform:perspective(850px) rotateY(-5deg) rotateX(2deg)}
+.tcg-side .tcg-board-card{filter:drop-shadow(0 10px 8px #0009)}
+@media(max-width:640px){.tcg-opponent,.tcg-self{transform:none}.tcg-arena{perspective:none}}
 </style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
@@ -4615,7 +4626,8 @@
           tcgOnline.unsubscribe=onSnapshot(tcgOnlineRef(tcgOnline.code),snap=>{
             if(!snap.exists()){tcgOnlineSetStatus('Sala cerrada');showToast('La sala TCG fue cerrada.','warn');tcgOnlineExit(false);return;}
             const data=snap.data();tcgOnline.revision=data.revision||0;
-            const info=document.getElementById('tcgOnlineRoomInfo');if(info)info.textContent='Sala '+tcgOnline.code+' • '+(data.players||[]).filter(Boolean).length+'/2 jugadores';
+            const info=document.getElementById('tcgOnlineRoomInfo');if(info)info.textContent='CÓDIGO: '+tcgOnline.code+' • '+(data.players||[]).filter(Boolean).length+'/2 jugadores • compartilo con tu hermano';
+            const players=data.players||[];const meLabel=document.getElementById('tcgMeLabel'),opLabel=document.getElementById('tcgOpponentLabel');if(meLabel)meLabel.textContent='🧑 '+(players[tcgOnline.seat]?.name||'Vos');if(opLabel)opLabel.textContent='⚔️ '+(players[1-tcgOnline.seat]?.name||'Rival');
             if(data.status==='waiting'){tcgOnlineSetStatus('Esperando rival…');return;}
             if(data.status!=='playing'||!data.battle)return;
             const raw=data.battle,me=raw.sides[tcgOnline.seat],op=raw.sides[1-tcgOnline.seat];if(!me||!op)return;
@@ -4630,7 +4642,7 @@
         }
         async function tcgOnlineCreate(){
           if(!firebaseReady||!db||!currentUser){showToast('Esperá a que Firebase termine de conectar.','warn');return;}
-          if(tcgDeck.length!==60){showToast('Necesitás un mazo de 60 cartas. Creá el mazo inicial o completá el tuyo.','warn');return;}
+          if(tcgDeck.length!==60){tcgStarterDeck();}
           try{
             let code,ref,snap;do{code=Math.random().toString(36).slice(2,8).toUpperCase();ref=tcgOnlineRef(code);snap=await getDoc(ref)}while(snap.exists());
             const player=tcgMakeSide(tcgDeck);for(let i=0;i<7;i++)player.hand.push(player.deck.pop());
@@ -4645,7 +4657,7 @@
         }
         async function tcgOnlineJoin(){
           if(!firebaseReady||!db||!currentUser){showToast('Esperá a que Firebase termine de conectar.','warn');return;}
-          if(tcgDeck.length!==60){showToast('Necesitás un mazo de 60 cartas.','warn');return;}
+          if(tcgDeck.length!==60){tcgStarterDeck();}
           const code=(document.getElementById('tcgJoinCode').value||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){showToast('Ingresá un código de 6 caracteres.','warn');return;}
           try{
             const ref=tcgOnlineRef(code);let result;
@@ -4692,7 +4704,7 @@
           document.getElementById('tcgCpuActive').innerHTML=cardView(c.active);document.getElementById('tcgPlayerActive').innerHTML=cardView(p.active);
           document.getElementById('tcgCpuBench').innerHTML=c.bench.map(x=>cardView(x,true)).join('');document.getElementById('tcgPlayerBench').innerHTML=p.bench.map((x,i)=>'<button data-tcg-bench="'+i+'">'+cardView(x,true)+'</button>').join('');
           document.getElementById('tcgCpuPrizes').textContent=c.prizes+' premios';document.getElementById('tcgPlayerPrizes').textContent=p.prizes+' premios';
-          document.getElementById('tcgBattleTurn').textContent=b.over?'Partida terminada':b.turn==='player'?'Tu turno':'Turno de la IA';document.getElementById('tcgBattleStatus').textContent=b.phase==='draw'?'Robá una carta para comenzar':b.phase==='main'?'Podés jugar cartas, adjuntar energía y atacar':'Esperando...';
+          document.getElementById('tcgBattleTurn').textContent=b.over?'Partida terminada':b.turn==='player'?'🟢 Tu turno':(tcgOnline?'🔴 Turno del rival':'Turno de la IA');document.getElementById('tcgBattleStatus').textContent=b.over?'Duelo finalizado':b.turn!=='player'?(tcgOnline?'Esperando la jugada del rival…':'La IA está jugando…'):b.phase==='draw'?'Robá una carta para comenzar':b.phase==='main'?'Jugá cartas, adjuntá energía y atacá':'Turno terminado';
           document.getElementById('tcgBattleLog').innerHTML=b.log.map(x=>'<div>• '+x+'</div>').join('');
           document.getElementById('tcgPlayerHand').innerHTML=p.hand.map((id,i)=>{const x=tcgCard(id);return x?'<button data-tcg-hand="'+i+'" class="tcg-hand-card tcg-card-3d text-left"><div class="tcg-card-face" style="--tcg-glow:'+(({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca')+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b><div class="tcg-card-power">'+x.kind+'</div></div></button>':''}).join('');
           document.getElementById('tcgHandCount').textContent=p.hand.length+' cartas • mazo '+p.deck.length;
@@ -4713,8 +4725,8 @@
           else {showToast('Esta carta no se juega directamente.','warn');return}tcgBattleRender()}
         function tcgAttachEnergy(){const b=tcgBattle,p=b.player;if(b.selectedEnergy){const id=b.selectedEnergy,ix=p.hand.indexOf(id);if(ix<0)return;p.hand.splice(ix,1);p.active.energies.push(id);p.energyAttached=true;b.selectedEnergy=null;tcgLog('Adjuntaste una energía a tu activo.')}else{const ix=p.hand.findIndex(id=>tcgCard(id)?.kind==='Energy');if(ix<0){showToast('No tenés energías en la mano.','warn');return}p.active.energies.push(p.hand.splice(ix,1)[0]);p.energyAttached=true;tcgLog('Adjuntaste una energía a tu activo.')}tcgBattleRender()}
         function tcgAttack(){const b=tcgBattle,p=b.player,active=p.active,attacks=TCG_ATTACKS[active.id]||[];const atk=attacks.find(a=>active.energies.length>=a[1]);if(!atk){showToast('No tenés energía suficiente para atacar.','warn');return}const target=b.cpu.active;target.damage+=atk[2];tcgLog(active.name+' usó '+atk[0]+' e hizo '+atk[2]+' de daño.');if(target.damage>=target.hp){b.cpu.discard.push(target.id);if(b.cpu.prizes>0)b.cpu.prizes--;if(b.cpu.bench.length){b.cpu.active=b.cpu.bench.shift();tcgLog('El rival promocionó un personaje de su banca.')}else{tcgBattleFinish('player');return}}if(b.cpu.prizes<=0){tcgBattleFinish('player');return}b.phase='attackDone';tcgBattleRender()}
-        function tcgBattleFinish(winner){const b=tcgBattle;b.over=true;const el=document.getElementById('tcgBattleResult');el.classList.remove('hidden');el.innerHTML=winner==='player'?'<div class="text-2xl">🏆 ¡VICTORIA!</div><p class="text-sm mt-1">Ganaste el duelo de prueba contra la IA.</p>':'<div class="text-2xl">🤖 La IA ganó</div><p class="text-sm mt-1">¡Probá otro mazo y volvé a intentarlo!</p>';tcgLog(winner==='player'?'¡Ganaste la partida!':'La IA ganó la partida.');tcgBattleRender()}
-        function tcgEndPlayerTurn(){const b=tcgBattle;if(!b||b.over||b.turn!=='player')return;if(b.phase!=='attackDone'){if(b.phase==='draw'){tcgDrawTurn();}if(b.phase==='main'){showToast('Podés atacar antes de terminar el turno.','warn');return}}b.turn='cpu';b.phase='draw';tcgBattleRender();if(tcgOnline){tcgOnlinePublish();return}setTimeout(tcgCpuTurn,650)}
+        function tcgBattleFinish(winner){const b=tcgBattle;b.over=true;const el=document.getElementById('tcgBattleResult');el.classList.remove('hidden');el.innerHTML=tcgOnline?'<div class="text-2xl">🏁 ¡Duelo terminado!</div><p class="text-sm mt-1">La partida PvP llegó a su final.</p>':winner==='player'?'<div class="text-2xl">🏆 ¡VICTORIA!</div><p class="text-sm mt-1">Ganaste el duelo de prueba contra la IA.</p>':'<div class="text-2xl">🤖 La IA ganó</div><p class="text-sm mt-1">¡Probá otro mazo y volvé a intentarlo!</p>';tcgLog(winner==='player'?'¡Ganaste la partida!':'La IA ganó la partida.');tcgBattleRender()}
+        function tcgEndPlayerTurn(){const b=tcgBattle;if(!b||b.over||b.turn!=='player')return;if(b.phase!=='attackDone'){if(b.phase==='draw'){tcgDrawTurn();}if(b.phase==='main'){showToast('Podés atacar antes de terminar el turno.','warn');return}}b.turn='cpu';b.phase='draw';if(tcgOnline&&b.cpu){b.cpu.energyAttached=false;b.cpu.playedSupporter=false;b.cpu.turnDrawn=false;}tcgBattleRender();if(tcgOnline){tcgOnlinePublish();return}setTimeout(tcgCpuTurn,650)}
         function tcgCpuTurn(){const b=tcgBattle;if(!b||b.over)return;const c=b.cpu;if(c.deck.length)c.hand.push(c.deck.pop());let ei=c.hand.findIndex(id=>tcgCard(id)?.kind==='Energy');if(ei>=0)c.active.energies.push(c.hand.splice(ei,1)[0]);let bi=c.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id).rarity==='Basic');if(bi>=0&&c.bench.length<5)c.bench.push(tcgCardInstance(c.hand.splice(bi,1)[0]));const atk=(TCG_ATTACKS[c.active.id]||[]).find(a=>c.active.energies.length>=a[1]);if(atk){b.player.active.damage+=atk[2];tcgLog('La IA usó '+atk[0]+' e hizo '+atk[2]+' de daño.');if(b.player.active.damage>=b.player.active.hp){if(b.player.prizes>0)b.player.prizes--;if(b.player.bench.length){b.player.active=b.player.bench.shift();tcgLog('Tu personaje activo cayó: elegí uno de la banca en tu próximo turno.')}else{tcgBattleFinish('cpu');return}}}b.turn='player';b.phase='draw';b.player.energyAttached=false;b.player.playedSupporter=false;b.selectedEnergy=null;tcgBattleRender()}
         document.getElementById('tcgBattleStart').onclick=()=>{if(tcgOnline){showToast('Salí de la sala online para jugar contra la IA.','warn');return}if(tcgDeck.length!==60){tcgStarterDeck()}tcgBeginBattle()};
         document.getElementById('tcgCreateOnline').onclick=tcgOnlineCreate;
@@ -4759,16 +4771,16 @@
             <p id="tcgDeckHint" class="text-[11px] text-zinc-500 mt-3">La colección y el mazo se guardan localmente en este navegador. El TCG ya permite crear salas online y sincronizar el tablero entre dos jugadores.</p>
 
           <section class="lg:col-span-2 rounded-2xl border border-emerald-400/25 bg-emerald-950/20 p-4">
-              <div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold text-lg text-emerald-200">🌐 TCG Online sincronizado</h3><p class="text-xs text-zinc-400">Creá una sala o entrá con el código de otro jugador.</p></div><span id="tcgOnlineStatus" class="text-xs text-zinc-400">Desconectado</span></div>
+              <div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold text-lg text-emerald-200">🌐 TCG Online PvP</h3><p class="text-xs text-zinc-400">Creá una sala, compartí el código con tu hermano y jueguen 1 contra 1.</p></div><span id="tcgOnlineStatus" class="text-xs text-zinc-400">Desconectado</span></div>
               <div class="flex flex-wrap gap-2 mt-3"><button id="tcgCreateOnline" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black">＋ Crear sala online</button><input id="tcgJoinCode" maxlength="6" placeholder="CÓDIGO" class="w-28 rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-center font-mono uppercase text-sm"><button id="tcgJoinOnline" class="rounded-xl bg-sky-700 px-4 py-2 text-xs font-black">Unirme</button><button id="tcgLeaveOnline" class="hidden rounded-xl bg-rose-900 px-4 py-2 text-xs font-bold">Salir de sala</button></div>
               <div id="tcgOnlineRoomInfo" class="text-xs text-emerald-200 mt-2"></div>
             </section>
             <section class="lg:col-span-2 rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-950/30 to-black/40 p-4">
             <div class="flex flex-wrap justify-between items-center gap-3"><div><h3 class="font-uno text-2xl text-cyan-200">⚔️ Campo de batalla TCG</h3><p class="text-xs text-zinc-400">Formato 1 contra 1: contra IA o en sala online • seis premios • activo y banca</p></div><button id="tcgBattleStart" class="rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black px-4 py-2 text-sm">⚔️ Iniciar partida</button></div>
             <div id="tcgBattleArea" class="hidden mt-4 space-y-3">
-              <div class="grid grid-cols-2 gap-3">
-                <div class="rounded-xl bg-rose-950/30 border border-rose-400/20 p-3"><div class="flex justify-between text-xs"><b>🤖 Rival IA</b><span id="tcgCpuPrizes">6 premios</span></div><div id="tcgCpuActive" class="mt-2 min-h-24"></div><div id="tcgCpuBench" class="flex gap-2 flex-wrap mt-2"></div></div>
-                <div class="rounded-xl bg-emerald-950/30 border border-emerald-400/20 p-3"><div class="flex justify-between text-xs"><b>🧑 Tu equipo</b><span id="tcgPlayerPrizes">6 premios</span></div><div id="tcgPlayerActive" class="mt-2 min-h-24"></div><div id="tcgPlayerBench" class="flex gap-2 flex-wrap mt-2"></div></div>
+              <div class="grid grid-cols-1 gap-3 tcg-arena">
+                <div class="tcg-side tcg-opponent rounded-xl bg-rose-950/30 border border-rose-400/20 p-3"><div class="flex justify-between text-xs"><b id="tcgOpponentLabel">👤 Rival</b><span id="tcgCpuPrizes">6 premios</span></div><div id="tcgCpuActive" class="mt-2 min-h-24"></div><div id="tcgCpuBench" class="flex gap-2 flex-wrap mt-2"></div></div>
+                <div class="tcg-side tcg-self rounded-xl bg-emerald-950/30 border border-emerald-400/20 p-3"><div class="flex justify-between text-xs"><b id="tcgMeLabel">🧑 Tu equipo</b><span id="tcgPlayerPrizes">6 premios</span></div><div id="tcgPlayerActive" class="mt-2 min-h-24"></div><div id="tcgPlayerBench" class="flex gap-2 flex-wrap mt-2"></div></div>
               </div>
               <div class="rounded-xl bg-zinc-950/80 border border-white/10 p-3"><div class="flex flex-wrap justify-between gap-2 text-xs"><b id="tcgBattleTurn">Tu turno</b><span id="tcgBattleStatus" class="text-cyan-200">Preparando partida...</span></div><div id="tcgBattleLog" class="text-[11px] text-zinc-400 mt-2 max-h-20 overflow-y-auto"></div></div>
               <div class="rounded-xl bg-black/30 border border-white/10 p-3"><div class="flex justify-between items-center"><b class="text-sm">Tu mano</b><span id="tcgHandCount" class="text-xs text-zinc-400"></span></div><div id="tcgPlayerHand" class="flex gap-2 overflow-x-auto py-3"></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button id="tcgDrawTurn" class="rounded-lg bg-sky-700 p-2 text-xs font-bold">Robar carta</button><button id="tcgAttachEnergy" class="rounded-lg bg-amber-600 p-2 text-xs font-bold">Adjuntar energía</button><button id="tcgRetreat" class="rounded-lg bg-zinc-700 p-2 text-xs font-bold">Retirar activo</button><button id="tcgEndTurn" class="rounded-lg bg-emerald-700 p-2 text-xs font-bold">Terminar turno</button></div></div>
