@@ -1064,8 +1064,8 @@
             <div class="py-4 border-b border-white/10">
                 <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5">
                     <div class="flex flex-wrap items-center justify-between gap-3"><div><span class="block text-xs font-extrabold text-fuchsia-300">🎲 Modo de juego</span><span id="gameModeHint" class="block text-[11px] text-zinc-400">UNO CAOS solo está disponible online.</span></div>
-                    <div class="flex gap-2"><button id="gameModeClassicBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🃏 UNO clásico</button><button id="gameModeChaosBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">💥 UNO CAOS</button></div></div>
-                    <p id="chaosModeInfo" class="hidden mt-3 text-[11px] text-fuchsia-200 bg-fuchsia-950/40 border border-fuchsia-400/20 rounded-xl p-2.5">Cartas especiales, +99 ultra rara y mazo que se repone automáticamente sin límite.</p><div class="mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-300/20 bg-amber-950/20 p-3"><div><b class="block text-xs text-amber-200">🏆 Modo Competitivo Online</b><span class="text-[11px] text-zinc-400">Ranking individual: +30 al ganar, +12 segundo, +2 tercero y -12 restantes.</span></div><button id="competitiveModeBtn" type="button" class="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-extrabold text-zinc-300">Activar competitivo</button></div>
+                    <div class="flex flex-wrap gap-2"><button id="gameModeClassicBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🃏 Clásico</button><button id="gameModeChaosBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">💥 Caos</button><button id="gameModeSurvivalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">❤️ Supervivencia</button><button id="gameModeTurboBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚡ Turbo</button></div></div>
+                    <p id="chaosModeInfo" class="hidden mt-3 text-[11px] text-fuchsia-200 bg-fuchsia-950/40 border border-fuchsia-400/20 rounded-xl p-2.5">Cartas especiales, +99 ultra rara y mazo que se repone automáticamente sin límite.</p><p id="specialModeInfo" class="hidden mt-2 text-[11px] text-emerald-200 bg-emerald-950/40 border border-emerald-400/20 rounded-xl p-2.5"></p><div class="mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-300/20 bg-amber-950/20 p-3"><div><b class="block text-xs text-amber-200">🏆 Modo Competitivo Online</b><span class="text-[11px] text-zinc-400">Ranking individual: +30 al ganar, +12 segundo, +2 tercero y -12 restantes.</span></div><button id="competitiveModeBtn" type="button" class="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-extrabold text-zinc-300">Activar competitivo</button></div>
                 </div>
             </div>
 
@@ -1756,7 +1756,7 @@
             listEl.innerHTML = rooms.map(r => {
                 const hostSeat = (r.seats || []).find(s => s && s.id === r.hostId) || (r.seats || []).find(s => s && s.id);
                 const hostName = hostSeat ? hostSeat.name : 'Anfitrión';
-                const modeTag = (r.teamMode ? `${r.teamCount} Equipos` : 'Individual') + (r.gameMode === 'chaos' ? ' • 💥 UNO CAOS' : ' • UNO clásico');
+                const modeTag = (r.teamMode ? `${r.teamCount} Equipos` : 'Individual') + ({chaos:' • 💥 UNO CAOS',survival:' • ❤️ Supervivencia',turbo:' • ⚡ Turbo',classic:' • UNO clásico'}[r.gameMode] || ' • UNO clásico');
                 const extras = [r.mirrorRule ? '🪞' : '', r.straightRule ? '🪜' : ''].filter(Boolean).join('');
                 return `
                     <div class="flex items-center justify-between gap-2 bg-zinc-950/90 border border-white/10 hover:border-emerald-400/50 rounded-2xl px-3 py-2 transition-colors">
@@ -3029,13 +3029,15 @@
             }
 
             room.matchId='match_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
-            const deck = room.gameMode === 'chaos' && state.isOnline ? createChaosDeckBatch(360) : createOfficial108Deck();
+            const deck = room.gameMode === 'chaos' && state.isOnline ? createChaosDeckBatch(360) : shuffleArray(createOfficial108Deck());
             room.pendingStack = null;
             room.comboChain = null;
+            room.survivalRound = 1;
             room.seats.forEach(s => {
                 s.hand = [];
                 s.saidUno = false;
                 s.finishRank = null;
+                s.lives = room.gameMode === 'survival' ? 3 : null;
                 if (s.id) {
                     for (let i = 0; i < 7; i++) {
                         s.hand.push(deck.pop());
@@ -3336,6 +3338,45 @@
             const room = state.room;
             const seat = room.seats[seatIndex];
             if (!seat) return;
+
+            if (room.gameMode === 'survival') {
+                const survivors = getActivePlayers(room);
+                const winner = survivors.find(p => p.seatIndex === seatIndex);
+                if (!winner) return;
+                survivors.filter(p => p.seatIndex !== seatIndex).forEach(p => { p.lives = Math.max(0, (Number(p.lives) || 3) - 1); });
+                survivors.filter(p => p.seatIndex !== seatIndex && p.lives <= 0).forEach(p => { p.finishRank = 99; p.hand = []; });
+                const stillAlive = survivors.filter(p => p.lives > 0);
+                room.podium = room.podium || [];
+                room.survivalRound = (room.survivalRound || 1) + 1;
+                if (stillAlive.length <= 1) {
+                    const champion = stillAlive[0] || winner;
+                    champion.finishRank = 1;
+                    room.podium = [{ seatIndex: champion.seatIndex, id: champion.id, name: champion.name, avatar: champion.avatar, team: champion.team, rank: 1 }];
+                    room.status = 'finished';
+                    awardMatchPointsIfNeeded(room, champion);
+                    sfx.playVictory();
+                    vfx.spawnVictoryConfetti();
+                    showToast('🏆 ¡' + champion.name + ' es el último superviviente!', 'success');
+                    await syncRoomToCloud();
+                    return;
+                }
+                const nextDeck = shuffleArray(createOfficial108Deck());
+                stillAlive.forEach(p => {
+                    p.finishRank = null; p.hand = []; p.saidUno = false;
+                    for (let i = 0; i < 7; i++) p.hand.push(nextDeck.pop());
+                });
+                let opening = nextDeck.pop();
+                while (opening && opening.value === 'wild_draw4') { nextDeck.unshift(opening); opening = nextDeck.pop(); }
+                room.drawPile = nextDeck; room.discardPile = opening ? [opening] : [];
+                room.activeColor = opening?.color === 'wild' ? COLORS[Math.floor(Math.random() * 4)] : (opening?.color || 'red');
+                room.direction = 1; room.pendingStack = null; room.pendingDraw4 = null; room.lastMoveAnim = null;
+                room.currentTurnSeat = getNextSeatIndex(room, winner.seatIndex, 1);
+                room.turnStartedAt = Date.now(); state.comboChain = null; state.drawnPlayableCardId = null;
+                sfx.playUnoShout();
+                vfx.showCinemaCallout('❤️ RONDA ' + (room.survivalRound - 1), 'from-rose-400 via-white to-amber-300');
+                showToast('Ronda superada por ' + winner.name + '. Vidas: ' + stillAlive.map(p => p.name + ' ' + p.lives + '❤️').join(' · '), 'success');
+                await syncRoomToCloud(); scheduleBotTurnIfNeeded(); return;
+            }
 
             room.podium = room.podium || [];
             const rank = room.podium.length + 1;
@@ -3755,14 +3796,24 @@
             const competitiveBtn = document.getElementById('competitiveModeBtn');
             if (competitiveBtn) { const eligible = state.isOnline && !room.teamMode; competitiveBtn.disabled = !isHost || !eligible; competitiveBtn.textContent = room.competitiveMode ? '🏆 Competitivo ACTIVADO' : 'Activar competitivo'; competitiveBtn.className = 'rounded-xl border px-3 py-2 text-xs font-extrabold ' + (room.competitiveMode ? 'border-amber-300 bg-amber-400 text-zinc-950' : 'border-zinc-700 bg-zinc-900 text-zinc-300') + (!isHost || !eligible ? ' opacity-40 cursor-not-allowed' : ' cursor-pointer'); competitiveBtn.title = !state.isOnline ? 'Disponible solo online' : (room.teamMode ? 'El competitivo es individual' : 'Activar o desactivar ranking'); }
             // Modo CAOS solo online y seleccionable por el anfitrión.
-            const classicBtn = document.getElementById('gameModeClassicBtn'); const chaosBtn = document.getElementById('gameModeChaosBtn'); const chaosInfo = document.getElementById('chaosModeInfo');
-            if (classicBtn && chaosBtn) {
-                const allowed = state.isOnline; classicBtn.disabled = !isHost; chaosBtn.disabled = !isHost || !allowed;
-                classicBtn.className = 'px-4 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ' + (room.gameMode !== 'chaos' ? 'bg-emerald-600 text-white border-emerald-400' : 'bg-zinc-900 text-zinc-400 border-zinc-700');
-                chaosBtn.className = 'px-4 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ' + (room.gameMode === 'chaos' ? 'bg-fuchsia-600 text-white border-fuchsia-300' : 'bg-zinc-900 text-zinc-400 border-zinc-700') + (allowed && isHost ? '' : ' opacity-40 cursor-not-allowed');
-                chaosInfo.classList.toggle('hidden', room.gameMode !== 'chaos');
-                document.getElementById('gameModeHint').textContent = allowed ? 'El anfitrión elige el modo para toda la sala.' : 'UNO CAOS solo funciona en multijugador online.';
+            const modeButtons = { classic:'gameModeClassicBtn', chaos:'gameModeChaosBtn', survival:'gameModeSurvivalBtn', turbo:'gameModeTurboBtn' };
+            const modeColors = { classic:'bg-emerald-600 border-emerald-400', chaos:'bg-fuchsia-600 border-fuchsia-300', survival:'bg-rose-600 border-rose-300', turbo:'bg-cyan-600 border-cyan-300' };
+            Object.entries(modeButtons).forEach(([mode,id]) => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+                const selected = room.gameMode === mode;
+                btn.disabled = !isHost || (mode === 'chaos' && !state.isOnline);
+                btn.className = 'px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer ' + (selected ? modeColors[mode] + ' text-white' : 'bg-zinc-900 text-zinc-400 border-zinc-700') + (btn.disabled ? ' opacity-40 cursor-not-allowed' : '');
+            });
+            const chaosInfo = document.getElementById('chaosModeInfo');
+            if (chaosInfo) chaosInfo.classList.toggle('hidden', room.gameMode !== 'chaos');
+            const specialInfo = document.getElementById('specialModeInfo');
+            if (specialInfo) {
+                const descriptions = { survival:'❤️ 3 vidas por jugador. Cada ronda, quien se queda sin cartas primero sobrevive; los demás pierden 1 vida. Con 0 vidas quedas eliminado. ¡Gana el último superviviente!', turbo:'⚡ Turnos de 8 segundos. Si se acaba el tiempo, robas automáticamente y pasa el turno.', classic:'', chaos:'' };
+                specialInfo.textContent = descriptions[room.gameMode] || '';
+                specialInfo.classList.toggle('hidden', !descriptions[room.gameMode]);
             }
+            document.getElementById('gameModeHint').textContent = isHost ? 'El anfitrión elige el modo para toda la sala.' : 'Esperando que el anfitrión elija el modo.';
 
             // Regla Espejito Sí/No
             const mirrorYes = document.getElementById('mirrorYesBtn');
@@ -3882,7 +3933,7 @@
             const modeText = room.teamMode
                 ? `${room.teamCount} Equipos`
                 : `Podio (${room.podium?.length || 0}/${Math.max(1, room.seats.filter(s => s.id).length - 1)})`;
-            document.getElementById('hudModePill').textContent = (room.gameMode === 'chaos' ? '💥 UNO CAOS • ' : '🃏 UNO CLÁSICO • ') + modeText;
+            document.getElementById('hudModePill').textContent = (({classic:'🃏 UNO CLÁSICO • ',chaos:'💥 UNO CAOS • ',survival:'❤️ SUPERVIVENCIA • ',turbo:'⚡ UNO TURBO • '})[room.gameMode] || '🃏 UNO CLÁSICO • ') + modeText;
 
             const banner = document.getElementById('turnStatusBanner');
             if (mySeat && mySeat.finishRank) {
@@ -4021,7 +4072,7 @@
                             ${renderCustomAvatarSVG(opp.avatar, 'w-9 h-9 sm:w-10 sm:h-10')}
                             <div class="text-left">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${opp.name}</span>
+                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${opp.name}</span>${room.gameMode === 'survival' ? `<span class="text-[9px] font-black text-rose-300">${'❤️'.repeat(Math.max(0, Math.min(3, Number(opp.lives) || 0)))}</span>` : ''}
                                     ${opp.finishRank ? `<span class="text-[10px] font-black text-amber-300">#${opp.finishRank}</span>` : ''}
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
@@ -4369,14 +4420,21 @@
 
         document.getElementById('competitiveModeBtn').onclick = async () => { if (!state.room || !state.isOnline || state.room.hostId !== currentUserId) return; if (state.room.teamMode) { showToast('El competitivo es individual. Cambia a Individual (FFA).', 'warn'); return; } state.room.competitiveMode = !state.room.competitiveMode; await syncRoomToCloud(); showToast(state.room.competitiveMode ? '🏆 Modo competitivo activado. ¡A sumar rating!' : 'Modo competitivo desactivado.', 'success'); };
 
-        document.getElementById('gameModeClassicBtn').onclick = async () => {
-            if (!state.room || state.room.hostId !== currentUserId) return;
-            state.room.gameMode = 'classic'; state.room.pendingStack = null; await syncRoomToCloud();
-        };
-        document.getElementById('gameModeChaosBtn').onclick = async () => {
-            if (!state.room || !state.isOnline || state.room.hostId !== currentUserId) { showToast('UNO CAOS solo está disponible online.', 'warn'); return; }
-            state.room.gameMode = 'chaos'; state.room.pendingStack = null; await syncRoomToCloud();
-        };
+        async function setRoomGameMode(mode) {
+            const room = state.room;
+            if (!room || room.hostId !== currentUserId) return;
+            if (mode === 'chaos' && !state.isOnline) { showToast('UNO CAOS solo está disponible online.', 'warn'); return; }
+            room.gameMode = mode;
+            room.pendingStack = null;
+            if (mode === 'turbo') room.turnDuration = 8;
+            else if (room.turnDuration === 8) room.turnDuration = 20;
+            await syncRoomToCloud();
+            showToast(mode === 'survival' ? '❤️ Supervivencia: 3 vidas por jugador. Cada ronda perdida resta una vida.' : mode === 'turbo' ? '⚡ Turbo activado: turnos de 8 segundos.' : mode === 'chaos' ? '💥 UNO Caos activado.' : '🃏 UNO clásico activado.', 'success');
+        }
+        document.getElementById('gameModeClassicBtn').onclick = () => setRoomGameMode('classic');
+        document.getElementById('gameModeChaosBtn').onclick = () => setRoomGameMode('chaos');
+        document.getElementById('gameModeSurvivalBtn').onclick = () => setRoomGameMode('survival');
+        document.getElementById('gameModeTurboBtn').onclick = () => setRoomGameMode('turbo');
 
         // Botones de Espejito y Escalerita en el Lobby
         document.getElementById('mirrorYesBtn').onclick = async () => {
