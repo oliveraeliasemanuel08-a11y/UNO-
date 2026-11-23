@@ -1949,7 +1949,7 @@
             },err=>{console.warn('Cola competitiva:',err);set('competitiveSearchStatus','Problema de conexión. Seguimos intentando...');});
             competitiveSearchInterval=setInterval(()=>{
               const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),left=Math.max(0,15-elapsed);set('competitiveSearchCountdown',String(left));if(bar)bar.style.width=Math.min(100,elapsed/15*100)+'%';
-              if(left===0){if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId){const humans=(state.room.seats||[]).filter(x=>x&&x.id&&!x.isBot);if(humans.length<2)fillCompetitiveBotsAndStart().catch(e=>{console.error(e);showToast('No se pudo iniciar la partida competitiva.','danger');});}}
+              if(left===0){if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId){const humans=(state.room.seats||[]).filter(x=>x&&x.id&&!x.isBot);if(humans.length<Number(state.room.maxSeats||4))fillCompetitiveBotsAndStart().catch(e=>{console.error(e);showToast('No se pudo iniciar la partida competitiva.','danger');});}}
             },250);
           }catch(e){console.error('Matchmaking competitivo:',e);closeCompetitiveSearch();showToast('No se pudo iniciar la búsqueda. Revisá conexión y reglas de Firestore.','danger');}
         }
@@ -4117,10 +4117,8 @@
         function renderLobby() {
             const room = state.room;
             const isHost = room.hostId === currentUserId;
-            document.getElementById('lobbyRoomCode').textContent = room.code;
-            document.getElementById('lobbyModeTag').textContent = state.isOnline
-                ? `Multijugador Online • ${isHost ? 'Eres el Anfitrión' : 'Esperando al Anfitrión'}`
-                : 'Sala Local';
+            document.getElementById('lobbyRoomCode').textContent = room.competitiveMode ? '🏆 COMPETITIVO · '+(room.competitiveFormat||'CLASIFICATORIA')+' · '+room.code : room.code;
+            document.getElementById('lobbyModeTag').textContent = room.competitiveMode ? '🏆 Sala Competitiva · '+(isHost?'Anfitrión':'Esperando jugadores') : state.isOnline ? `Multijugador Online • ${isHost ? 'Eres el Anfitrión' : 'Esperando al Anfitrión'}` : 'Sala Local';
 
             // Ocultar o deshabilitar controles exclusivos del anfitrión para invitados
             const startBtn = document.getElementById('btnStartMatch');
