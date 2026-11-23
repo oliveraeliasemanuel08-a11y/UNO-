@@ -3136,7 +3136,13 @@
 
                 const prevStatus = state.room?.status;
                 state.room = data;
-                if(data.competitiveMode&&data.status==='playing')document.getElementById('competitiveMenuScreen')?.classList.add('hidden');
+                // Al confirmarse la partida, cerrar la búsqueda y cualquier menú competitivo.
+                // La mesa pasa a ser la pantalla principal sin pedir "Volver al menú".
+                if(data.competitiveMode&&data.status==='playing'){
+                    closeCompetitiveSearch();
+                    document.getElementById('competitiveMenuScreen')?.classList.add('hidden');
+                    document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');
+                }
                 if (prevStatus !== 'finished' && data.status === 'finished') { const localSeat = data.seats?.find(s => s.id === currentUserId); if (localSeat) awardMatchPointsIfNeeded(data, localSeat); }
                 state.comboChain = data.comboChain || null;
                 state.hostId = data.hostId;
@@ -4690,7 +4696,16 @@
           {name:'Gran Maestro',min:2500,max:2799,glyph:'GM',colors:['#be123c','#fecdd3','#881337']},{name:'Leyenda',min:2800,max:999999,glyph:'★',colors:['#be123c','#fde68a','#701a75']}
         ];
         function getCompetitiveRating(){return Math.max(0,Number(localStorage.getItem('uno_competitive_rating')||1000))}
-        function showCompetitiveResult(entry,delta,oldRating,nextRating,room){const modal=document.getElementById('competitiveResultModal');if(!modal)return;const title=document.getElementById('competitiveResultTitle'),place=document.getElementById('competitiveResultPlace'),change=document.getElementById('competitiveResultDelta'),rank=document.getElementById('competitiveResultRank');if(title)title.textContent=entry.rank===1?'¡CAMPEÓN!':entry.rank<=3?'¡BUEN PUESTO!':'PARTIDA FINALIZADA';if(place)place.textContent='Terminaste en el puesto #'+entry.rank+' de '+(room.maxSeats||room.seats.length)+' · '+(room.competitiveFormat||'Competitivo');if(change){change.textContent=(delta>0?'+':'')+delta+' PUNTOS';change.className='font-uno text-4xl mt-4 '+(delta>0?'text-emerald-300':'text-rose-300')}if(rank)rank.textContent=oldRating+' → '+nextRating+' puntos · '+getCompetitiveRank(nextRating).name;modal.classList.remove('hidden');}
+        function showCompetitiveResult(entry,delta,oldRating,nextRating,room){
+          const modal=document.getElementById('competitiveResultModal');if(!modal)return;
+          const title=document.getElementById('competitiveResultTitle'),place=document.getElementById('competitiveResultPlace'),change=document.getElementById('competitiveResultDelta'),rank=document.getElementById('competitiveResultRank');
+          const oldRank=getCompetitiveRank(oldRating),newRank=getCompetitiveRank(nextRating);
+          if(title)title.textContent=entry.rank===1?'¡CAMPEÓN!':entry.rank<=3?'¡BUEN PUESTO!':'PARTIDA FINALIZADA';
+          if(place)place.textContent='Puesto #'+entry.rank+' de '+(room.maxSeats||room.seats.length)+' jugadores · '+(room.competitiveFormat||'Competitivo');
+          if(change){change.textContent=(delta>0?'+':'')+delta+' PUNTOS';change.className='font-uno text-4xl mt-4 '+(delta>0?'text-emerald-300':delta<0?'text-rose-300':'text-zinc-200')}
+          if(rank)rank.innerHTML=oldRating.toLocaleString('es-AR')+' → '+nextRating.toLocaleString('es-AR')+' rating<br><span class="text-amber-200">'+escapeLeaderboardText(oldRank.name)+' → '+escapeLeaderboardText(newRank.name)+'</span>';
+          modal.classList.remove('hidden');
+        }
         function getCompetitiveRank(rating=getCompetitiveRating()){return UNO_COMPETITIVE_RANKS.slice().reverse().find(r=>rating>=r.min)||UNO_COMPETITIVE_RANKS[0]}
         function renderRankEmblem(rank,size=30){
           const r=typeof rank==='number'?getCompetitiveRank(rank):(rank||UNO_COMPETITIVE_RANKS[0]),i=Math.max(0,UNO_COMPETITIVE_RANKS.indexOf(r)),c=r.colors||UNO_COMPETITIVE_RANKS[0].colors,s=Math.max(16,Math.min(72,Number(size)||30));
