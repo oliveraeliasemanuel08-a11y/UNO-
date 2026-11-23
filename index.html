@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO! CLUB v2.4.0 — Mesa Oficial Online & Equipos</title>
+    <title>UNO! CLUB v2.5.0 — Mesa Oficial Online & Equipos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -621,6 +621,46 @@
         @keyframes arcadeTurnPulse{0%,100%{box-shadow:0 0 0 0 #f5c66d00}50%{box-shadow:0 0 0 4px #f5c66d30}}
         @media(prefers-reduced-motion:reduce){.arcade-felt-board,.arcade-playing-card,.arcade-poker-card,.arcade-seat,.arcade-table-label,.arcade-turn-active{animation:none!important;transition:none!important}}
 
+        /* Efectos premium compartidos por POK, BATALLA y ROBADO (solo y online) */
+        #arcadeGameScreen{background:radial-gradient(ellipse at 50% -18%,#145c42 0%,#07150f 58%,#020806 100%)}
+        #arcadeGameScreen .arcade-felt-board{animation:arcadeBoardEnter .55s cubic-bezier(.16,.84,.25,1) both,arcadeBoardGlow 5s ease-in-out infinite}
+        #arcadeGameScreen .arcade-felt-board:after{box-shadow:inset 0 0 22px #f6d58a12;animation:arcadeBorderGlow 3.8s ease-in-out infinite}
+        #arcadeGameScreen .arcade-seat{animation:arcadeSeatEnter .42s ease-out both;transition:transform .2s,box-shadow .2s,border-color .2s}
+        #arcadeGameScreen .arcade-seat:nth-child(2){animation-delay:.05s}#arcadeGameScreen .arcade-seat:nth-child(3){animation-delay:.1s}#arcadeGameScreen .arcade-seat:nth-child(4){animation-delay:.15s}
+        #arcadeGameScreen .arcade-poker-card{animation:arcadeCardDeal .48s cubic-bezier(.18,.8,.25,1) both;transition:transform .2s,filter .2s}
+        #arcadeGameScreen .arcade-poker-card:hover{transform:translateY(-6px) rotate(1deg);filter:brightness(1.08)}
+        #arcadeGameScreen .arcade-playing-card:hover:not(:disabled){box-shadow:0 16px 25px #000b,0 0 0 2px #ffe5a4,0 0 22px #f5c66d70;transform:translateY(-10px) rotate(0) scale(1.06)}
+        #arcadeGameScreen .arcade-action{transition:transform .16s,filter .16s,box-shadow .16s}
+        #arcadeGameScreen .arcade-action:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.16);box-shadow:0 8px 20px #0005,0 0 16px #f5c66d20}
+        #arcadeGameScreen .arcade-action:active:not(:disabled){transform:translateY(1px) scale(.97)}
+        #arcadeGameScreen [class*="bg-"][class*="rounded-2xl"]{animation:arcadePanelReveal .38s ease-out both}
+        #arcadeGameScreen .arcade-table-label{animation:arcadeFadeIn .6s ease-out both}
+        #arcadeGameScreen .arcade-turn-active{position:relative;animation:arcadeTurnPulse 1.5s ease-in-out infinite,arcadeSeatEnter .35s ease-out both}
+        #arcadeGameScreen button:focus-visible{outline:3px solid #f8d98c;outline-offset:3px}
+        @keyframes arcadeBoardGlow{0%,100%{box-shadow:inset 0 0 0 2px #c99a54,inset 0 0 70px #00190f,0 14px 34px #0009}50%{box-shadow:inset 0 0 0 2px #f4d28a,inset 0 0 78px #00190f,0 16px 40px #000b,0 0 24px #d7aa5b35}}
+        @keyframes arcadeBorderGlow{0%,100%{border-color:#e8c88735}50%{border-color:#ffe2a58c}}
+        @keyframes arcadePanelReveal{0%{opacity:.55;transform:translateY(7px) scale(.99)}100%{opacity:1;transform:translateY(0) scale(1)}}
+        @media(prefers-reduced-motion:reduce){#arcadeGameScreen *{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+        /* Efectos premium compartidos por POK, BATALLA y ROBADO (solo y online) */
+        #arcadeGameScreen{background:radial-gradient(ellipse at 50% -18%,#145c42 0%,#07150f 58%,#020806 100%)}
+        #arcadeGameScreen .arcade-felt-board{animation:arcadeBoardEnter .55s cubic-bezier(.16,.84,.25,1) both,arcadeBoardGlow 5s ease-in-out infinite}
+        #arcadeGameScreen .arcade-felt-board:after{box-shadow:inset 0 0 22px #f6d58a12;animation:arcadeBorderGlow 3.8s ease-in-out infinite}
+        #arcadeGameScreen .arcade-seat{animation:arcadeSeatEnter .42s ease-out both;transition:transform .2s,box-shadow .2s,border-color .2s}
+        #arcadeGameScreen .arcade-seat:nth-child(2){animation-delay:.05s}#arcadeGameScreen .arcade-seat:nth-child(3){animation-delay:.1s}#arcadeGameScreen .arcade-seat:nth-child(4){animation-delay:.15s}
+        #arcadeGameScreen .arcade-poker-card{animation:arcadeCardDeal .48s cubic-bezier(.18,.8,.25,1) both;transition:transform .2s,filter .2s}
+        #arcadeGameScreen .arcade-poker-card:hover{transform:translateY(-6px) rotate(1deg);filter:brightness(1.08)}
+        #arcadeGameScreen .arcade-playing-card:hover:not(:disabled){box-shadow:0 16px 25px #000b,0 0 0 2px #ffe5a4,0 0 22px #f5c66d70;transform:translateY(-10px) rotate(0) scale(1.06)}
+        #arcadeGameScreen .arcade-action{transition:transform .16s,filter .16s,box-shadow .16s}
+        #arcadeGameScreen .arcade-action:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.16);box-shadow:0 8px 20px #0005,0 0 16px #f5c66d20}
+        #arcadeGameScreen .arcade-action:active:not(:disabled){transform:translateY(1px) scale(.97)}
+        #arcadeGameScreen [class*="bg-"][class*="rounded-2xl"]{animation:arcadePanelReveal .38s ease-out both}
+        #arcadeGameScreen .arcade-table-label{animation:arcadeFadeIn .6s ease-out both}
+        #arcadeGameScreen .arcade-turn-active{position:relative;animation:arcadeTurnPulse 1.5s ease-in-out infinite,arcadeSeatEnter .35s ease-out both}
+        #arcadeGameScreen button:focus-visible{outline:3px solid #f8d98c;outline-offset:3px}
+        @keyframes arcadeBoardGlow{0%,100%{box-shadow:inset 0 0 0 2px #c99a54,inset 0 0 70px #00190f,0 14px 34px #0009}50%{box-shadow:inset 0 0 0 2px #f4d28a,inset 0 0 78px #00190f,0 16px 40px #000b,0 0 24px #d7aa5b35}}
+        @keyframes arcadeBorderGlow{0%,100%{border-color:#e8c88735}50%{border-color:#ffe2a58c}}
+        @keyframes arcadePanelReveal{0%{opacity:.55;transform:translateY(7px) scale(.99)}100%{opacity:1;transform:translateY(0) scale(1)}}
+        @media(prefers-reduced-motion:reduce){#arcadeGameScreen *{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
         @media(max-width:640px){#arcadeScreen{padding:10px!important}.arcade-card{padding:14px!important}.arcade-playing-card{width:54px}.arcade-poker-card{width:52px}.arcade-felt-board{border-width:6px;border-radius:22px;padding:10px}.arcade-rules-panel{padding:11px}}
 
         @media(max-width:640px){#arcadeScreen{padding:10px!important}.arcade-card{padding:14px!important}.arcade-playing-card{width:48px}.arcade-poker-card{width:42px}}
@@ -1127,10 +1167,12 @@
           </div>
           <p class="text-[11px] text-zinc-500 mt-3">Partidas online en tiempo real mediante Firebase · 2 a 4 jugadores.</p>
         </section>
-        <section id="arcadeGamePanel" class="hidden mt-5">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4"><div><div id="arcadeGameEyebrow" class="text-[10px] tracking-widest text-emerald-300 font-black"></div><h3 id="arcadeGameTitle" class="font-uno text-2xl sm:text-3xl"></h3><p id="arcadeGameSubtitle" class="text-xs text-zinc-400 mt-1"></p></div><button id="arcadeExitGame" class="arcade-action">← Volver a modos</button></div>
-          <div id="arcadeGameContent" class="rounded-3xl border border-white/10 bg-black/35 p-3 sm:p-5 min-h-[420px]"></div>
-        </section>
+      </div>
+    </section>
+    <section id="arcadeGameScreen" class="hidden fixed inset-0 z-[66] overflow-y-auto arcade-screen p-3 sm:p-6">
+      <div id="arcadeGamePanel" class="max-w-6xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4"><div><div id="arcadeGameEyebrow" class="text-[10px] tracking-widest text-emerald-300 font-black"></div><h3 id="arcadeGameTitle" class="font-uno text-2xl sm:text-3xl"></h3><p id="arcadeGameSubtitle" class="text-xs text-zinc-400 mt-1"></p></div><button id="arcadeExitGame" class="arcade-action">← Volver a modos</button></div>
+        <div id="arcadeGameContent" class="rounded-3xl border border-white/10 bg-black/35 p-3 sm:p-5 min-h-[420px]"></div>
       </div>
     </section>
 
@@ -4535,15 +4577,15 @@
         function arcadeUnoCard(c,clickable=false,extra=''){const bg=c.color==='wild'?'linear-gradient(135deg,#dc2626 0 25%,#2563eb 25% 50%,#16a34a 50% 75%,#eab308 75%)':arcadeColorHex[c.color];const layered='linear-gradient(145deg,#ffffff35 0%,transparent 38%,#00000028 100%),radial-gradient(ellipse at 50% 48%,#ffffff38 0 39%,transparent 40%),'+bg;return '<button '+(clickable?'data-arcade-card="'+c.id+'"':'disabled')+' class="arcade-playing-card '+extra+'" style="background:'+layered+';'+(clickable?'cursor:pointer':'')+'">'+arcadeCardFace(c)+'</button>';}
         function arcadeOpenGame(mode){
           clearTimeout(arcade.timer);arcade.mode=mode;
-          document.getElementById('arcadeModeMenu').classList.add('hidden');
-          document.getElementById('arcadeGamePanel').classList.remove('hidden');
+          document.getElementById('arcadeScreen').classList.add('hidden');
+          document.getElementById('arcadeGameScreen').classList.remove('hidden');
           const meta={poker:['MESA DE PÓKER','UNO! POK','Texas Hold’em contra tres rivales IA.'],battle:['ARENA DE COMBATE','UNO! BATALLA','Jugá cartas para atacar, defenderte y sobrevivir.'],robado:['JUEGO DE CAPTURAS','UNO! ROBADO','La Casita Robada reinventada con cartas UNO.']}[mode];
           document.getElementById('arcadeGameEyebrow').textContent='MODO SOLO · CONTRA 3 BOTS IA';document.getElementById('arcadeGameTitle').textContent=meta[1];document.getElementById('arcadeGameSubtitle').textContent=meta[2]+' · Vos contra tres rivales controlados por la IA.';
           if(mode==='poker') arcadeStartPoker(); else if(mode==='battle') arcadeStartBattle(); else arcadeStartRobado();
         }
         function arcadeRender(html){const root=document.getElementById('arcadeGameContent');root.innerHTML='<div class="arcade-felt-board arcade-board-enter"><div class="arcade-table-label">MESA DE JUEGO · UNO! CLUB</div>'+html+'</div>';}
-        function arcadeHome(){clearTimeout(arcade.timer);arcade.game=null;arcade.mode=null;document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeGamePanel').classList.add('hidden');document.getElementById('homeScreen').classList.remove('hidden');}
-        function arcadeBackToModes(){clearTimeout(arcade.timer);arcade.game=null;document.getElementById('arcadeGamePanel').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}
+        function arcadeHome(){clearTimeout(arcade.timer);arcade.game=null;arcade.mode=null;document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('homeScreen').classList.remove('hidden');}
+        function arcadeBackToModes(){clearTimeout(arcade.timer);arcade.game=null;document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');}
         function arcadeStartAgain(){if(arcade.mode)arcadeOpenGame(arcade.mode);}
 
         // UNO! POK — Texas Hold'em con fichas virtuales y evaluación real de manos.
@@ -4690,7 +4732,7 @@
         }
         function robadoFinish(){const g=arcade.game;const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];g.log='🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas en su casita.';g.turn=-1;robadoRender();document.getElementById('arcadeGameContent').insertAdjacentHTML('beforeend','<div class="text-center mt-4"><button data-robado-again class="arcade-action text-amber-200">Nueva partida</button></div>');}
 
-        document.getElementById('btnOpenArcade').onclick=()=>{document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeGamePanel').classList.add('hidden');};
+        document.getElementById('btnOpenArcade').onclick=()=>{document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');};
         document.getElementById('arcadeBackHome').onclick=arcadeHome;
         document.getElementById('arcadeExitGame').onclick=arcadeBackToModes;
         document.querySelectorAll('[data-arcade-start]').forEach(b=>b.addEventListener('click',()=>arcadeOpenGame(b.dataset.arcadeStart)));
@@ -4729,7 +4771,7 @@
             await setDoc(arcadeOnlineRef(code),room);
             arcadeOnline.code=code;arcadeOnline.selectedCard=null;
             await arcadeOnlineSubscribe(code);
-            document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeGamePanel').classList.remove('hidden');
+            document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');
             arcadeOnlineRender();
           }catch(e){console.error('Arcade create:',e);showToast(e.message||'No se pudo crear la sala online.','danger');}
           finally{arcadeOnline.busy=false;}
@@ -4793,7 +4835,7 @@
             const humans=seats.filter(s=>s.id);if(!humans.length){tx.delete(ref);return;}
             const hostStill=humans.some(s=>s.id===r.hostId);tx.update(ref,{seats,hostId:hostStill?r.hostId:humans[0].id,arcadeState:r.arcadeState||null,status:r.status,updatedAt:Date.now()});
           });}catch(e){console.warn('Arcade leave:',e);}}
-          if(goMenu){document.getElementById('arcadeGamePanel').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}
+          if(goMenu){document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}
         }
         function arcadeOnlineRender(){
           const r=arcadeOnline.room;if(!r)return;
@@ -4959,7 +5001,7 @@
         function GenUIcopyArcade(code){const input=document.createElement('textarea');input.value=code;document.body.appendChild(input);input.select();try{document.execCommand('copy');showToast('Código '+code+' copiado.','success');}catch(e){showToast('Código: '+code,'info');}input.remove();}
         document.getElementById('arcadeExitGame').onclick=()=>{if(arcadeOnline.code)arcadeOnlineLeave(true);else arcadeBackToModes();};
         document.getElementById('btnOpenArcade').onclick=()=>{document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeGamePanel').classList.add('hidden');};
-        document.getElementById('arcadeBackHome').onclick=()=>{if(arcadeOnline.code)arcadeOnlineLeave(false);document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('homeScreen').classList.remove('hidden');};
+        document.getElementById('arcadeBackHome').onclick=()=>{if(arcadeOnline.code)arcadeOnlineLeave(false);document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('homeScreen').classList.remove('hidden');};
 
         // Botones del Menú Principal
         document.getElementById('btnOpenSettings').onclick=openClubSettings;document.getElementById('btnOpenSettingsGame').onclick=openClubSettings;document.getElementById('btnOpenStore').onclick=openClubStore;document.getElementById('btnOpenStoreGame').onclick=openClubStore;
