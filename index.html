@@ -4541,14 +4541,14 @@
         }
         function battleNextAlive(from){const g=arcade.game;for(let k=1;k<=g.players.length;k++){const i=(from+k)%g.players.length;if(g.players[i].alive)return i;}return from;}
         function battleRender(){
-          const g=arcade.game;if(!g)return;const human=g.players[0],finished=g.players.filter(p=>p.alive).length<=1;
+          const g=arcade.game;if(!g)return;const human=g.players[0],finished=g.players.filter(p=>p.alive).length<=1;if(finished&&g.players.some(p=>p.alive))g.log='🏆 ¡'+g.players.find(p=>p.alive).name+' ganó la batalla!';
           const seats=g.players.map((p,i)=>'<div class="arcade-seat '+(!p.alive?'opacity-30':'')+'"><div class="flex justify-between"><b class="text-sm">'+p.name+'</b><b class="text-xs '+(p.hp<=30?'text-rose-300':'text-emerald-300')+'">'+p.hp+' HP</b></div><div class="h-2 bg-black/50 rounded-full overflow-hidden mt-2"><div class="h-full bg-gradient-to-r from-rose-600 to-emerald-400" style="width:'+p.hp+'%"></div></div><div class="text-[10px] text-zinc-400 mt-1">'+(p.alive?'🛡️ '+p.shield+' · '+(i===0?p.hand.length:'🂠 cartas'):'ELIMINADO')+'</div></div>').join('');
           const hand=human.hand.map(c=>arcadeUnoCard(c,true)).join('');
           arcadeRender('<div class="grid grid-cols-2 md:grid-cols-4 gap-2">'+seats+'</div><div class="mt-4 rounded-2xl bg-rose-950/30 border border-rose-400/20 p-4 text-center"><div class="text-[10px] tracking-widest text-rose-200">RONDA '+g.round+'</div><div class="font-uno text-xl mt-1">'+(finished?'🏆 BATALLA FINALIZADA':(g.turn===0?'¡TU TURNO!':'Turno de '+g.players[g.turn].name))+'</div><p class="text-xs text-zinc-300 mt-2">'+g.log+'</p></div><div class="mt-5"><div class="text-xs text-zinc-400 mb-2">TU MANO · tocá una carta para usarla</div><div class="flex flex-wrap justify-center gap-2">'+hand+'</div><div class="flex justify-center mt-4 gap-2"><button data-battle-draw class="arcade-action">Robar carta</button>'+(finished?'<button data-battle-again class="arcade-action text-amber-200">Volver a luchar</button>':'')+'</div></div>');
         }
         function battleDamage(target,amount){const p=arcade.game.players[target],blocked=Math.min(p.shield,amount);p.shield-=blocked;p.hp=Math.max(0,p.hp-(amount-blocked));if(p.hp===0)p.alive=false;return amount-blocked;}
         function battlePlay(seat,cardId){
-          const g=arcade.game;if(!g||g.players[0].alive===false||g.turn!==0||g.players.filter(p=>p.alive).length<=1)return;
+          const g=arcade.game;if(!g||!g.players[seat]||!g.players[seat].alive||g.turn!==seat||g.players.filter(p=>p.alive).length<=1)return;
           const p=g.players[seat],idx=p.hand.findIndex(c=>c.id===cardId);if(idx<0)return;const c=p.hand.splice(idx,1)[0];
           if(c.color==='green'&&c.value!=='wild'&&c.value!=='wild_draw4'){p.hp=Math.min(100,p.hp+Math.max(8,battlePower(c)));g.log='🌿 Te curaste '+Math.max(8,battlePower(c))+' puntos.';}
           else if(c.value==='reverse'){p.shield+=18;g.log='🛡️ '+p.name+' levantó un escudo de 18.';}
@@ -4593,9 +4593,9 @@
           g.turn=1;robadoRender();robadoBotTurn();
         }
         function robadoBotTurn(){
-          const g=arcade.game;if(!g||g.turn!==1)return;arcade.timer=setTimeout(()=>{
-            if(!arcade.game||arcade.mode!=='robado')return;const p=g.players[1];let played=false;
-            for(let i=0;i<p.hand.length&&!played;i++){const c=p.hand[i],rank=robadoRank(c),ci=g.center.findIndex(x=>robadoRank(x)===rank),pi=g.players.findIndex((x,j)=>j!==1&&x.pile.length&&robadoRank(x.pile[x.pile.length-1])===rank);
+          const g=arcade.game;if(!g||g.turn<1||g.turn>3)return;arcade.timer=setTimeout(()=>{
+            if(!arcade.game||arcade.mode!=='robado')return;const seatIndex=g.turn,p=g.players[seatIndex];let played=false;
+            for(let i=0;i<p.hand.length&&!played;i++){const c=p.hand[i],rank=robadoRank(c),ci=g.center.findIndex(x=>robadoRank(x)===rank),pi=g.players.findIndex((x,j)=>j!==seatIndex&&x.pile.length&&robadoRank(x.pile[x.pile.length-1])===rank);
               if(ci>=0){const match=g.center.splice(ci,1)[0];p.hand.splice(i,1);p.pile.push(match,c);g.log='🤖 '+p.name+' capturó una carta del centro.';played=true;}
               else if(pi>=0){const stolen=g.players[pi].pile.splice(0);p.hand.splice(i,1);p.pile.push(...stolen,c);g.log='🤖 '+p.name+' robó la casita de '+g.players[pi].name+'.';played=true;}
             }
@@ -4603,7 +4603,9 @@
             if(!p.hand.length&&g.deck.length)for(let n=0;n<3&&g.deck.length;n++)p.hand.push(g.deck.pop());
             if(!g.players[0].hand.length&&g.deck.length)for(let n=0;n<3&&g.deck.length;n++)g.players[0].hand.push(g.deck.pop());
             if(!g.deck.length&&g.players.every(x=>!x.hand.length)){robadoFinish();return;}
-            g.turn=0;robadoRender();
+            g.turn=seatIndex>=3?0:seatIndex+1;
+            if(g.turn===0&&!g.players[0].hand.length&&!g.deck.length){g.turn=1;robadoBotTurn();return;}
+            robadoRender();if(g.turn!==0)robadoBotTurn();
           },700);
         }
         function robadoFinish(){const g=arcade.game;const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];g.log='🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas en su casita.';g.turn=-1;robadoRender();document.getElementById('arcadeGameContent').insertAdjacentHTML('beforeend','<div class="text-center mt-4"><button data-robado-again class="arcade-action text-amber-200">Nueva partida</button></div>');}
