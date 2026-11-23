@@ -2956,6 +2956,7 @@
                         throw new Error("NOT_FOUND");
                     }
                     const roomData = snap.data();
+                    if (roomData.arcadeRoom) throw new Error('ARCADE_ROOM');
                     const alreadyIn = (roomData.seats || []).find(s => s.id === currentUserId);
 
                     if (alreadyIn) {
@@ -3013,6 +3014,8 @@
                     showToast("Esa partida ya comenzó.", "warn");
                 } else if (err.message === "ROOM_FULL") {
                     showToast("La sala está completa.", "danger");
+                } else if (err.message === "ARCADE_ROOM") {
+                    showToast("Ese código es de UNO! POK, BATALLA o ROBADO. Entrá desde 🎮 Modos.", "warn");
                 } else {
                     showToast("No se pudo entrar a la sala. Verifica el código.", "danger");
                 }
