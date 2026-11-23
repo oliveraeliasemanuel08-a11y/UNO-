@@ -4096,9 +4096,9 @@
             if (!mySeat) return;
             document.getElementById('localPlayerAvatar').innerHTML = renderCustomAvatarSVG(mySeat.avatar, 'w-9 h-9');
             document.getElementById('localPlayerName').textContent = mySeat.name;
-            document.getElementById('localCardCountText').textContent = mySeat.finishRank
-                ? `🏅 Puesto #${mySeat.finishRank}`
-                : `${mySeat.hand.length} ${mySeat.hand.length === 1 ? 'carta' : 'cartas'}`;
+            document.getElementById('localCardCountText').textContent = room.gameMode === 'survival'
+                ? `${mySeat.finishRank ? '🏅 Eliminado' : mySeat.hand.length + (mySeat.hand.length === 1 ? ' carta' : ' cartas')} • ${'❤️'.repeat(Math.max(0, Math.min(3, Number(mySeat.lives) || 0)))}`
+                : (mySeat.finishRank ? `🏅 Puesto #${mySeat.finishRank}` : `${mySeat.hand.length} ${mySeat.hand.length === 1 ? 'carta' : 'cartas'}`);
 
             const localTeamPill = document.getElementById('localTeamPill');
             if (room.teamMode && mySeat.team !== null) {
