@@ -4495,7 +4495,7 @@
         }
         function claimDailyReward(){
           const today=clubLocalDate(),last=localStorage.getItem('uno_club_daily_last')||'';if(last===today){renderDailyReward();return}
-          const streak=last===clubDateOffset(today,-1)?Math.min(7,Number(localStorage.getItem('uno_club_daily_streak')||0)+1):1,reward=CLUB_DAILY_REWARDS[(streak-1)%7],balance=Math.max(0,Number(localStorage.getItem('uno_club_points')||0));
+          const previousStreak=Number(localStorage.getItem('uno_club_daily_streak')||0),streak=last===clubDateOffset(today,-1)?(previousStreak>=7?1:previousStreak+1):1,reward=CLUB_DAILY_REWARDS[streak-1],balance=Math.max(0,Number(localStorage.getItem('uno_club_points')||0));
           localStorage.setItem('uno_club_points',String(balance+reward));localStorage.setItem('uno_club_daily_last',today);localStorage.setItem('uno_club_daily_streak',String(streak));updateClubWalletUI();renderDailyReward();showToast('¡Reclamaste '+reward+' monedas! Racha: '+streak+'/7 días.','success');
         }
         function updateClubWalletUI(){const e=document.getElementById('clubPointsBalance');if(e)e.textContent=Number(localStorage.getItem('uno_club_points')||0).toLocaleString('es-AR')}
