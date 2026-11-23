@@ -997,7 +997,7 @@
 
 
             <section id="competitiveRankPanel" class="hidden mt-4 rounded-2xl border border-amber-300/25 bg-gradient-to-br from-zinc-900 via-amber-950/30 to-black p-4 sm:p-5">
-              <div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-[10px] font-black tracking-[.22em] text-amber-300">🏆 CIRCUITO COMPETITIVO</div><h2 class="font-uno text-2xl text-white">Tu camino a la cima</h2><p class="text-xs text-zinc-400">10 divisiones, rating y progreso de temporada</p></div><div class="text-right"><div id="competitiveRankName" class="font-uno text-xl text-amber-200">🥉 Bronce I</div><div id="competitiveRankRating" class="text-xs text-zinc-300">1000 puntos de rating</div></div></div>
+              <div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-[10px] font-black tracking-[.22em] text-amber-300">🏆 CIRCUITO COMPETITIVO</div><h2 class="font-uno text-2xl text-white">Tu camino a la cima</h2><p class="text-xs text-zinc-400">20 rangos, rating y progreso de temporada</p></div><div class="text-right"><div id="competitiveRankName" class="font-uno text-xl text-amber-200">🥉 Bronce I</div><div id="competitiveRankRating" class="text-xs text-zinc-300">1000 puntos de rating</div></div></div>
               <div class="mt-3 h-3 overflow-hidden rounded-full bg-black/60 border border-white/10"><div id="competitiveRankProgress" class="h-full rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-white transition-all duration-500" style="width:0%"></div></div>
               <div class="mt-2 flex items-center justify-between gap-2 text-[10px] text-zinc-400"><span id="competitiveRankNext">Siguiente rango</span><span id="competitiveRankDelta">Ganá partidas para subir</span></div>
               <div id="competitiveRankLadder" class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-1.5"></div>
@@ -1895,6 +1895,7 @@
         let unsubscribeLeaderboard = null;
         const competitiveProfiles = new Map();
         let competitiveQueueUnsub=null,competitiveSearchInterval=null,competitiveSearchStartedAt=0,competitiveAutoStartLock=false;
+        let selectedCompetitiveFormat=localStorage.getItem('uno_competitive_format')||'1v1';
 
 
         function updatePlayerIdDisplay(){
@@ -4677,24 +4678,39 @@
         ];
 
         const UNO_COMPETITIVE_RANKS=[
-          {name:'Bronce I',min:0,max:799,glyph:'I',colors:['#9a542c','#f5c28b','#4b2416']},{name:'Bronce II',min:800,max:899,glyph:'II',colors:['#b66a35','#ffd09a','#5b2b18']},
-          {name:'Plata I',min:900,max:999,glyph:'I',colors:['#64748b','#f8fafc','#334155']},{name:'Plata II',min:1000,max:1099,glyph:'II',colors:['#94a3b8','#ffffff','#475569']},
-          {name:'Oro I',min:1100,max:1249,glyph:'I',colors:['#a16207','#fde68a','#713f12']},{name:'Oro II',min:1250,max:1399,glyph:'II',colors:['#ca8a04','#fff1a8','#854d0e']},
-          {name:'Platino',min:1400,max:1599,glyph:'P',colors:['#0f766e','#99f6e4','#134e4a']},{name:'Diamante',min:1600,max:1849,glyph:'D',colors:['#0284c7','#bae6fd','#1e3a8a']},
-          {name:'Maestro',min:1850,max:2199,glyph:'M',colors:['#7c3aed','#ddd6fe','#3b0764']},{name:'Leyenda',min:2200,max:999999,glyph:'★',colors:['#be123c','#fde68a','#701a75']}
+          {name:"Bronce I",min:0,max:599,glyph:"I",colors:["#8b451f","#f3b27b","#42210f"]},
+          {name:"Bronce II",min:600,max:699,glyph:"II",colors:["#a65326","#ffc18a","#54240e"]},
+          {name:"Bronce III",min:700,max:799,glyph:"III",colors:["#c16b36","#ffe0ae","#713512"]},
+          {name:"Plata I",min:800,max:899,glyph:"I",colors:["#64748b","#e2e8f0","#334155"]},
+          {name:"Plata II",min:900,max:999,glyph:"II",colors:["#8292a8","#f8fafc","#475569"]},
+          {name:"Plata III",min:1000,max:1099,glyph:"III",colors:["#a8b7c9","#ffffff","#53657c"]},
+          {name:"Oro I",min:1100,max:1199,glyph:"I",colors:["#a16207","#fde68a","#713f12"]},
+          {name:"Oro II",min:1200,max:1299,glyph:"II",colors:["#c0840b","#fff1a8","#854d0e"]},
+          {name:"Oro III",min:1300,max:1399,glyph:"III",colors:["#eab308","#fff7c2","#92400e"]},
+          {name:"Platino I",min:1400,max:1599,glyph:"I",colors:["#0f766e","#99f6e4","#134e4a"]},
+          {name:"Platino II",min:1600,max:1799,glyph:"II",colors:["#0891b2","#a5f3fc","#164e63"]},
+          {name:"Platino III",min:1800,max:1999,glyph:"III",colors:["#2563eb","#bfdbfe","#1e3a8a"]},
+          {name:"Diamante I",min:2000,max:2199,glyph:"I",colors:["#0284c7","#bae6fd","#1e3a8a"]},
+          {name:"Diamante II",min:2200,max:2399,glyph:"II",colors:["#2563eb","#dbeafe","#172554"]},
+          {name:"Diamante III",min:2400,max:2599,glyph:"III",colors:["#4f46e5","#c7d2fe","#312e81"]},
+          {name:"Maestro I",min:2600,max:2799,glyph:"I",colors:["#7c3aed","#ddd6fe","#3b0764"]},
+          {name:"Maestro II",min:2800,max:2999,glyph:"II",colors:["#9333ea","#f5d0fe","#581c87"]},
+          {name:"Maestro III",min:3000,max:3199,glyph:"III",colors:["#c026d3","#f5d0fe","#701a75"]},
+          {name:"Gran Maestro",min:3200,max:3499,glyph:"GM",colors:["#be123c","#fecdd3","#881337"]},
+          {name:"Leyenda",min:3500,max:999999,glyph:"★",colors:["#b45309","#fde68a","#701a75"]}
         ];
         function getCompetitiveRating(){return Math.max(0,Number(localStorage.getItem('uno_competitive_rating')||1000))}
         function getCompetitiveRank(rating=getCompetitiveRating()){return UNO_COMPETITIVE_RANKS.slice().reverse().find(r=>rating>=r.min)||UNO_COMPETITIVE_RANKS[0]}
         function renderRankEmblem(rank,size=30){
           const r=typeof rank==='number'?getCompetitiveRank(rank):(rank||UNO_COMPETITIVE_RANKS[0]),i=Math.max(0,UNO_COMPETITIVE_RANKS.indexOf(r)),c=r.colors||UNO_COMPETITIVE_RANKS[0].colors,s=Math.max(16,Math.min(72,Number(size)||30));
-          const shapes=['M32 3 55 13 57 34 48 51 32 61 16 51 7 34 9 13Z','M32 3 54 11 61 28 53 47 32 61 11 47 3 28 10 11Z','M32 3 57 16 57 42 32 61 7 42 7 16Z','M32 2 49 8 61 25 55 45 32 62 9 45 3 25 15 8Z','M32 3 58 13 54 39 32 61 10 39 6 13Z','M32 2 43 10 57 8 55 23 63 32 55 42 57 56 42 54 32 63 22 54 7 56 9 42 1 32 9 23 7 8 21 10Z','M32 2 60 18 52 48 32 62 12 48 4 18Z','M32 1 39 13 53 5 52 21 64 28 53 37 59 53 41 51 32 64 23 51 5 53 11 37 0 28 12 21 11 5 25 13Z','M32 3 42 10 54 6 54 20 62 29 53 39 54 54 40 51 32 62 24 51 10 54 11 39 2 29 10 20 10 6 22 10Z','M32 1 39 11 52 3 53 18 65 25 55 36 62 51 45 51 32 64 19 51 2 51 9 36 -1 25 11 18 12 3 25 11Z'];
-          const marks=['<path d="M20 35 26 41 32 28 38 41 44 35" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>','<path d="M16 32 24 24 32 31 40 24 48 32M18 40 27 35 32 42 37 35 46 40" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>','<path d="M32 18 35 27 45 27 37 33 40 43 32 37 24 43 27 33 19 27 29 27Z" fill="#fff"/>','<path d="M16 31Q23 19 32 29Q41 19 48 31M18 39Q25 31 32 39Q39 31 46 39" fill="none" stroke="#fff" stroke-width="2.6"/>','<path d="M19 37 22 24 32 32 42 24 45 37 40 43 24 43Z" fill="#fff"/>','<path d="M17 34 22 19 32 28 42 19 47 34 42 43 22 43Z" fill="#fff"/><path d="M22 47H42" stroke="#fff" stroke-width="2.5"/>','<path d="M32 17 44 29 32 46 20 29Z" fill="#fff"/><path d="M32 22V41M24 29H40" stroke="#0f766e" stroke-width="2"/>','<path d="M32 15 37 27 50 32 37 37 32 50 27 37 14 32 27 27Z" fill="#fff"/><path d="M32 22 42 32 32 42 22 32Z" fill="#0284c7"/>','<path d="M17 43Q7 27 18 17Q23 13 27 19M47 43Q57 27 46 17Q41 13 37 19" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M22 43 32 49 42 43" fill="none" stroke="#fff" stroke-width="2.5"/>','<path d="M14 36 19 20 27 29 32 13 37 29 45 20 50 36 44 46 20 46Z" fill="#fff"/><circle cx="32" cy="35" r="5" fill="#be123c"/>'];
-          return '<svg class="shrink-0 drop-shadow" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="unoRankA'+i+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".5" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs><path d="'+shapes[i]+'" fill="url(#unoRankA'+i+')" stroke="'+c[1]+'" stroke-width="2.4"/>'+marks[i]+'<text x="32" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".45" stroke-width=".8" paint-order="stroke">'+r.glyph+'</text></svg>';
+          const shapes=["M32 3 55 13 57 34 48 51 32 61 16 51 7 34 9 13Z","M32 2 58 15 54 43 32 62 10 43 6 15Z","M32 2 44 8 59 23 54 48 32 62 10 48 5 23 20 8Z","M32 3 55 11 61 29 50 51 32 62 14 51 3 29 9 11Z","M32 1 47 9 61 25 56 45 32 63 8 45 3 25 17 9Z","M32 2 43 10 57 7 55 24 63 32 55 42 57 57 42 54 32 63 22 54 7 57 9 42 1 32 9 24 7 7 21 10Z","M32 2 60 18 52 48 32 62 12 48 4 18Z","M32 1 39 13 53 5 52 21 64 28 53 37 59 53 41 51 32 64 23 51 5 53 11 37 0 28 12 21 11 5 25 13Z","M32 2 42 10 54 6 54 20 62 29 53 39 54 54 40 51 32 62 24 51 10 54 11 39 2 29 10 20 10 6 22 10Z","M32 1 39 11 52 3 53 18 65 25 55 36 62 51 45 51 32 64 19 51 2 51 9 36 -1 25 11 18 12 3 25 11Z","M32 2 49 5 62 20 58 44 32 62 6 44 2 20 15 5Z","M32 1 61 16 55 48 32 63 9 48 3 16Z","M32 2 46 6 60 18 58 40 46 56 32 63 18 56 6 40 4 18 18 6Z","M32 1 42 8 57 4 55 20 64 32 55 44 57 60 42 56 32 64 22 56 7 60 9 44 0 32 9 20 7 4 22 8Z","M32 1 50 12 63 31 50 51 32 63 14 51 1 31 14 12Z","M32 2 43 7 56 4 60 18 63 32 56 46 43 57 32 63 21 57 8 46 1 32 4 18 17 7Z","M32 1 38 9 52 4 55 17 64 27 58 41 61 54 45 55 32 64 19 55 3 54 6 41 0 27 9 17 12 4 26 9Z","M32 1 45 6 58 14 63 29 56 47 43 58 32 64 21 58 8 47 1 29 6 14 19 6Z","M32 1 39 8 51 3 56 14 64 23 60 37 55 51 43 59 32 64 21 59 9 51 4 37 0 23 8 14 13 3 25 8Z","M32 0 40 8 52 2 56 15 64 24 60 39 54 52 43 60 32 64 21 60 10 52 4 39 0 24 8 15 12 2 24 8Z"];
+          const symbols=["⌁","Ⅱ","Ⅲ","✦","✧","◇","◆","✶","✹","✺","⬟","✥","✷","✸","✪","⚔","♜","♛","♔","★"];
+          return '<svg class="shrink-0 drop-shadow" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="unoRankA'+i+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".5" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs><path d="'+shapes[i]+'" fill="url(#unoRankA'+i+')" stroke="'+c[1]+'" stroke-width="2.4"/><text x="32" y="39" text-anchor="middle" font-family="Arial,sans-serif" font-size="21" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".35" stroke-width=".7" paint-order="stroke">'+symbols[i]+'</text><text x="32" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".45" stroke-width=".8" paint-order="stroke">'+r.glyph+'</text></svg>';
         }
         function escapeLeaderboardText(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
         function renderPlayerRankBadge(uid){
           const id=String(uid||''),p=competitiveProfiles.get(id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??1000),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank);
-          if(idx<7)return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="hidden" title="Rango '+rank.name+'"></span>';
+          if(idx<12)return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="hidden" title="Rango '+rank.name+'"></span>';
           return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/55 px-1.5 py-0.5 text-[9px] font-black text-amber-100 whitespace-nowrap" title="'+rank.name+' · '+rating+' rating">'+renderRankEmblem(rank,18)+'<span>'+rank.name+'</span></span>';
         }
         function refreshRankBadgeElements(){document.querySelectorAll('[data-rank-player-id]').forEach(el=>{const uid=el.getAttribute('data-rank-player-id');el.outerHTML=renderPlayerRankBadge(uid)})}
