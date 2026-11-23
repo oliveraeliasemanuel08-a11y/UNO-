@@ -925,6 +925,10 @@
 <label class="rounded-xl bg-zinc-900 p-3 text-sm">Cartas de rivales<select id="settingOpponentCards" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="normal">Normales</option><option value="minimal">Vista simple</option></select></label>
 </div></div></div><div class="flex gap-2 p-4 border-t border-white/10"><button id="btnResetSettings" class="px-4 py-2 rounded-xl bg-zinc-800 text-sm">Restaurar</button><button id="btnSaveSettings" class="ml-auto px-5 py-2 rounded-xl bg-sky-500 text-zinc-950 font-extrabold text-sm">Guardar ajustes</button></div></div></div>
 <div id="storeModal" class="hidden fixed inset-0 z-[210] bg-black/90 backdrop-blur-md flex items-center justify-center p-3"><div class="w-full max-w-4xl max-h-[92dvh] overflow-y-auto rounded-3xl border border-amber-300/30 bg-zinc-950 shadow-2xl"><div class="sticky top-0 z-10 flex items-center justify-between p-4 bg-zinc-950/95 border-b border-white/10"><div><h2 class="font-uno text-3xl text-amber-300">🛍️ Tienda del Club</h2><p class="text-xs text-zinc-400">Comprá cosméticos con puntos de partidas online</p><p class="mt-1 text-[11px] font-bold text-emerald-300">✨ Selección diaria: 10 artículos rotativos • <span id="storeRefreshCountdown">Calculando...</span></p></div><div class="flex items-center gap-3"><span class="text-amber-300 font-extrabold">🪙 <b id="clubPointsBalance">0</b></span><button id="btnCloseStore" class="text-2xl text-zinc-400">✕</button></div></div><div class="p-4"><div class="flex gap-2 mb-4"><input id="storeSearchInput" type="search" placeholder="Buscar accesorios, pelos, ropa..." class="flex-1 min-w-0 rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-sm text-white"><select id="storeCategoryFilter" class="rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-sm text-white"><option value="all">Todo</option><option value="hair">Pelos</option><option value="acc">Accesorios</option><option value="shirt">Remeras</option><option value="face">Expresiones</option><option value="beard">Barbas</option><option value="frame">Marcos</option></select></div><div id="storeItemsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div></div></div></div>
+    <div id="leaderboardModal" class="hidden fixed inset-0 z-[230] bg-black/90 backdrop-blur-md flex items-center justify-center p-3"><div class="w-full max-w-5xl max-h-[92dvh] overflow-hidden rounded-3xl border border-amber-300/30 bg-gradient-to-br from-zinc-950 via-slate-950 to-amber-950/30 shadow-2xl">
+      <div class="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-white/10"><div><div class="text-[10px] font-black tracking-[.24em] text-amber-300">🏆 CIRCUITO GLOBAL</div><h2 class="font-uno text-2xl sm:text-3xl text-white">Leaderboard UNO! CLUB</h2><p class="text-xs text-zinc-400">Los mejores jugadores, sus rangos y sus ID de Firebase</p></div><button id="btnCloseLeaderboard" class="rounded-xl bg-zinc-800 px-3 py-2 text-white">✕</button></div>
+      <div class="p-3 sm:p-5"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><span id="leaderboardStatus" class="text-xs text-zinc-400">Conectando con Firebase...</span><button id="btnRefreshLeaderboard" class="rounded-lg border border-amber-300/25 bg-amber-950/30 px-3 py-2 text-[11px] font-bold text-amber-200">↻ Actualizar</button></div><div class="max-h-[65dvh] overflow-auto rounded-2xl border border-white/10"><table class="w-full min-w-[650px] text-left text-xs"><thead class="sticky top-0 bg-zinc-900 text-[10px] uppercase tracking-wider text-zinc-400"><tr><th class="p-3">#</th><th class="p-3">Jugador / ID</th><th class="p-3">Rango</th><th class="p-3 text-right">Rating</th><th class="p-3 text-right">Partidas</th><th class="p-3 text-right">Victorias</th></tr></thead><tbody id="leaderboardRows"><tr><td colspan="6" class="p-8 text-center text-zinc-500">Todavía no hay jugadores cargados.</td></tr></tbody></table></div><p class="mt-3 text-[10px] text-zinc-500">Se muestran todos los perfiles publicados. Los ID son identificadores de Firebase, no contraseñas ni datos de acceso.</p></div></div></div>
+
     <!-- Notificación / Toast elegante (sin alert()) -->
     <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex flex-col items-center gap-2 pointer-events-none w-full max-w-md px-4"></div>
 
@@ -969,6 +973,8 @@
 
                 <div class="flex items-center gap-2">
                     <button id="btnOpenSettings" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-sky-300" title="Configuración">⚙️</button>
+                    <button id="btnOpenLeaderboard" class="px-3 py-2 rounded-xl bg-zinc-900 border border-amber-300/30 text-amber-200" title="Leaderboard global">🏆 Ranking</button>
+                    <button id="btnOpenPlayerLookup" class="px-3 py-2 rounded-xl bg-zinc-900 border border-sky-300/30 text-sky-200" title="Buscar jugador por ID">🔎 ID</button>
                     <button id="btnOpenTCG" class="px-3 py-2 rounded-xl bg-zinc-900 border border-fuchsia-400/30 text-fuchsia-300" title="UNO! TCG">🃏 TCG</button>
                     <button id="btnOpenArcade" class="px-3 py-2 rounded-xl bg-zinc-900 border border-emerald-400/30 text-emerald-300" title="Nuevos modos">🎮 Modos</button>
                     <button id="btnOpenStore" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-amber-300" title="Tienda">🛍️</button>
@@ -990,7 +996,7 @@
             </section>
 
 
-            <section id="competitiveRankPanel" class="mt-4 rounded-2xl border border-amber-300/25 bg-gradient-to-br from-zinc-900 via-amber-950/30 to-black p-4 sm:p-5">
+            <section id="competitiveRankPanel" class="hidden mt-4 rounded-2xl border border-amber-300/25 bg-gradient-to-br from-zinc-900 via-amber-950/30 to-black p-4 sm:p-5">
               <div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-[10px] font-black tracking-[.22em] text-amber-300">🏆 CIRCUITO COMPETITIVO</div><h2 class="font-uno text-2xl text-white">Tu camino a la cima</h2><p class="text-xs text-zinc-400">10 divisiones, rating y progreso de temporada</p></div><div class="text-right"><div id="competitiveRankName" class="font-uno text-xl text-amber-200">🥉 Bronce I</div><div id="competitiveRankRating" class="text-xs text-zinc-300">1000 puntos de rating</div></div></div>
               <div class="mt-3 h-3 overflow-hidden rounded-full bg-black/60 border border-white/10"><div id="competitiveRankProgress" class="h-full rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-white transition-all duration-500" style="width:0%"></div></div>
               <div class="mt-2 flex items-center justify-between gap-2 text-[10px] text-zinc-400"><span id="competitiveRankNext">Siguiente rango</span><span id="competitiveRankDelta">Ganá partidas para subir</span></div>
@@ -998,6 +1004,13 @@
               <div class="mt-3 rounded-xl border border-sky-400/20 bg-sky-950/20 p-3"><div class="flex items-center justify-between gap-2"><b class="text-xs text-sky-200">🎯 Emparejamiento por nivel</b><span id="competitiveMatchBand" class="text-[10px] text-sky-300">Rango cercano</span></div><p class="mt-1 text-[11px] text-zinc-400">La búsqueda competitiva debe priorizar jugadores con rating parecido y ampliar el rango gradualmente si tarda. El emparejamiento automático global requiere una cola segura en Firebase.</p></div>
             </section>
 
+
+            <section id="accountLinkPanel" class="mt-3 rounded-2xl border border-sky-300/25 bg-gradient-to-r from-sky-950/35 to-zinc-950 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="min-w-0"><div class="text-[10px] font-black tracking-[.18em] text-sky-300">🔐 PROTEGER MI PERFIL</div><h3 class="font-uno text-lg text-white">Guardá tu progreso</h3><p id="accountLinkStatus" class="text-[11px] text-zinc-400">Tu perfil actual es anónimo. Vinculá Google para recuperarlo en otros dispositivos.</p></div>
+                <button id="btnLinkGoogleAccount" type="button" class="shrink-0 rounded-xl border border-sky-300/30 bg-sky-400 px-4 py-2.5 text-xs font-extrabold text-zinc-950 hover:bg-sky-300">Vincular con Google</button>
+              </div>
+            </section>
 
             <section id="clubProgressHub" class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
               <article class="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-950/40 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-sky-300">📊 TU PERFIL</div><h3 class="font-uno text-xl">Trayectoria del Club</h3></div><span class="text-2xl">🧑‍🚀</span></div><div class="grid grid-cols-3 gap-2 mt-3"><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatMatches" class="block text-xl text-white">0</b><span class="text-[9px] text-zinc-400">Partidas</span></div><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatWins" class="block text-xl text-emerald-300">0</b><span class="text-[9px] text-zinc-400">Victorias</span></div><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatWinRate" class="block text-xl text-amber-200">0%</b><span class="text-[9px] text-zinc-400">Efectividad</span></div></div><p id="clubStatBest" class="mt-2 text-[10px] text-zinc-400">Tu historia recién empieza. ¡A jugar!</p></article>
@@ -1024,6 +1037,7 @@
                             <div id="homeAvatarPreview" class="w-24 h-24 sm:w-28 sm:h-28 mb-3 transition-transform hover:scale-105">
                                 <!-- SVG Avatar Renderizado dinámicamente -->
                             </div>
+                            <div id="playerIdDisplay" class="w-full mb-1 text-[9px] text-amber-300/80 font-mono tracking-wide break-all">ID: conectando...</div>
                             <input id="playerNameInput" type="text" maxlength="16" placeholder="Tu apodo..." class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-400 rounded-xl px-3 py-2 text-center text-white font-extrabold text-sm focus:outline-none">
                         </div>
 
@@ -1117,6 +1131,9 @@
                             </span>
                             <span class="text-xs sm:text-sm bg-black/30 px-3.5 py-1.5 rounded-xl font-extrabold">CREAR →</span>
                         </button>
+                        <button id="btnOpenCompetitive" type="button" class="btn-shimmer relative overflow-hidden w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-600 text-zinc-950 font-bold shadow-xl border border-yellow-200/60 flex items-center justify-between transition-all hover:-translate-y-0.5 active:scale-[0.99]">
+                          <span class="flex items-center gap-4"><span class="w-12 h-12 rounded-2xl bg-black/15 flex items-center justify-center text-2xl">🏆</span><span class="text-left"><span class="block text-base sm:text-lg font-extrabold">COMPETITIVO</span><span class="block text-xs font-semibold text-amber-950/80 mt-0.5">Rangos, clasificatorias y leaderboard</span></span></span><span class="text-xs bg-black/15 px-3.5 py-1.5 rounded-xl font-extrabold">ENTRAR →</span>
+                        </button>
                     </div>
 
                     <!-- Unirse con código -->
@@ -1168,6 +1185,17 @@
     </div>
 
 
+<section id="competitiveMenuScreen" class="hidden fixed inset-0 z-[80] overflow-y-auto bg-[radial-gradient(ellipse_at_top,#3b2b08_0%,#10100b_48%,#030504_100%)] p-3 sm:p-6"><div class="max-w-5xl mx-auto">
+<header class="flex items-center justify-between gap-3 mb-5"><div><div class="text-[10px] tracking-[.3em] text-amber-300 font-black">UNO! CLUB · CLASIFICATORIAS</div><h2 class="font-uno text-3xl sm:text-4xl text-white">🏆 Modo competitivo</h2><p class="text-xs text-zinc-300 mt-1">Jugá por tu rango contra personas reales. Las IA solo completan la mesa si no aparecen rivales.</p></div><button id="btnCompetitiveBack" class="rounded-xl border border-white/15 bg-zinc-900 px-4 py-2 text-xs font-bold text-white">← Menú principal</button></header>
+<div class="grid lg:grid-cols-[1.1fr_.9fr] gap-4"><section class="rounded-3xl border border-amber-300/30 bg-gradient-to-br from-zinc-950 via-amber-950/40 to-black p-4 sm:p-6 shadow-2xl">
+<div class="flex items-center justify-between gap-3"><div><div class="text-[10px] tracking-[.24em] text-amber-300 font-black">TU DIVISIÓN ACTUAL</div><h3 id="competitiveMenuRankName" class="font-uno text-3xl text-amber-100 mt-1">Bronce I</h3><p id="competitiveMenuRankRating" class="text-xs text-zinc-300 mt-1">1000 puntos de rating</p></div><div id="competitiveMenuRankEmblem"></div></div>
+<div class="mt-4 h-3 overflow-hidden rounded-full bg-black/60 border border-white/10"><div id="competitiveMenuRankProgress" class="h-full rounded-full bg-gradient-to-r from-amber-600 via-yellow-300 to-white transition-all duration-500" style="width:0%"></div></div><div class="mt-2 flex items-center justify-between gap-2 text-[10px] text-zinc-400"><span id="competitiveMenuRankNext">Siguiente rango</span><span id="competitiveMenuRankDelta">Ganá partidas para subir</span></div><div id="competitiveMenuRankLadder" class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
+<div class="mt-5 rounded-2xl border border-amber-300/20 bg-black/30 p-4"><div class="text-[10px] tracking-[.2em] text-amber-300 font-black">EMPAREJAMIENTO AUTOMÁTICO</div><h3 class="font-uno text-2xl text-white">Encontrá tu próxima mesa</h3><p class="text-xs text-zinc-400 mt-1">Busca rivales de rating parecido durante 15 segundos como máximo.</p><button id="btnSearchCompetitiveMatch" class="btn-shimmer relative overflow-hidden w-full mt-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 px-5 py-4 text-base font-black text-zinc-950 shadow-xl">🔍 BUSCAR PARTIDA</button><p class="text-[10px] text-zinc-500 mt-2 text-center">Si no encuentra rivales, completa automáticamente la mesa con IA adaptadas a tu rango.</p></div>
+</section><aside class="space-y-4"><section class="rounded-3xl border border-sky-300/20 bg-gradient-to-br from-sky-950/40 to-zinc-950 p-4"><div class="text-[10px] tracking-[.2em] text-sky-300 font-black">🪪 TU IDENTIFICADOR</div><code id="competitiveMenuPlayerId" class="block break-all rounded-xl bg-black/40 border border-white/10 p-3 mt-3 text-xs text-sky-100">Conectando...</code><button id="btnCopyCompetitiveId" class="mt-2 rounded-lg border border-sky-300/25 bg-sky-950/50 px-3 py-2 text-[10px] font-bold text-sky-100">📋 Copiar mi ID</button></section>
+<section class="rounded-3xl border border-white/10 bg-zinc-950/80 p-4"><h3 class="font-uno text-xl text-white">Leaderboard global</h3><p class="text-xs text-zinc-400 mt-1">Compará rating, rango, victorias y partidas.</p><button id="btnCompetitiveLeaderboard" class="mt-3 w-full rounded-xl border border-amber-300/25 bg-amber-950/40 px-4 py-3 text-xs font-black text-amber-100">🏆 VER LEADERBOARD</button></section>
+<section class="rounded-3xl border border-violet-300/20 bg-violet-950/20 p-4"><div class="text-[10px] tracking-[.2em] text-violet-200 font-black">🤖 IA ADAPTATIVA</div><p class="text-xs text-zinc-300 mt-2">Bronce y Plata: decisiones simples. Oro y Platino: mejor elección de colores y acciones. Diamante, Maestro y Leyenda: IA estratégica que prioriza bloquear a quien está por ganar.</p></section></aside></div></div></section>
+<div id="competitiveSearchOverlay" class="hidden fixed inset-0 z-[190] bg-black/90 backdrop-blur-md p-4 flex items-center justify-center"><div class="w-full max-w-md rounded-3xl border border-amber-300/30 bg-gradient-to-br from-zinc-950 via-amber-950/40 to-black p-6 text-center shadow-2xl"><div class="text-5xl animate-pulse">🃏</div><div class="mt-3 text-[10px] tracking-[.25em] font-black text-amber-300">MATCHMAKING COMPETITIVO</div><h3 id="competitiveSearchTitle" class="font-uno text-2xl text-white mt-1">Buscando jugadores...</h3><p id="competitiveSearchStatus" class="text-xs text-zinc-300 mt-2">Buscando rivales de tu nivel.</p><div class="mt-5 text-5xl font-black font-uno text-amber-200 tabular-nums"><span id="competitiveSearchCountdown">15</span><span class="text-xl text-zinc-500">s</span></div><div class="h-2 rounded-full bg-zinc-800 overflow-hidden mt-4"><div id="competitiveSearchProgress" class="h-full bg-gradient-to-r from-amber-500 via-yellow-300 to-emerald-400 transition-all duration-500" style="width:0%"></div></div><div id="competitiveSearchFound" class="text-[11px] text-emerald-200 mt-4">Esperando jugadores disponibles...</div><button id="btnCancelCompetitiveSearch" class="mt-5 rounded-xl border border-white/15 bg-zinc-800 px-5 py-2.5 text-xs font-bold text-white">Cancelar búsqueda</button></div></div>
+<div id="playerLookupModal" class="hidden fixed inset-0 z-[240] bg-black/90 backdrop-blur-md p-3 flex items-center justify-center"><div class="w-full max-w-xl max-h-[90dvh] overflow-y-auto rounded-3xl border border-sky-300/25 bg-gradient-to-br from-zinc-950 via-sky-950/30 to-black p-4 sm:p-6 shadow-2xl"><div class="flex items-center justify-between gap-3"><div><div class="text-[10px] tracking-[.2em] text-sky-300 font-black">DIRECTORIO UNO! CLUB</div><h3 class="font-uno text-2xl text-white">Buscar jugador por ID</h3><p class="text-xs text-zinc-400 mt-1">Pegá el ID exacto del jugador para ver su perfil.</p></div><button id="btnClosePlayerLookup" class="rounded-xl bg-zinc-800 px-3 py-2">✕</button></div><div class="flex gap-2 mt-4"><input id="playerLookupInput" type="text" autocomplete="off" placeholder="ID del jugador..." class="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/50 px-3 py-3 font-mono text-xs text-white"><button id="btnSearchPlayerId" class="rounded-xl bg-sky-500 px-4 py-3 text-xs font-black text-zinc-950">BUSCAR</button></div><div id="playerLookupResult" class="mt-4 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-300">El perfil encontrado aparecerá acá.</div></div></div>
     <!-- ========================================================= -->
     <!-- ARCADE: MODOS INDEPENDIENTES UNO! POK / BATALLA / ROBADO -->
     <!-- ========================================================= -->
@@ -1514,7 +1542,7 @@
                     <span id="localPlayerAvatar" class="text-xl">😎</span>
                     <div>
                         <div class="flex items-center gap-1.5">
-                            <span id="localPlayerName" class="text-xs sm:text-sm font-extrabold text-white">Tú</span>
+                            <span id="localPlayerName" class="text-xs sm:text-sm font-extrabold text-white">Tú</span><span id="localPlayerRankBadge" class="inline-flex"></span>
                             <span id="localTeamPill" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
                         </div>
                         <span id="localCardCountText" class="text-[11px] text-zinc-400">7 cartas</span>
@@ -1676,8 +1704,8 @@
     <!-- ========================================================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, runTransaction, serverTimestamp, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
         // =========================================================
@@ -1864,6 +1892,73 @@
         let firebaseReady = false;
         let authInitPromise = null;
         let unsubscribePublicRooms = null;
+        let unsubscribeLeaderboard = null;
+        const competitiveProfiles = new Map();
+        let competitiveQueueUnsub=null,competitiveSearchInterval=null,competitiveSearchStartedAt=0,competitiveAutoStartLock=false;
+
+
+        function updatePlayerIdDisplay(){
+          const id=String(currentUserId||'No disponible');
+          const a=document.getElementById('playerIdDisplay'),b=document.getElementById('competitiveMenuPlayerId');
+          if(a)a.textContent='ID: '+id;if(b)b.textContent=id;
+        }
+        function openCompetitiveMenu(){document.getElementById('competitiveMenuScreen')?.classList.remove('hidden');renderCompetitiveRank();updatePlayerIdDisplay();}
+        function closeCompetitiveSearch(){
+          if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}
+          if(competitiveQueueUnsub){competitiveQueueUnsub();competitiveQueueUnsub=null;}
+          document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');
+        }
+        function chooseCompetitiveBotCard(bot,room,playable){
+          const tier=Math.max(0,Math.min(9,Number(bot.competitiveAiTier??room.competitiveAiTier??0)));
+          if(tier<=2)return playable[0];
+          const counts={red:0,yellow:0,green:0,blue:0};bot.hand.forEach(c=>{if(counts[c.color]!==undefined)counts[c.color]++;});
+          const next=room.seats[(bot.seatIndex+room.direction+room.seats.length)%room.seats.length],danger=!!next&&next.hand&&next.hand.length<=2;
+          const score=card=>{let v=counts[card.color]!==undefined?counts[card.color]*2:0;const action=['skip','reverse','draw2','wild_draw4'].includes(card.value);if(action)v+=tier>=6?24:12;if(danger&&action)v+=tier*5;if(card.value==='wild_draw4')v+=tier>=7?8:-18;if(card.value==='wild')v+=tier>=7?-10:2;if(card.value==='draw2'&&danger)v+=18;if(card.value==='skip'&&danger)v+=14;return v;};
+          return playable.slice().sort((a,b)=>score(b)-score(a))[0]||playable[0];
+        }
+        async function fillCompetitiveBotsAndStart(){
+          const room=state.room;if(!room||!room.competitiveMode||room.status!=='lobby'||room.hostId!==currentUserId)return;
+          const rank=getCompetitiveRank(),tier=UNO_COMPETITIVE_RANKS.indexOf(rank);room.competitiveAiTier=tier;room.competitiveRankName=rank.name;
+          room.seats.forEach((seat,index)=>{if(!seat.id){const p=BOT_PROFILES[index%BOT_PROFILES.length];room.seats[index]={...seat,id:'comp_ai_'+currentUserId+'_'+index+'_'+Date.now(),name:p.name+' · IA '+rank.name,avatar:p.avatar,isBot:true,competitiveAI:true,competitiveAiTier:tier,competitiveDifficulty:rank.name,team:null,hand:[],saidUno:false,finishRank:null};}});
+          closeCompetitiveSearch();await dealAndStartGame();
+        }
+        async function startCompetitiveSearch(){
+          if(state.room){showToast('Primero salí de la sala actual para buscar una clasificatoria.','warn');return;}
+          closeCompetitiveSearch();const ready=await initFirebase();if(!ready||!db||!currentUser){showToast('No se pudo conectar al matchmaking online.','danger');return;}
+          competitiveAutoStartLock=false;competitiveSearchStartedAt=Date.now();
+          const overlay=document.getElementById('competitiveSearchOverlay');overlay?.classList.remove('hidden');
+          const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+          set('competitiveSearchTitle','Buscando jugadores...');set('competitiveSearchStatus','Buscando rivales con rating parecido.');set('competitiveSearchCountdown','15');set('competitiveSearchFound','Buscando jugadores reales antes de completar con IA...');
+          const bar=document.getElementById('competitiveSearchProgress');if(bar)bar.style.width='0%';
+          try{
+            await createNewRoom(true,true);if(!state.room||!state.room.competitiveMode)throw new Error('No se pudo crear la cola.');
+            const roomsRef=collection(db,'artifacts',appId,'public','data','uno_rooms');
+            competitiveQueueUnsub=onSnapshot(roomsRef,snapshot=>{
+              const own=state.room;if(!own||!own.competitiveMode||own.status!=='lobby')return;
+              const humans=(own.seats||[]).filter(x=>x&&x.id&&!x.isBot);
+              if(humans.length>=2){set('competitiveSearchTitle','¡Rival encontrado!');set('competitiveSearchStatus','La partida está comenzando.');set('competitiveSearchFound',humans.length+' jugadores reales encontrados.');closeCompetitiveSearch();return;}
+              const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),band=competitiveSearchBand(elapsed),candidates=[];
+              snapshot.forEach(d=>{const r=d.data();if(d.id===own.code||!r||!r.competitiveMode||r.status!=='lobby'||!r.hostId||r.hostId>=currentUserId)return;if(Date.now()-Number(r.updatedAt||Date.now())>30000)return;const seats=r.seats||[],occupied=seats.filter(x=>x&&x.id).length;if(occupied>0&&occupied<(r.maxSeats||4)&&Math.abs(Number(r.competitiveRating||1000)-getCompetitiveRating())<=band.radius)candidates.push({...r,code:d.id});});
+              if(candidates.length&&humans.length===1){
+                candidates.sort((a,b)=>String(a.hostId).localeCompare(String(b.hostId)));const target=candidates[0];closeCompetitiveSearch();overlay?.classList.remove('hidden');set('competitiveSearchTitle','¡Rival encontrado!');set('competitiveSearchStatus','Conectando con '+(target.seats.find(x=>x&&x.id)?.name||'otro jugador')+'...');
+                leaveRoomToHome(false).then(()=>joinExistingRoom(target.code)).then(()=>{document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');}).catch(e=>{console.warn(e);showToast('No se pudo completar el emparejamiento.','warn');});
+              }
+            },err=>{console.warn('Cola competitiva:',err);set('competitiveSearchStatus','Problema de conexión. Seguimos intentando...');});
+            competitiveSearchInterval=setInterval(()=>{
+              const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),left=Math.max(0,15-elapsed);set('competitiveSearchCountdown',String(left));if(bar)bar.style.width=Math.min(100,elapsed/15*100)+'%';
+              if(left===0){if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId){const humans=(state.room.seats||[]).filter(x=>x&&x.id&&!x.isBot);if(humans.length<2)fillCompetitiveBotsAndStart().catch(e=>{console.error(e);showToast('No se pudo iniciar la partida competitiva.','danger');});}}
+            },250);
+          }catch(e){console.error('Matchmaking competitivo:',e);closeCompetitiveSearch();showToast('No se pudo iniciar la búsqueda. Revisá conexión y reglas de Firestore.','danger');}
+        }
+        async function searchPlayerById(){
+          const input=document.getElementById('playerLookupInput'),result=document.getElementById('playerLookupResult'),uid=String(input?.value||'').trim();if(!result)return;
+          if(!uid){result.textContent='Pegá un ID válido para buscar.';return;}result.innerHTML='<div class="text-sky-200 text-xs">Buscando perfil...</div>';
+          const ready=await initFirebase();if(!ready||!db){result.textContent='No se pudo conectar con Firebase.';return;}
+          try{const snap=await getDoc(doc(db,'artifacts',appId,'public','data','uno_leaderboard',uid));if(!snap.exists()){result.innerHTML='<b class="text-rose-200">No encontramos ese jugador.</b><p class="text-xs text-zinc-400 mt-1">Revisá que el ID esté completo.</p>';return;}
+            const p={...snap.data(),uid:snap.id},rating=Math.max(0,Number(p.rating)||0),rank=getCompetitiveRank(rating),matches=Number(p.matches||0),wins=Number(p.wins||0),rate=matches?Math.round(wins/matches*100):0;
+            result.innerHTML='<div class="flex items-center gap-3">'+renderCustomAvatarSVG(p.avatar||{},'w-16 h-16')+'<div class="min-w-0"><div class="text-[10px] text-sky-300 font-black">PERFIL ENCONTRADO</div><b class="block text-lg text-white">'+escapeLeaderboardText(p.name||'Jugador')+'</b><span class="text-[10px] text-zinc-400">ID: '+escapeLeaderboardText(p.uid)+'</span></div></div><div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"><div class="rounded-xl bg-black/35 p-3"><span class="block text-[9px] text-zinc-500">RANGO</span><div class="flex items-center gap-1 mt-1">'+renderRankEmblem(rank,25)+'<b class="text-xs text-amber-100">'+rank.name+'</b></div></div><div class="rounded-xl bg-black/35 p-3"><span class="block text-[9px] text-zinc-500">RATING</span><b class="text-lg text-amber-200">'+rating.toLocaleString('es-AR')+'</b></div><div class="rounded-xl bg-black/35 p-3"><span class="block text-[9px] text-zinc-500">PARTIDAS</span><b class="text-lg text-white">'+matches+'</b></div><div class="rounded-xl bg-black/35 p-3"><span class="block text-[9px] text-zinc-500">VICTORIAS</span><b class="text-lg text-emerald-300">'+wins+'</b><span class="block text-[9px] text-zinc-500">'+rate+'% de victorias</span></div></div>';
+          }catch(e){console.error(e);result.textContent='No se pudo consultar el perfil. Revisá las reglas de lectura del leaderboard.';}
+        }
 
         function updateOnlineBadgeUI(status, detail = '') {
             const badge = document.getElementById('onlineStatusBadge');
@@ -1916,9 +2011,12 @@
             currentUser = auth.currentUser;
             currentUserId = currentUser.uid;
             firebaseReady = true;
+            updatePlayerIdDisplay();
 
             updateOnlineBadgeUI('connected', currentUserId);
             startPublicRoomsListener();
+            startCompetitiveLeaderboardListener();
+            syncCompetitiveProfile().catch(err => console.warn("No se pudo sincronizar el perfil competitivo:", err));
 
             return true;
 
@@ -1932,6 +2030,59 @@
 
     return authInitPromise;
 }
+        function renderAccountLinkStatus() {
+            const status = document.getElementById('accountLinkStatus');
+            const button = document.getElementById('btnLinkGoogleAccount');
+            if (!status || !button) return;
+            const linked = !!currentUser?.providerData?.some(p => p.providerId === 'google.com');
+            if (linked) {
+                status.textContent = '✅ Cuenta Google vinculada. Tu UID y tu progreso se conservan.';
+                button.textContent = 'Google vinculado';
+                button.disabled = true;
+                button.className = 'shrink-0 rounded-xl border border-emerald-300/30 bg-emerald-500/15 px-4 py-2.5 text-xs font-extrabold text-emerald-200 cursor-default';
+            } else {
+                status.textContent = currentUser?.isAnonymous
+                    ? 'Tu perfil actual es anónimo. Vinculá Google para recuperarlo en otros dispositivos.'
+                    : 'Vinculá Google para proteger tu progreso competitivo.';
+                button.textContent = 'Vincular con Google';
+                button.disabled = false;
+            }
+        }
+
+        async function linkGoogleAccount() {
+            const ready = await initFirebase();
+            if (!ready || !auth?.currentUser) {
+                showToast('No se pudo conectar con Firebase. Intentá nuevamente.', 'danger');
+                return;
+            }
+            if (auth.currentUser.providerData.some(p => p.providerId === 'google.com')) {
+                currentUser = auth.currentUser;
+                renderAccountLinkStatus();
+                showToast('Tu cuenta Google ya está vinculada.', 'success');
+                return;
+            }
+            try {
+                const provider = new GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' });
+                const result = await linkWithPopup(auth.currentUser, provider);
+                currentUser = result.user;
+                currentUserId = result.user.uid;
+                renderAccountLinkStatus();
+                showToast('✅ Google vinculado. Tu perfil conserva el mismo identificador.', 'success');
+            } catch (err) {
+                console.error('Error vinculando Google:', err);
+                if (err.code === 'auth/credential-already-in-use' || err.code === 'auth/email-already-in-use') {
+                    showToast('Ese Google ya pertenece a otra cuenta. No se fusionaron perfiles para evitar perder progreso.', 'warn');
+                } else if (err.code === 'auth/popup-closed-by-user') {
+                    showToast('Cerraste la ventana de Google antes de terminar.', 'warn');
+                } else if (err.code === 'auth/operation-not-allowed') {
+                    showToast('Primero habilitá Google en Firebase Authentication.', 'warn');
+                } else {
+                    showToast('No se pudo vincular Google. Revisá los dominios autorizados de Firebase.', 'danger');
+                }
+            }
+        }
+
         function startPublicRoomsListener() {
             if (unsubscribePublicRooms || !db || !currentUser) return;
             const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'uno_rooms');
@@ -2988,6 +3139,11 @@
                 renderChatAndReactionsFromRoom(data);
                 renderCurrentView();
 
+                if(data.competitiveMode&&data.status==='lobby'&&data.hostId===currentUserId&&(data.seats||[]).filter(x=>x&&x.id&&!x.isBot).length>=2&&!competitiveAutoStartLock){
+                  competitiveAutoStartLock=true;
+                  setTimeout(()=>{if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId)dealAndStartGame().catch(e=>console.error('Inicio competitivo:',e));},350);
+                }
+
                 if (prevStatus === 'lobby' && data.status === 'playing') {
                     vfx.playShuffleSequence();
                 }
@@ -2999,7 +3155,7 @@
             });
         }
 
-        async function createNewRoom(isOnlineMode = true) {
+        async function createNewRoom(isOnlineMode = true, competitiveMode = false) {
             sfx.init();
             let onlineAvailable = false;
             if (isOnlineMode) {
@@ -3032,7 +3188,7 @@
                 code,
                 matchId:'match_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
                 hostId: currentUserId,
-                isPublic: true,
+                isPublic: !competitiveMode,
                 turnDuration: 20,
                 turnStartedAt: Date.now(),
                 status: 'lobby',
@@ -3043,7 +3199,10 @@
                 straightRule: false,
                 straightColorMode: 'same',
                 gameMode: 'classic',
-                competitiveMode: false,
+                competitiveMode: !!competitiveMode,
+                competitiveRating: competitiveMode ? getCompetitiveRating() : null,
+                competitiveRankName: competitiveMode ? getCompetitiveRank().name : null,
+                competitiveAiTier: competitiveMode ? UNO_COMPETITIVE_RANKS.indexOf(getCompetitiveRank()) : null,
                 pendingStack: null,
                 comboChain: null,
                 seats,
@@ -3855,7 +4014,7 @@
 
                 const playable = bot.hand.filter(c => canPlayCard(c, r, null));
                 if (playable.length > 0) {
-                    const chosen = playable[0];
+                    const chosen = r.competitiveMode ? chooseCompetitiveBotCard(bot,r,playable) : playable[0];
                     // Elegir el color más abundante en su mano si es comodín
                     const counts = { red: 0, yellow: 0, green: 0, blue: 0 };
                     bot.hand.forEach(c => { if (counts[c.color] !== undefined) counts[c.color]++; });
@@ -4296,7 +4455,7 @@
                             ${renderCustomAvatarSVG(opp.avatar, 'w-9 h-9 sm:w-10 sm:h-10')}
                             <div class="text-left">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${opp.name}</span>${room.gameMode === 'survival' ? `<span class="text-[9px] font-black text-rose-300">${'❤️'.repeat(Math.max(0, Math.min(3, Number(opp.lives) || 0)))}</span>` : ''}
+                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${escapeLeaderboardText(opp.name)}</span>${renderPlayerRankBadge(opp.id)}${room.gameMode === 'survival' ? `<span class="text-[9px] font-black text-rose-300">${'❤️'.repeat(Math.max(0, Math.min(3, Number(opp.lives) || 0)))}</span>` : ''}
                                     ${opp.finishRank ? `<span class="text-[10px] font-black text-amber-300">#${opp.finishRank}</span>` : ''}
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
@@ -4317,6 +4476,7 @@
             if (!mySeat) return;
             document.getElementById('localPlayerAvatar').innerHTML = renderCustomAvatarSVG(mySeat.avatar, 'w-9 h-9');
             document.getElementById('localPlayerName').textContent = mySeat.name;
+            const localRankBadge=document.getElementById('localPlayerRankBadge');if(localRankBadge)localRankBadge.innerHTML=renderPlayerRankBadge(mySeat.id);
             document.getElementById('localCardCountText').textContent = room.gameMode === 'survival'
                 ? `${mySeat.finishRank ? '🏅 Eliminado' : mySeat.hand.length + (mySeat.hand.length === 1 ? ' carta' : ' cartas')} • ${'❤️'.repeat(Math.max(0, Math.min(3, Number(mySeat.lives) || 0)))}`
                 : (mySeat.finishRank ? `🏅 Puesto #${mySeat.finishRank}` : `${mySeat.hand.length} ${mySeat.hand.length === 1 ? 'carta' : 'cartas'}`);
@@ -4420,7 +4580,7 @@
             });
         }
 
-        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const delta=entry.rank===1?30:entry.rank===2?12:entry.rank===3?2:-12;const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')';}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI();renderCompetitiveRank();renderClubProgressHub()}
+        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const delta=entry.rank===1?30:entry.rank===2?12:entry.rank===3?2:-12;const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')';}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))}
         function renderVictoryModal() {
             const room = state.room;
             const podium = room.podium || [];
@@ -4517,20 +4677,57 @@
         ];
 
         const UNO_COMPETITIVE_RANKS=[
-          {name:'Bronce I',icon:'🥉',min:0,max:799},{name:'Bronce II',icon:'🥉',min:800,max:899},
-          {name:'Plata I',icon:'🥈',min:900,max:999},{name:'Plata II',icon:'🥈',min:1000,max:1099},
-          {name:'Oro I',icon:'🥇',min:1100,max:1249},{name:'Oro II',icon:'🥇',min:1250,max:1399},
-          {name:'Platino',icon:'💠',min:1400,max:1599},{name:'Diamante',icon:'💎',min:1600,max:1849},
-          {name:'Maestro',icon:'⚔️',min:1850,max:2199},{name:'Leyenda',icon:'👑',min:2200,max:999999}
+          {name:'Bronce I',min:0,max:799,glyph:'I',colors:['#9a542c','#f5c28b','#4b2416']},{name:'Bronce II',min:800,max:899,glyph:'II',colors:['#b66a35','#ffd09a','#5b2b18']},
+          {name:'Plata I',min:900,max:999,glyph:'I',colors:['#64748b','#f8fafc','#334155']},{name:'Plata II',min:1000,max:1099,glyph:'II',colors:['#94a3b8','#ffffff','#475569']},
+          {name:'Oro I',min:1100,max:1249,glyph:'I',colors:['#a16207','#fde68a','#713f12']},{name:'Oro II',min:1250,max:1399,glyph:'II',colors:['#ca8a04','#fff1a8','#854d0e']},
+          {name:'Platino',min:1400,max:1599,glyph:'P',colors:['#0f766e','#99f6e4','#134e4a']},{name:'Diamante',min:1600,max:1849,glyph:'D',colors:['#0284c7','#bae6fd','#1e3a8a']},
+          {name:'Maestro',min:1850,max:2199,glyph:'M',colors:['#7c3aed','#ddd6fe','#3b0764']},{name:'Leyenda',min:2200,max:999999,glyph:'★',colors:['#be123c','#fde68a','#701a75']}
         ];
         function getCompetitiveRating(){return Math.max(0,Number(localStorage.getItem('uno_competitive_rating')||1000))}
         function getCompetitiveRank(rating=getCompetitiveRating()){return UNO_COMPETITIVE_RANKS.slice().reverse().find(r=>rating>=r.min)||UNO_COMPETITIVE_RANKS[0]}
+        function renderRankEmblem(rank,size=30){
+          const r=typeof rank==='number'?getCompetitiveRank(rank):(rank||UNO_COMPETITIVE_RANKS[0]),i=Math.max(0,UNO_COMPETITIVE_RANKS.indexOf(r)),c=r.colors||UNO_COMPETITIVE_RANKS[0].colors,s=Math.max(16,Math.min(72,Number(size)||30));
+          const shapes=['M32 3 55 13 57 34 48 51 32 61 16 51 7 34 9 13Z','M32 3 54 11 61 28 53 47 32 61 11 47 3 28 10 11Z','M32 3 57 16 57 42 32 61 7 42 7 16Z','M32 2 49 8 61 25 55 45 32 62 9 45 3 25 15 8Z','M32 3 58 13 54 39 32 61 10 39 6 13Z','M32 2 43 10 57 8 55 23 63 32 55 42 57 56 42 54 32 63 22 54 7 56 9 42 1 32 9 23 7 8 21 10Z','M32 2 60 18 52 48 32 62 12 48 4 18Z','M32 1 39 13 53 5 52 21 64 28 53 37 59 53 41 51 32 64 23 51 5 53 11 37 0 28 12 21 11 5 25 13Z','M32 3 42 10 54 6 54 20 62 29 53 39 54 54 40 51 32 62 24 51 10 54 11 39 2 29 10 20 10 6 22 10Z','M32 1 39 11 52 3 53 18 65 25 55 36 62 51 45 51 32 64 19 51 2 51 9 36 -1 25 11 18 12 3 25 11Z'];
+          const marks=['<path d="M20 35 26 41 32 28 38 41 44 35" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>','<path d="M16 32 24 24 32 31 40 24 48 32M18 40 27 35 32 42 37 35 46 40" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>','<path d="M32 18 35 27 45 27 37 33 40 43 32 37 24 43 27 33 19 27 29 27Z" fill="#fff"/>','<path d="M16 31Q23 19 32 29Q41 19 48 31M18 39Q25 31 32 39Q39 31 46 39" fill="none" stroke="#fff" stroke-width="2.6"/>','<path d="M19 37 22 24 32 32 42 24 45 37 40 43 24 43Z" fill="#fff"/>','<path d="M17 34 22 19 32 28 42 19 47 34 42 43 22 43Z" fill="#fff"/><path d="M22 47H42" stroke="#fff" stroke-width="2.5"/>','<path d="M32 17 44 29 32 46 20 29Z" fill="#fff"/><path d="M32 22V41M24 29H40" stroke="#0f766e" stroke-width="2"/>','<path d="M32 15 37 27 50 32 37 37 32 50 27 37 14 32 27 27Z" fill="#fff"/><path d="M32 22 42 32 32 42 22 32Z" fill="#0284c7"/>','<path d="M17 43Q7 27 18 17Q23 13 27 19M47 43Q57 27 46 17Q41 13 37 19" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M22 43 32 49 42 43" fill="none" stroke="#fff" stroke-width="2.5"/>','<path d="M14 36 19 20 27 29 32 13 37 29 45 20 50 36 44 46 20 46Z" fill="#fff"/><circle cx="32" cy="35" r="5" fill="#be123c"/>'];
+          return '<svg class="shrink-0 drop-shadow" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="unoRankA'+i+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".5" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs><path d="'+shapes[i]+'" fill="url(#unoRankA'+i+')" stroke="'+c[1]+'" stroke-width="2.4"/>'+marks[i]+'<text x="32" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".45" stroke-width=".8" paint-order="stroke">'+r.glyph+'</text></svg>';
+        }
+        function escapeLeaderboardText(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+        function renderPlayerRankBadge(uid){
+          const id=String(uid||''),p=competitiveProfiles.get(id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??1000),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank);
+          if(idx<7)return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="hidden" title="Rango '+rank.name+'"></span>';
+          return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/55 px-1.5 py-0.5 text-[9px] font-black text-amber-100 whitespace-nowrap" title="'+rank.name+' · '+rating+' rating">'+renderRankEmblem(rank,18)+'<span>'+rank.name+'</span></span>';
+        }
+        function refreshRankBadgeElements(){document.querySelectorAll('[data-rank-player-id]').forEach(el=>{const uid=el.getAttribute('data-rank-player-id');el.outerHTML=renderPlayerRankBadge(uid)})}
         function competitiveSearchBand(waitSeconds=0){const radius=Math.min(500,150+Math.floor(Math.max(0,waitSeconds)/12)*50),rating=getCompetitiveRating();return {min:Math.max(0,rating-radius),max:rating+radius,radius}}
         function renderCompetitiveRank(){
           const rating=getCompetitiveRating(),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank),next=UNO_COMPETITIVE_RANKS[idx+1],progress=next?Math.max(0,Math.min(100,(rating-rank.min)/(next.min-rank.min)*100)):100,band=competitiveSearchBand();
           const name=document.getElementById('competitiveRankName'),score=document.getElementById('competitiveRankRating'),bar=document.getElementById('competitiveRankProgress'),nextEl=document.getElementById('competitiveRankNext'),delta=document.getElementById('competitiveRankDelta'),ladder=document.getElementById('competitiveRankLadder'),match=document.getElementById('competitiveMatchBand');
-          if(name)name.textContent=rank.icon+' '+rank.name;if(score)score.textContent=rating.toLocaleString('es-AR')+' puntos de rating';if(bar)bar.style.width=progress+'%';if(nextEl)nextEl.textContent=next?'Próximo: '+next.name+' · '+next.min+' pts':'¡Rango máximo alcanzado!';if(delta)delta.textContent=next?(next.min-rating)+' pts para ascender':'Nivel Leyenda';if(match)match.textContent='±'+band.radius+' rating · '+Math.floor(band.min)+'–'+Math.floor(band.max);
-          if(ladder)ladder.innerHTML=UNO_COMPETITIVE_RANKS.map((r,i)=>'<div class="rounded-lg border p-2 text-center '+(i<=idx?'border-amber-300/40 bg-amber-950/40 text-amber-200':'border-white/10 bg-black/30 text-zinc-500')+'"><div class="text-lg">'+r.icon+'</div><b class="block text-[10px]">'+r.name+'</b><span class="text-[9px]">'+r.min+'+</span></div>').join('');
+          if(name)name.innerHTML='<span class="inline-flex items-center gap-2">'+renderRankEmblem(rank,34)+'<span>'+rank.name+'</span></span>';if(score)score.textContent=rating.toLocaleString('es-AR')+' puntos de rating';if(bar)bar.style.width=progress+'%';if(nextEl)nextEl.textContent=next?'Próximo: '+next.name+' · '+next.min+' pts':'¡Rango máximo alcanzado!';if(delta)delta.textContent=next?(next.min-rating)+' pts para ascender':'Nivel Leyenda';if(match)match.textContent='±'+band.radius+' rating · '+Math.floor(band.min)+'–'+Math.floor(band.max);
+          if(ladder)ladder.innerHTML=UNO_COMPETITIVE_RANKS.map((r,i)=>'<div class="rounded-xl border p-2 text-center '+(i<=idx?'border-amber-300/40 bg-amber-950/40 text-amber-200':'border-white/10 bg-black/30 text-zinc-500')+'"><div class="flex justify-center">'+renderRankEmblem(r,34)+'</div><b class="block text-[10px] mt-1">'+r.name+'</b><span class="text-[9px]">'+r.min.toLocaleString('es-AR')+'+ pts</span></div>').join('');
+          const mn=document.getElementById('competitiveMenuRankName'),mr=document.getElementById('competitiveMenuRankRating'),me=document.getElementById('competitiveMenuRankEmblem'),mp=document.getElementById('competitiveMenuRankProgress'),mnext=document.getElementById('competitiveMenuRankNext'),md=document.getElementById('competitiveMenuRankDelta'),ml=document.getElementById('competitiveMenuRankLadder');
+          if(mn)mn.textContent=rank.name;if(mr)mr.textContent=rating.toLocaleString('es-AR')+' puntos de rating';if(me)me.innerHTML=renderRankEmblem(rank,76);if(mp)mp.style.width=progress+'%';if(mnext)mnext.textContent=next?'Próximo: '+next.name:'¡Nivel máximo alcanzado!';if(md)md.textContent=next?(next.min-rating)+' pts para ascender':'Nivel Leyenda';
+          if(ml)ml.innerHTML=UNO_COMPETITIVE_RANKS.map((r,i)=>'<div class="rounded-xl border p-2 text-center '+(i<=idx?'border-amber-300/40 bg-amber-950/40 text-amber-200':'border-white/10 bg-black/30 text-zinc-500')+'"><div class="flex justify-center">'+renderRankEmblem(r,34)+'</div><b class="block text-[10px] mt-1">'+r.name+'</b><span class="text-[9px]">'+r.min.toLocaleString('es-AR')+'+ pts</span></div>').join('');
+          updatePlayerIdDisplay();refreshRankBadgeElements();
+        }
+        async function syncCompetitiveProfile(){
+          if(!firebaseReady||!db||!currentUser)return;
+          const uid=currentUser.uid,rating=getCompetitiveRating(),rank=getCompetitiveRank(rating),stats=getClubStats();
+          const profile={uid,name:String(state.playerName||currentUser.displayName||'Jugador').slice(0,24),rating,rankName:rank.name,rankTier:UNO_COMPETITIVE_RANKS.indexOf(rank),matches:Number(stats.matches||0),wins:Number(stats.wins||0),winRate:stats.matches?Math.round(stats.wins/stats.matches*100):0,avatar:state.playerAvatar||{},updatedAt:Date.now()};
+          await setDoc(doc(db,'artifacts',appId,'public','data','uno_leaderboard',uid),profile,{merge:true});competitiveProfiles.set(uid,profile);renderLeaderboardRows();refreshRankBadgeElements();
+        }
+        function renderLeaderboardRows(){
+          const body=document.getElementById('leaderboardRows');if(!body)return;const rows=Array.from(competitiveProfiles.values()).sort((a,b)=>(Number(b.rating)||0)-(Number(a.rating)||0)).slice();
+          if(!rows.length){body.innerHTML='<tr><td colspan="6" class="p-8 text-center text-zinc-500">Todavía no hay perfiles publicados. ¡Sé el primero!</td></tr>';return}
+          body.innerHTML=rows.map((p,i)=>{const rating=Math.max(0,Number(p.rating)||0),rank=getCompetitiveRank(rating),uid=escapeLeaderboardText(p.uid),name=escapeLeaderboardText(p.name||'Jugador');return '<tr class="'+(p.uid===currentUserId?'bg-amber-950/30':'bg-zinc-950/40')+' border-t border-white/5"><td class="p-3 font-black text-amber-200">'+(i+1)+'</td><td class="p-3"><b class="block text-white">'+name+'</b><code class="block mt-1 text-[9px] text-zinc-500 break-all">'+uid+'</code></td><td class="p-3"><span class="inline-flex items-center gap-1.5">'+renderRankEmblem(rank,28)+'<b class="text-amber-100">'+rank.name+'</b></span></td><td class="p-3 text-right font-black text-amber-200">'+rating.toLocaleString('es-AR')+'</td><td class="p-3 text-right">'+Number(p.matches||0).toLocaleString('es-AR')+'</td><td class="p-3 text-right text-emerald-300">'+Number(p.wins||0).toLocaleString('es-AR')+'</td></tr>'}).join('');
+        }
+        function startCompetitiveLeaderboardListener(){
+          if(!db||unsubscribeLeaderboard)return;const ref=query(collection(db,'artifacts',appId,'public','data','uno_leaderboard'),orderBy('rating','desc'));
+          unsubscribeLeaderboard=onSnapshot(ref,snap=>{competitiveProfiles.clear();snap.forEach(d=>competitiveProfiles.set(d.id,{...d.data(),uid:d.id}));renderLeaderboardRows();refreshRankBadgeElements()},err=>{console.warn('Leaderboard Firebase:',err);const s=document.getElementById('leaderboardStatus');if(s)s.textContent='No se pudo leer el ranking. Revisá las reglas de Firestore.'});
+        }
+        async function openGlobalLeaderboard(){
+          document.getElementById('leaderboardModal')?.classList.remove('hidden');const status=document.getElementById('leaderboardStatus');if(status)status.textContent='Cargando clasificación global...';const ready=await initFirebase();
+          if(!ready){if(status)status.textContent='Firebase no está disponible. Probá de nuevo.';return}
+          try{const snap=await getDocs(query(collection(db,'artifacts',appId,'public','data','uno_leaderboard'),orderBy('rating','desc')));competitiveProfiles.clear();snap.forEach(d=>competitiveProfiles.set(d.id,{...d.data(),uid:d.id}));renderLeaderboardRows();if(status)status.textContent=competitiveProfiles.size+' jugadores en la clasificación'}catch(e){console.error(e);if(status)status.textContent='No se pudo cargar. Faltan reglas de lectura para el leaderboard.'}
         }
 
 
@@ -4638,6 +4835,7 @@
         function saveAvatarCfg() {
             try { localStorage.setItem('uno_player_avatar_cfg', JSON.stringify(state.playerAvatar)); } catch (e) {}
             updateAvatarStudioUI();
+            syncCompetitiveProfile().catch(()=>{});
         }
 
         // Inicializar controles de Inicio y Estudio de Avatar
@@ -4647,6 +4845,7 @@
             state.playerName = nameInput.value.trim() || 'Jugador';
             try { localStorage.setItem('uno_player_name', state.playerName); } catch (e) {}
         });
+        nameInput.addEventListener('change',()=>syncCompetitiveProfile().catch(()=>{}));
 
         document.querySelectorAll('.trait-cycle').forEach(btn => {
             btn.onclick = () => {
@@ -5124,6 +5323,17 @@
 
         // Botones del Menú Principal
         document.getElementById('btnOpenSettings').onclick=openClubSettings;document.getElementById('btnOpenSettingsGame').onclick=openClubSettings;document.getElementById('btnOpenStore').onclick=openClubStore;document.getElementById('btnOpenStoreGame').onclick=openClubStore;
+         document.getElementById('btnOpenLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
+         document.getElementById('btnOpenCompetitive')?.addEventListener('click',openCompetitiveMenu);
+         document.getElementById('btnCompetitiveBack')?.addEventListener('click',()=>document.getElementById('competitiveMenuScreen')?.classList.add('hidden'));
+         document.getElementById('btnSearchCompetitiveMatch')?.addEventListener('click',startCompetitiveSearch);
+         document.getElementById('btnCancelCompetitiveSearch')?.addEventListener('click',()=>{closeCompetitiveSearch();if(state.room?.competitiveMode&&state.room.status==='lobby')leaveRoomToHome(false);});
+         document.getElementById('btnCompetitiveLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
+         document.getElementById('btnOpenPlayerLookup')?.addEventListener('click',()=>{document.getElementById('playerLookupModal')?.classList.remove('hidden');document.getElementById('playerLookupInput')?.focus();});
+         document.getElementById('btnClosePlayerLookup')?.addEventListener('click',()=>document.getElementById('playerLookupModal')?.classList.add('hidden'));
+         document.getElementById('btnSearchPlayerId')?.addEventListener('click',searchPlayerById);
+         document.getElementById('playerLookupInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchPlayerById();});
+         document.getElementById('btnCopyCompetitiveId')?.addEventListener('click',()=>{const id=String(currentUserId||'');if(!id)return;navigator.clipboard?.writeText(id).then(()=>showToast('ID copiado.','success')).catch(()=>showToast('No se pudo copiar el ID.','warn'));});document.getElementById('btnCloseLeaderboard')?.addEventListener('click',()=>document.getElementById('leaderboardModal').classList.add('hidden'));document.getElementById('btnRefreshLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
         document.getElementById('btnClaimDailyReward')?.addEventListener('click',claimDailyReward);
         document.getElementById('clubOpenCollection')?.addEventListener('click',()=>document.getElementById('btnOpenStore')?.click());
         renderCompetitiveRank();renderDailyReward();
@@ -5153,6 +5363,7 @@
             await syncRoomToCloud();
         };
 
+        document.getElementById('btnLinkGoogleAccount')?.addEventListener('click', linkGoogleAccount);
         document.getElementById('modeTeamsBtn').onclick = async () => {
             if (!state.room || state.room.hostId !== currentUserId) return;
             state.room.teamMode = true;
@@ -5370,7 +5581,7 @@
         });
 
         // Inicializar vista al cargar
-        updateAvatarStudioUI();updateClubWalletUI();loadClubSettings();
+        updateAvatarStudioUI();updateClubWalletUI();loadClubSettings();renderCompetitiveRank();
         showDeviceSetup(false);
         renderCurrentView();
 
@@ -5595,7 +5806,7 @@
             if(!snap.exists()){tcgOnlineSetStatus('Sala cerrada');showToast('La sala TCG fue cerrada.','warn');tcgOnlineExit(false);return;}
             const data=snap.data();tcgOnline.revision=data.revision||0;
             const info=document.getElementById('tcgOnlineRoomInfo');if(info)info.textContent='CÓDIGO: '+tcgOnline.code+' • '+(data.players||[]).filter(Boolean).length+'/2 jugadores • compartilo con tu hermano';
-            const players=data.players||[];const meLabel=document.getElementById('tcgMeLabel'),opLabel=document.getElementById('tcgOpponentLabel');if(meLabel)meLabel.textContent='🧑 '+(players[tcgOnline.seat]?.name||'Vos');if(opLabel)opLabel.textContent='⚔️ '+(players[1-tcgOnline.seat]?.name||'Rival');
+            const players=data.players||[];tcgOnline.players=players;const meLabel=document.getElementById('tcgMeLabel'),opLabel=document.getElementById('tcgOpponentLabel');if(meLabel)meLabel.textContent='🧑 '+(players[tcgOnline.seat]?.name||'Vos');if(opLabel)opLabel.textContent='⚔️ '+(players[1-tcgOnline.seat]?.name||'Rival');
             if(data.status==='waiting'){tcgOnlineSetStatus('Esperando rival…');return;}
             if(data.status!=='playing'||!data.battle)return;
             const raw=data.battle,me=raw.sides[tcgOnline.seat],op=raw.sides[1-tcgOnline.seat];if(!me||!op)return;
@@ -5825,6 +6036,7 @@
         function tcgBattleRender(){
           if(!tcgBattle)return;const b=tcgBattle,p=b.player,c=b.cpu;tcgShowBattleScreen();tcg3dRender(b);
           const meLabel=document.getElementById('tcgMeLabel'),opLabel=document.getElementById('tcgOpponentLabel');if(meLabel)meLabel.textContent=tcgOnline?'🧑 Tu equipo':'🧑 Tu equipo';if(opLabel)opLabel.textContent=tcgOnline?'⚔️ Rival online':'🤖 Rival IA';
+          const myRankHead=document.getElementById("tcgHeaderMyRank"),opRankHead=document.getElementById("tcgHeaderOpponentRank");if(myRankHead)myRankHead.innerHTML="TU RANGO "+renderPlayerRankBadge(currentUserId);const opponentUid=tcgOnline?.players?.[1-tcgOnline.seat]?.id;if(opRankHead)opRankHead.innerHTML=opponentUid?"RIVAL "+renderPlayerRankBadge(opponentUid):"RIVAL <span class=\"rounded-full border border-white/15 bg-black/40 px-2 py-1 text-zinc-300\">🤖 IA</span>";
           const cardView=(x,small=false)=>{if(!x)return '<div class="text-xs text-zinc-600 p-5">Espacio vacío</div>';const pct=Math.max(0,(x.hp-x.damage)/Math.max(1,x.maxHp)*100);const glow=({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca';const rarity=['V','EX','VMAX','VSTAR','Ultra Rare','Legendary'].includes(x.rarity);if(x.kind==='Character')return '<div class="tcg-card-3d '+(small?'tcg-board-card ':'')+(rarity?'tcg-card-rare ':'')+'"><div class="tcg-card-face tcg-pokemon-emoji-face" style="--tcg-glow:'+glow+'"><span class="tcg-pokemon-spark">✨ '+x.emoji+' ✨</span><div class="tcg-pokemon-big">'+x.emoji+'</div><span class="tcg-pokemon-spark">✦ '+x.emoji+' ✦</span></div><div class="tcg-pokemon-status">❤️ '+Math.max(0,x.hp-x.damage)+' / '+x.maxHp+'　⚡ '+x.energies.length+'</div></div>';return '<div class="tcg-card-3d '+(small?'tcg-board-card ':'')+(rarity?'tcg-card-rare ':'')+'"><div class="tcg-card-face" style="--tcg-glow:'+glow+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><span class="tcg-card-ribbon">'+(x.kind==='Energy'?'ENERGÍA':x.kind==='Supporter'?'ENTRENADOR':x.kind==='Stadium'?'ESTADIO':'OBJETO')+'</span><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b></div></div>'};
           document.getElementById('tcgCpuActive').innerHTML='<div class="tcg-zone-label">POKÉMON ACTIVO</div>'+cardView(c.active);document.getElementById('tcgPlayerActive').innerHTML='<button type="button" data-tcg-energy-target="active" class="tcg-active-target"><span class="tcg-zone-label">POKÉMON ACTIVO · tocá para adjuntar energía</span>'+cardView(p.active)+'</button>';
           document.getElementById('tcgCpuBench').innerHTML=c.bench.map(x=>cardView(x,true)).join('');document.getElementById('tcgPlayerBench').innerHTML='<div class="tcg-zone-label w-full">TU BANCA · '+p.bench.length+'/5</div>'+p.bench.map((x,i)=>'<button class="tcg-bench-target" data-tcg-energy-target="'+i+'" data-tcg-bench="'+i+'"><span class="tcg-zone-label">'+(i+1)+'</span>'+cardView(x,true)+'</button>').join('');
@@ -5977,7 +6189,7 @@
 
     <div id="tcgBattleScreen" class="hidden fixed inset-0 z-[260]">
       <header class="tcg-match-header relative z-[6] flex min-h-[68px] items-center justify-between gap-3 px-3 sm:px-6 py-2">
-        <div class="min-w-0"><div class="font-uno text-xl sm:text-2xl text-cyan-200">UNO! <span class="text-amber-300">TCG</span></div><div class="text-[9px] sm:text-[10px] tracking-[.2em] text-cyan-100/60">ARENA DE COMBATE · PARTIDA EN CURSO</div></div>
+        <div class="min-w-0"><div class="font-uno text-xl sm:text-2xl text-cyan-200">UNO! <span class="text-amber-300">TCG</span></div><div class="text-[9px] sm:text-[10px] tracking-[.2em] text-cyan-100/60">ARENA DE COMBATE · PARTIDA EN CURSO</div><div class="mt-1 flex flex-wrap gap-2 text-[10px]"><span id="tcgHeaderMyRank" class="inline-flex items-center gap-1"></span><span id="tcgHeaderOpponentRank" class="inline-flex items-center gap-1"></span></div></div>
         <div class="flex items-center gap-1.5 sm:gap-2">
           <button id="tcgMatchSettings" class="tcg-match-action" title="Configuración">⚙️ <span class="hidden sm:inline">Configuración</span></button>
           <button id="tcgMatchPause" class="tcg-match-action" title="Pausar">Ⅱ <span class="hidden sm:inline">Pausa</span></button>
