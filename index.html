@@ -628,6 +628,29 @@
         #arcadeGameScreen .arcade-seat{animation:arcadeSeatEnter .42s ease-out both;transition:transform .2s,box-shadow .2s,border-color .2s}
         #arcadeGameScreen .arcade-seat:nth-child(2){animation-delay:.05s}#arcadeGameScreen .arcade-seat:nth-child(3){animation-delay:.1s}#arcadeGameScreen .arcade-seat:nth-child(4){animation-delay:.15s}
         #arcadeGameScreen .arcade-poker-card{animation:arcadeCardDeal .48s cubic-bezier(.18,.8,.25,1) both;transition:transform .2s,filter .2s}
+
+        /* UNO! POK: reparto cinematográfico real, carta por carta */
+        @keyframes pokerUnoDeal {
+            0% { opacity:0; transform:translate3d(0,-115px,90px) rotateY(180deg) rotateZ(-18deg) scale(.52); filter:brightness(1.8) blur(1px); }
+            58% { opacity:1; transform:translate3d(0,7px,0) rotateY(18deg) rotateZ(4deg) scale(1.07); filter:brightness(1.18); }
+            78% { transform:translate3d(0,-3px,0) rotateY(-5deg) rotateZ(-2deg) scale(.98); }
+            100% { opacity:1; transform:translate3d(0,0,0) rotateY(0) rotateZ(0) scale(1); filter:brightness(1); }
+        }
+        #arcadeGameScreen .arcade-poker-uno {
+            transform-style:preserve-3d;
+            backface-visibility:hidden;
+            animation:pokerUnoDeal .72s cubic-bezier(.18,.82,.22,1) both;
+            will-change:transform,opacity,filter;
+        }
+        #arcadeGameScreen .arcade-poker-uno:nth-child(1){animation-delay:.08s}
+        #arcadeGameScreen .arcade-poker-uno:nth-child(2){animation-delay:.24s}
+        #arcadeGameScreen .arcade-poker-uno:nth-child(3){animation-delay:.40s}
+        #arcadeGameScreen .arcade-poker-uno:nth-child(4){animation-delay:.56s}
+        #arcadeGameScreen .arcade-poker-uno:nth-child(5){animation-delay:.72s}
+        #arcadeGameScreen .arcade-poker-uno:hover{transform:translateY(-8px) scale(1.05);filter:brightness(1.12)}
+        @media (prefers-reduced-motion:reduce) {
+            #arcadeGameScreen .arcade-poker-uno{animation-duration:.01ms;animation-delay:0ms}
+        }
         #arcadeGameScreen .arcade-poker-card:hover{transform:translateY(-6px) rotate(1deg);filter:brightness(1.08)}
         #arcadeGameScreen .arcade-playing-card:hover:not(:disabled){box-shadow:0 16px 25px #000b,0 0 0 2px #ffe5a4,0 0 22px #f5c66d70;transform:translateY(-10px) rotate(0) scale(1.06)}
         #arcadeGameScreen .arcade-action{transition:transform .16s,filter .16s,box-shadow .16s}
@@ -4645,8 +4668,10 @@
           else {pokerShowdown();return;}pokerRender();
         }
         function pokerUserAction(action){
-          const g=arcade.game;if(!g||g.over)return;const p=g.players[0];const call=Math.max(0,g.currentBet-p.bet);
+          const g=arcade.game;if(!g)return;
+          // Nueva mano debe poder ejecutarse precisamente cuando la mano anterior terminó.
           if(action==='again'){arcadeStartPoker();return;}
+          if(g.over)return;const p=g.players[0];const call=Math.max(0,g.currentBet-p.bet);
           if(action==='fold'){p.folded=true;pokerAward(g.players.map((x,i)=>x.folded?-1:i).filter(i=>i>=0).slice(0,1));return;}
           if(action==='call'){const pay=Math.min(call,p.stack);p.stack-=pay;p.bet+=pay;p.total+=pay;g.pot+=pay;}
           if(action==='raise'){const pay=Math.min(call+20,p.stack);if(pay<=call&&p.stack<=call){showToast('No tenés fichas suficientes para subir.','warn');return;}p.stack-=pay;p.bet+=pay;p.total+=pay;g.pot+=pay;g.currentBet=p.bet;}
