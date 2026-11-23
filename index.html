@@ -593,6 +593,27 @@
 
         body.performance-low .uno-card{box-shadow:0 3px 8px rgba(0,0,0,.4)!important}body.no-shadows .uno-card,body.no-shadows .table-oval-3d{box-shadow:none!important}body.animations-off *,body.animations-off *:before,body.animations-off *:after{animation:none!important;transition-duration:0s!important}body.animations-reduced *,body.animations-reduced *:before,body.animations-reduced *:after{animation-duration:.25s!important;transition-duration:.15s!important}body.compact-ui #homeScreen .rounded-3xl{padding:.75rem!important}body.large-ui button,body.large-ui input,body.large-ui select{font-size:1.05rem}
             .card-motion-off .uno-card { animation: none !important; transition: none !important; }
+
+/* UNO! TCG — cartas coleccionables con profundidad 2.5D */
+.tcg-card-3d{position:relative;isolation:isolate;aspect-ratio:2.5/3.5;min-width:112px;max-width:148px;width:100%;border-radius:15px;padding:5px;background:linear-gradient(145deg,#fff7d6,#b9a5ff 38%,#172554 72%,#080b18);box-shadow:0 14px 22px #0009,0 3px 0 #ffffff55 inset;transform:perspective(850px) rotateY(-5deg) rotateX(2deg);transform-style:preserve-3d;transition:transform .22s ease,filter .22s ease;overflow:hidden}
+.tcg-card-3d:hover{transform:perspective(850px) rotateY(0) rotateX(0) translateY(-7px) scale(1.035);z-index:8;filter:brightness(1.12)}
+.tcg-card-3d:before{content:"";position:absolute;inset:0;border-radius:15px;background:linear-gradient(115deg,transparent 15%,#ffffff25 38%,transparent 58%);transform:translateZ(8px);pointer-events:none;z-index:4}
+.tcg-card-face{height:100%;min-height:132px;border-radius:11px;padding:7px;background:radial-gradient(circle at 50% 36%,var(--tcg-glow,#4338ca),#111827 72%);border:1px solid #ffffff66;display:flex;flex-direction:column;position:relative;overflow:hidden;color:white}
+.tcg-card-art{flex:1;min-height:58px;display:grid;place-items:center;font-size:clamp(2.1rem,5vw,3.5rem);text-shadow:0 7px 12px #000b;filter:drop-shadow(0 5px 4px #0008);background:radial-gradient(ellipse,#ffffff25,transparent 68%)}
+.tcg-card-title{font-size:10px;font-weight:900;line-height:1.15;text-align:center;text-shadow:0 2px 4px #000;margin-top:4px}
+.tcg-card-meta{font-size:8px;display:flex;justify-content:space-between;gap:4px;color:#e2e8f0;font-weight:800}
+.tcg-card-ribbon{position:absolute;top:7px;right:7px;border-radius:99px;background:#09090bcc;border:1px solid #ffffff55;padding:2px 5px;font-size:7px;font-weight:900;z-index:2}
+.tcg-card-power{font-size:8px;text-align:center;color:#fde68a;font-weight:900;margin-top:3px}
+.tcg-card-energy{display:flex;justify-content:center;gap:3px;flex-wrap:wrap;margin-top:4px}
+.tcg-card-energy i{width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,#f59e0b 48%,#7c2d12);box-shadow:0 1px 4px #0009}
+.tcg-board-card{width:clamp(105px,14vw,154px)}
+.tcg-board-card .tcg-card-face{min-height:155px}
+.tcg-hand-card{width:clamp(82px,11vw,112px);flex:0 0 auto;cursor:pointer}
+.tcg-hand-card .tcg-card-face{min-height:125px}
+.tcg-card-rare{box-shadow:0 0 0 1px #fbbf24,0 14px 25px #f59e0b35,0 3px 0 #fff8 inset}
+.tcg-card-ultra{background:linear-gradient(145deg,#fef3c7,#f0abfc,#67e8f9,#312e81)}
+@media(max-width:640px){.tcg-board-card{width:104px}.tcg-board-card .tcg-card-face{min-height:132px}.tcg-card-3d{border-radius:11px;padding:4px}.tcg-card-face{border-radius:8px;padding:5px}}
+
 </style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
@@ -4580,13 +4601,13 @@
         }
         function tcgBattleRender(){
           if(!tcgBattle)return;const b=tcgBattle,p=b.player,c=b.cpu;
-          const cardView=(x,small=false)=>x?'<div class="rounded-xl border border-cyan-300/30 bg-gradient-to-br from-slate-800 to-indigo-950 p-2 '+(small?'min-w-24':'')+'"><div class="flex justify-between text-[10px]"><b>'+x.rarity+'</b><span>'+x.type+'</span></div><div class="text-3xl text-center py-1">'+x.emoji+'</div><b class="block text-[11px] text-center">'+x.name+'</b><div class="h-1.5 bg-zinc-700 rounded mt-2"><div class="h-full bg-emerald-400 rounded" style="width:'+Math.max(0,(x.hp-x.damage)/x.maxHp*100)+'%"></div></div><div class="text-[9px] text-center mt-1">'+(x.hp-x.damage)+' / '+x.maxHp+' PS • '+x.energies.length+' energías</div></div>':'<div class="text-xs text-zinc-600 p-5">Vacío</div>';
+          const cardView=(x,small=false)=>{if(!x)return '<div class="text-xs text-zinc-600 p-5">Espacio vacío</div>';const pct=Math.max(0,(x.hp-x.damage)/Math.max(1,x.maxHp)*100);const glow=({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca';const rarity=['V','EX','VMAX','VSTAR','Ultra Rare','Legendary'].includes(x.rarity);return '<div class="tcg-card-3d '+(small?'tcg-board-card ':'')+(rarity?'tcg-card-rare ':'')+'"><div class="tcg-card-face" style="--tcg-glow:'+glow+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><span class="tcg-card-ribbon">'+(x.kind==='Character'?'PERSONAJE':x.kind==='Energy'?'ENERGÍA':x.kind==='Supporter'?'ENTRENADOR':x.kind==='Stadium'?'ESTADIO':'OBJETO')+'</span><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b><div class="tcg-card-power">'+(x.hp-x.damage)+' / '+x.maxHp+' PS</div><div class="h-1.5 bg-black/50 rounded-full mt-1 overflow-hidden"><div class="h-full bg-emerald-400" style="width:'+pct+'%"></div></div><div class="tcg-card-energy">'+x.energies.map(()=>'<i></i>').join('')+'</div><div class="text-[8px] text-center mt-1 text-cyan-100">'+x.energies.length+' energías adjuntas</div></div></div>'};
           document.getElementById('tcgCpuActive').innerHTML=cardView(c.active);document.getElementById('tcgPlayerActive').innerHTML=cardView(p.active);
           document.getElementById('tcgCpuBench').innerHTML=c.bench.map(x=>cardView(x,true)).join('');document.getElementById('tcgPlayerBench').innerHTML=p.bench.map((x,i)=>'<button data-tcg-bench="'+i+'">'+cardView(x,true)+'</button>').join('');
           document.getElementById('tcgCpuPrizes').textContent=c.prizes+' premios';document.getElementById('tcgPlayerPrizes').textContent=p.prizes+' premios';
           document.getElementById('tcgBattleTurn').textContent=b.over?'Partida terminada':b.turn==='player'?'Tu turno':'Turno de la IA';document.getElementById('tcgBattleStatus').textContent=b.phase==='draw'?'Robá una carta para comenzar':b.phase==='main'?'Podés jugar cartas, adjuntar energía y atacar':'Esperando...';
           document.getElementById('tcgBattleLog').innerHTML=b.log.map(x=>'<div>• '+x+'</div>').join('');
-          document.getElementById('tcgPlayerHand').innerHTML=p.hand.map((id,i)=>{const x=tcgCard(id);return x?'<button data-tcg-hand="'+i+'" class="min-w-24 max-w-28 rounded-xl border border-white/10 bg-zinc-900 p-2 text-center shrink-0"><span class="text-2xl">'+x.emoji+'</span><b class="block text-[10px]">'+x.name+'</b><small class="text-[9px] text-fuchsia-300">'+x.kind+' • '+x.rarity+'</small></button>':''}).join('');
+          document.getElementById('tcgPlayerHand').innerHTML=p.hand.map((id,i)=>{const x=tcgCard(id);return x?'<button data-tcg-hand="'+i+'" class="tcg-hand-card tcg-card-3d text-left"><div class="tcg-card-face" style="--tcg-glow:'+(({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca')+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b><div class="tcg-card-power">'+x.kind+'</div></div></button>':''}).join('');
           document.getElementById('tcgHandCount').textContent=p.hand.length+' cartas • mazo '+p.deck.length;
           ['tcgDrawTurn','tcgAttachEnergy','tcgRetreat','tcgEndTurn'].forEach(id=>document.getElementById(id).disabled=b.over||b.turn!=='player');
           document.getElementById('tcgDrawTurn').disabled=b.over||b.turn!=='player'||b.phase!=='draw';
