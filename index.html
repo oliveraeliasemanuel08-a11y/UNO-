@@ -1190,7 +1190,7 @@
 <div class="grid lg:grid-cols-[1.1fr_.9fr] gap-4"><section class="rounded-3xl border border-amber-300/30 bg-gradient-to-br from-zinc-950 via-amber-950/40 to-black p-4 sm:p-6 shadow-2xl">
 <div class="flex items-center justify-between gap-3"><div><div class="text-[10px] tracking-[.24em] text-amber-300 font-black">TU DIVISIÓN ACTUAL</div><h3 id="competitiveMenuRankName" class="font-uno text-3xl text-amber-100 mt-1">Bronce I</h3><p id="competitiveMenuRankRating" class="text-xs text-zinc-300 mt-1">1000 puntos de rating</p></div><div id="competitiveMenuRankEmblem"></div></div>
 <div class="mt-4 h-3 overflow-hidden rounded-full bg-black/60 border border-white/10"><div id="competitiveMenuRankProgress" class="h-full rounded-full bg-gradient-to-r from-amber-600 via-yellow-300 to-white transition-all duration-500" style="width:0%"></div></div><div class="mt-2 flex items-center justify-between gap-2 text-[10px] text-zinc-400"><span id="competitiveMenuRankNext">Siguiente rango</span><span id="competitiveMenuRankDelta">Ganá partidas para subir</span></div><div id="competitiveMenuRankLadder" class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
-<div class="mt-5 rounded-2xl border border-amber-300/20 bg-black/30 p-4"><div class="text-[10px] tracking-[.2em] text-amber-300 font-black">EMPAREJAMIENTO AUTOMÁTICO</div><h3 class="font-uno text-2xl text-white">Encontrá tu próxima mesa</h3><p class="text-xs text-zinc-400 mt-1">Busca rivales de rating parecido durante 15 segundos como máximo.</p><button id="btnSearchCompetitiveMatch" class="btn-shimmer relative overflow-hidden w-full mt-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 px-5 py-4 text-base font-black text-zinc-950 shadow-xl">🔍 BUSCAR PARTIDA</button><p class="text-[10px] text-zinc-500 mt-2 text-center">Si no encuentra rivales, completa automáticamente la mesa con IA adaptadas a tu rango.</p></div>
+<div class="mt-5 rounded-2xl border border-amber-300/20 bg-black/30 p-4"><div class="text-[10px] tracking-[.2em] text-amber-300 font-black">FORMATO DE PARTIDA</div><h3 class="font-uno text-xl text-white">Elegí cómo competir</h3><div class="grid grid-cols-4 gap-2 mt-3"><button type="button" data-competitive-format="1v1" class="competitive-format-option rounded-xl border px-3 py-3 text-center font-black">1v1</button><button type="button" data-competitive-format="2v2" class="competitive-format-option rounded-xl border px-3 py-3 text-center font-black">2v2</button><button type="button" data-competitive-format="3v3" class="competitive-format-option rounded-xl border px-3 py-3 text-center font-black">3v3</button><button type="button" data-competitive-format="4v4" class="competitive-format-option rounded-xl border px-3 py-3 text-center font-black">4v4</button></div><p id="competitiveFormatInfo" class="text-[10px] text-zinc-400 mt-2">Dos jugadores · todos compiten individualmente</p><div class="mt-5 border-t border-amber-300/10 pt-4"><div class="text-[10px] tracking-[.2em] text-amber-300 font-black">EMPAREJAMIENTO AUTOMÁTICO</div><h3 class="font-uno text-2xl text-white">Encontrá tu próxima mesa</h3><p class="text-xs text-zinc-400 mt-1">Busca rivales de rating parecido durante 15 segundos como máximo.</p><button id="btnSearchCompetitiveMatch" class="btn-shimmer relative overflow-hidden w-full mt-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 px-5 py-4 text-base font-black text-zinc-950 shadow-xl">🔍 BUSCAR PARTIDA</button><p class="text-[10px] text-zinc-500 mt-2 text-center">Si no encuentra rivales, completa automáticamente la mesa con IA adaptadas a tu rango.</p></div>
 </section><aside class="space-y-4"><section class="rounded-3xl border border-sky-300/20 bg-gradient-to-br from-sky-950/40 to-zinc-950 p-4"><div class="text-[10px] tracking-[.2em] text-sky-300 font-black">🪪 TU IDENTIFICADOR</div><code id="competitiveMenuPlayerId" class="block break-all rounded-xl bg-black/40 border border-white/10 p-3 mt-3 text-xs text-sky-100">Conectando...</code><button id="btnCopyCompetitiveId" class="mt-2 rounded-lg border border-sky-300/25 bg-sky-950/50 px-3 py-2 text-[10px] font-bold text-sky-100">📋 Copiar mi ID</button></section>
 <section class="rounded-3xl border border-white/10 bg-zinc-950/80 p-4"><h3 class="font-uno text-xl text-white">Leaderboard global</h3><p class="text-xs text-zinc-400 mt-1">Compará rating, rango, victorias y partidas.</p><button id="btnCompetitiveLeaderboard" class="mt-3 w-full rounded-xl border border-amber-300/25 bg-amber-950/40 px-4 py-3 text-xs font-black text-amber-100">🏆 VER LEADERBOARD</button></section>
 <section class="rounded-3xl border border-violet-300/20 bg-violet-950/20 p-4"><div class="text-[10px] tracking-[.2em] text-violet-200 font-black">🤖 IA ADAPTATIVA</div><p class="text-xs text-zinc-300 mt-2">Bronce y Plata: decisiones simples. Oro y Platino: mejor elección de colores y acciones. Diamante, Maestro y Leyenda: IA estratégica que prioriza bloquear a quien está por ganar.</p></section></aside></div></div></section>
@@ -1664,6 +1664,7 @@
             <h2 id="winnerTitle" class="font-uno text-3xl sm:text-4xl font-bold text-white mt-2">¡Jugador Gana!</h2>
             <p id="winnerSubtitle" class="text-sm text-zinc-400 mt-1 mb-5">Ha vaciado su mano por completo</p>
 
+            <div id="competitiveRatingResult" class="hidden rounded-2xl border border-amber-300/30 bg-gradient-to-r from-amber-950/60 to-zinc-950 p-4 mb-4 text-left"><div class="text-[10px] font-black tracking-[.2em] text-amber-300">RESULTADO COMPETITIVO</div><div id="competitiveRatingOutcome" class="font-uno text-2xl text-white mt-1"></div><div id="competitiveRatingDelta" class="font-uno text-3xl font-black mt-1"></div><div id="competitiveRatingDetail" class="text-[11px] text-zinc-400 mt-1"></div></div>
             <div id="scoreboardList" class="bg-zinc-950/80 border border-zinc-800 rounded-2xl p-3.5 mb-6 space-y-2 text-left max-h-48 overflow-y-auto">
                 <!-- Puntuación de cartas restantes -->
             </div>
@@ -1895,6 +1896,9 @@
         let unsubscribeLeaderboard = null;
         const competitiveProfiles = new Map();
         let competitiveQueueUnsub=null,competitiveSearchInterval=null,competitiveSearchStartedAt=0,competitiveAutoStartLock=false;
+        let competitiveSelectedFormat="1v1";
+        const COMPETITIVE_FORMATS={"1v1":{seats:2,teams:false,label:"1v1"},"2v2":{seats:4,teams:true,label:"2v2"},"3v3":{seats:6,teams:true,label:"3v3"},"4v4":{seats:8,teams:true,label:"4v4"}};
+        function selectCompetitiveFormat(format){if(!COMPETITIVE_FORMATS[format])return;competitiveSelectedFormat=format;document.querySelectorAll("[data-competitive-format]").forEach(b=>{const active=b.dataset.competitiveFormat===format;b.className="competitive-format-option rounded-xl border px-3 py-3 text-center font-black transition "+(active?"border-amber-300 bg-amber-400 text-zinc-950 shadow-lg":"border-white/10 bg-zinc-900 text-zinc-300 hover:border-amber-300/50");});const info=document.getElementById("competitiveFormatInfo");if(info)info.textContent=format==="1v1"?"Dos jugadores · todos compiten individualmente":format+" · dos equipos equilibrados · las IA completan los lugares libres";}
 
 
         function updatePlayerIdDisplay(){
@@ -1902,7 +1906,7 @@
           const a=document.getElementById('playerIdDisplay'),b=document.getElementById('competitiveMenuPlayerId');
           if(a)a.textContent='ID: '+id;if(b)b.textContent=id;
         }
-        function openCompetitiveMenu(){document.getElementById('competitiveMenuScreen')?.classList.remove('hidden');renderCompetitiveRank();updatePlayerIdDisplay();}
+        function openCompetitiveMenu(){document.getElementById('competitiveMenuScreen')?.classList.remove('hidden');selectCompetitiveFormat(competitiveSelectedFormat);renderCompetitiveRank();updatePlayerIdDisplay();}
         function closeCompetitiveSearch(){
           if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}
           if(competitiveQueueUnsub){competitiveQueueUnsub();competitiveQueueUnsub=null;}
@@ -1919,7 +1923,7 @@
         async function fillCompetitiveBotsAndStart(){
           const room=state.room;if(!room||!room.competitiveMode||room.status!=='lobby'||room.hostId!==currentUserId)return;
           const rank=getCompetitiveRank(),tier=UNO_COMPETITIVE_RANKS.indexOf(rank);room.competitiveAiTier=tier;room.competitiveRankName=rank.name;
-          room.seats.forEach((seat,index)=>{if(!seat.id){const p=BOT_PROFILES[index%BOT_PROFILES.length];room.seats[index]={...seat,id:'comp_ai_'+currentUserId+'_'+index+'_'+Date.now(),name:p.name+' · IA '+rank.name,avatar:p.avatar,isBot:true,competitiveAI:true,competitiveAiTier:tier,competitiveDifficulty:rank.name,team:null,hand:[],saidUno:false,finishRank:null};}});
+          room.seats.forEach((seat,index)=>{if(!seat.id){const p=BOT_PROFILES[index%BOT_PROFILES.length];room.seats[index]={...seat,id:'comp_ai_'+currentUserId+'_'+index+'_'+Date.now(),name:p.name+' · IA '+rank.name,avatar:p.avatar,isBot:true,competitiveAI:true,competitiveAiTier:tier,competitiveDifficulty:rank.name,team:room.teamMode?seat.team:null,hand:[],saidUno:false,finishRank:null};}});
           closeCompetitiveSearch();await dealAndStartGame();
         }
         async function startCompetitiveSearch(){
@@ -1931,14 +1935,14 @@
           set('competitiveSearchTitle','Buscando jugadores...');set('competitiveSearchStatus','Buscando rivales con rating parecido.');set('competitiveSearchCountdown','15');set('competitiveSearchFound','Buscando jugadores reales antes de completar con IA...');
           const bar=document.getElementById('competitiveSearchProgress');if(bar)bar.style.width='0%';
           try{
-            await createNewRoom(true,true);if(!state.room||!state.room.competitiveMode)throw new Error('No se pudo crear la cola.');
+            await createNewRoom(true,true,competitiveSelectedFormat);if(!state.room||!state.room.competitiveMode)throw new Error('No se pudo crear la cola.');
             const roomsRef=collection(db,'artifacts',appId,'public','data','uno_rooms');
             competitiveQueueUnsub=onSnapshot(roomsRef,snapshot=>{
               const own=state.room;if(!own||!own.competitiveMode||own.status!=='lobby')return;
               const humans=(own.seats||[]).filter(x=>x&&x.id&&!x.isBot);
-              if(humans.length>=2){set('competitiveSearchTitle','¡Rival encontrado!');set('competitiveSearchStatus','La partida está comenzando.');set('competitiveSearchFound',humans.length+' jugadores reales encontrados.');closeCompetitiveSearch();return;}
+              if(humans.length>=Number(own.maxSeats||2)){set('competitiveSearchTitle','¡Mesa completa!');set('competitiveSearchStatus','Entrando automáticamente a la partida.');set('competitiveSearchFound',humans.length+' jugadores reales listos.');closeCompetitiveSearch();document.getElementById('competitiveMenuScreen')?.classList.add('hidden');return;}
               const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),band=competitiveSearchBand(elapsed),candidates=[];
-              snapshot.forEach(d=>{const r=d.data();if(d.id===own.code||!r||!r.competitiveMode||r.status!=='lobby'||!r.hostId||r.hostId>=currentUserId)return;if(Date.now()-Number(r.updatedAt||Date.now())>30000)return;const seats=r.seats||[],occupied=seats.filter(x=>x&&x.id).length;if(occupied>0&&occupied<(r.maxSeats||4)&&Math.abs(Number(r.competitiveRating||1000)-getCompetitiveRating())<=band.radius)candidates.push({...r,code:d.id});});
+              snapshot.forEach(d=>{const r=d.data();if(d.id===own.code||!r||!r.competitiveMode||r.status!=='lobby'||!r.hostId||r.hostId>=currentUserId)return;if(Date.now()-Number(r.updatedAt||Date.now())>30000)return;const seats=r.seats||[],occupied=seats.filter(x=>x&&x.id).length;if(occupied>0&&occupied<(r.maxSeats||4)&&r.competitiveFormat===own.competitiveFormat&&Math.abs(Number(r.competitiveRating||1000)-getCompetitiveRating())<=band.radius)candidates.push({...r,code:d.id});});
               if(candidates.length&&humans.length===1){
                 candidates.sort((a,b)=>String(a.hostId).localeCompare(String(b.hostId)));const target=candidates[0];closeCompetitiveSearch();overlay?.classList.remove('hidden');set('competitiveSearchTitle','¡Rival encontrado!');set('competitiveSearchStatus','Conectando con '+(target.seats.find(x=>x&&x.id)?.name||'otro jugador')+'...');
                 leaveRoomToHome(false).then(()=>joinExistingRoom(target.code)).then(()=>{document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');}).catch(e=>{console.warn(e);showToast('No se pudo completar el emparejamiento.','warn');});
@@ -1946,7 +1950,7 @@
             },err=>{console.warn('Cola competitiva:',err);set('competitiveSearchStatus','Problema de conexión. Seguimos intentando...');});
             competitiveSearchInterval=setInterval(()=>{
               const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),left=Math.max(0,15-elapsed);set('competitiveSearchCountdown',String(left));if(bar)bar.style.width=Math.min(100,elapsed/15*100)+'%';
-              if(left===0){if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId){const humans=(state.room.seats||[]).filter(x=>x&&x.id&&!x.isBot);if(humans.length<2)fillCompetitiveBotsAndStart().catch(e=>{console.error(e);showToast('No se pudo iniciar la partida competitiva.','danger');});}}
+              if(left===0){if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId){const humans=(state.room.seats||[]).filter(x=>x&&x.id&&!x.isBot);if(humans.length<Number(state.room.maxSeats||2))fillCompetitiveBotsAndStart().catch(e=>{console.error(e);showToast('No se pudo iniciar la partida competitiva.','danger');});}}
             },250);
           }catch(e){console.error('Matchmaking competitivo:',e);closeCompetitiveSearch();showToast('No se pudo iniciar la búsqueda. Revisá conexión y reglas de Firestore.','danger');}
         }
@@ -3139,7 +3143,7 @@
                 renderChatAndReactionsFromRoom(data);
                 renderCurrentView();
 
-                if(data.competitiveMode&&data.status==='lobby'&&data.hostId===currentUserId&&(data.seats||[]).filter(x=>x&&x.id&&!x.isBot).length>=2&&!competitiveAutoStartLock){
+                if(data.competitiveMode&&data.status==='lobby'&&data.hostId===currentUserId&&(data.seats||[]).filter(x=>x&&x.id&&!x.isBot).length>=Number(data.maxSeats||2)&&!competitiveAutoStartLock){
                   competitiveAutoStartLock=true;
                   setTimeout(()=>{if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId)dealAndStartGame().catch(e=>console.error('Inicio competitivo:',e));},350);
                 }
@@ -3155,7 +3159,7 @@
             });
         }
 
-        async function createNewRoom(isOnlineMode = true, competitiveMode = false) {
+        async function createNewRoom(isOnlineMode = true, competitiveMode = false, competitiveFormat = "1v1") {
             sfx.init();
             let onlineAvailable = false;
             if (isOnlineMode) {
@@ -3163,15 +3167,16 @@
             }
 
             const code = onlineAvailable ? generateRoomCode() : 'LOCAL';
-            const defaultSeats = 4;
-            const seats = buildInitialSeats(defaultSeats, false, 2, []);
+            const formatConfig=COMPETITIVE_FORMATS[competitiveFormat]||COMPETITIVE_FORMATS["1v1"];
+            const defaultSeats = competitiveMode ? formatConfig.seats : 4;
+            const seats = buildInitialSeats(defaultSeats, competitiveMode && formatConfig.teams, 2, []);
             seats[0] = {
                 seatIndex: 0,
                 id: currentUserId,
                 name: state.playerName,
                 avatar: state.playerAvatar,
                 isBot: false,
-                team: null,
+                team: competitiveMode && formatConfig.teams ? 0 : null,
                 hand: [],
                 saidUno: false,
                 finishRank: null
@@ -3193,13 +3198,14 @@
                 turnStartedAt: Date.now(),
                 status: 'lobby',
                 maxSeats: defaultSeats,
-                teamMode: false,
+                teamMode: competitiveMode && formatConfig.teams,
                 teamCount: 2,
                 mirrorRule: false,
                 straightRule: false,
                 straightColorMode: 'same',
                 gameMode: 'classic',
                 competitiveMode: !!competitiveMode,
+                competitiveFormat: competitiveMode ? competitiveFormat : null,
                 competitiveRating: competitiveMode ? getCompetitiveRating() : null,
                 competitiveRankName: competitiveMode ? getCompetitiveRank().name : null,
                 competitiveAiTier: competitiveMode ? UNO_COMPETITIVE_RANKS.indexOf(getCompetitiveRank()) : null,
@@ -4050,6 +4056,7 @@
         // 9. RENDERIZADO DE PANTALLAS (HOME, LOBBY, MESA Y VICTORIA)
         // =========================================================
         function renderCurrentView() {
+            if(state.room && (state.room.status==="playing" || state.room.status==="finished")){document.getElementById("competitiveMenuScreen")?.classList.add("hidden");document.getElementById("competitiveSearchOverlay")?.classList.add("hidden");}
             const homeEl = document.getElementById('homeScreen');
             const lobbyEl = document.getElementById('lobbyScreen');
             const gameEl = document.getElementById('gameScreen');
@@ -4112,9 +4119,7 @@
             const room = state.room;
             const isHost = room.hostId === currentUserId;
             document.getElementById('lobbyRoomCode').textContent = room.code;
-            document.getElementById('lobbyModeTag').textContent = state.isOnline
-                ? `Multijugador Online • ${isHost ? 'Eres el Anfitrión' : 'Esperando al Anfitrión'}`
-                : 'Sala Local';
+            document.getElementById('lobbyModeTag').textContent = room.competitiveMode ? '🏆 SALA COMPETITIVA · '+(room.competitiveFormat||'1v1') : (state.isOnline ? `Multijugador Online • ${isHost ? 'Eres el Anfitrión' : 'Esperando al Anfitrión'}` : 'Sala Local');
 
             // Ocultar o deshabilitar controles exclusivos del anfitrión para invitados
             const startBtn = document.getElementById('btnStartMatch');
@@ -4580,9 +4585,11 @@
             });
         }
 
-        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const delta=entry.rank===1?30:entry.rank===2?12:entry.rank===3?2:-12;const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')';}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))}
+        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const first=room.podium[0];const won=room.teamMode?!!first&&entry.team===first.team:entry.rank===1;const delta=room.teamMode?(won?22:-14):(won?25:-18);const nextRating=Math.max(0,oldRating+delta),actualDelta=nextRating-oldRating;localStorage.setItem('uno_competitive_rating',String(nextRating));const result={won,delta:actualDelta,oldRating,nextRating,rank:entry.rank,teamMode:!!room.teamMode,format:room.competitiveFormat||'1v1',rankName:getCompetitiveRank(nextRating).name};localStorage.setItem('uno_comp_result_'+(room.matchId||room.code),JSON.stringify(result));ratingMsg=' · Rating '+(actualDelta>0?'+':'')+actualDelta+' ('+nextRating+')';}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))}
         function renderVictoryModal() {
             const room = state.room;
+            const ratingPanel=document.getElementById('competitiveRatingResult');
+            if(ratingPanel){ratingPanel.classList.add('hidden');if(room?.competitiveMode){let result=null;try{result=JSON.parse(localStorage.getItem('uno_comp_result_'+(room.matchId||room.code))||'null')}catch(_){}if(result){ratingPanel.classList.remove('hidden');document.getElementById('competitiveRatingOutcome').textContent=result.teamMode?(result.won?'🏆 ¡Tu equipo ganó!':'💥 Tu equipo perdió'):(result.won?'🏆 ¡Victoria!':'💥 Derrota');const d=document.getElementById('competitiveRatingDelta');d.textContent=(result.delta>0?'+':'')+result.delta+' RATING';d.className='font-uno text-3xl font-black mt-1 '+(result.delta>=0?'text-emerald-300':'text-rose-300');document.getElementById('competitiveRatingDetail').textContent=(result.teamMode?'Formato '+result.format+' · Resultado por equipos':'Puesto #'+result.rank+' de '+(room.maxSeats||2)+' · Formato '+result.format)+' · '+result.oldRating+' → '+result.nextRating+' · '+result.rankName;}}}
             const podium = room.podium || [];
             const first = podium[0];
 
@@ -5326,7 +5333,7 @@
          document.getElementById('btnOpenLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
          document.getElementById('btnOpenCompetitive')?.addEventListener('click',openCompetitiveMenu);
          document.getElementById('btnCompetitiveBack')?.addEventListener('click',()=>document.getElementById('competitiveMenuScreen')?.classList.add('hidden'));
-         document.getElementById('btnSearchCompetitiveMatch')?.addEventListener('click',startCompetitiveSearch);
+         document.querySelectorAll('[data-competitive-format]').forEach(btn=>btn.addEventListener('click',()=>selectCompetitiveFormat(btn.dataset.competitiveFormat)));document.getElementById('btnSearchCompetitiveMatch')?.addEventListener('click',startCompetitiveSearch);
          document.getElementById('btnCancelCompetitiveSearch')?.addEventListener('click',()=>{closeCompetitiveSearch();if(state.room?.competitiveMode&&state.room.status==='lobby')leaveRoomToHome(false);});
          document.getElementById('btnCompetitiveLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
          document.getElementById('btnOpenPlayerLookup')?.addEventListener('click',()=>{document.getElementById('playerLookupModal')?.classList.remove('hidden');document.getElementById('playerLookupInput')?.focus();});
