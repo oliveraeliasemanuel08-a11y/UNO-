@@ -925,6 +925,10 @@
 <label class="rounded-xl bg-zinc-900 p-3 text-sm">Cartas de rivales<select id="settingOpponentCards" class="mt-2 w-full bg-zinc-800 rounded-xl p-2"><option value="normal">Normales</option><option value="minimal">Vista simple</option></select></label>
 </div></div></div><div class="flex gap-2 p-4 border-t border-white/10"><button id="btnResetSettings" class="px-4 py-2 rounded-xl bg-zinc-800 text-sm">Restaurar</button><button id="btnSaveSettings" class="ml-auto px-5 py-2 rounded-xl bg-sky-500 text-zinc-950 font-extrabold text-sm">Guardar ajustes</button></div></div></div>
 <div id="storeModal" class="hidden fixed inset-0 z-[210] bg-black/90 backdrop-blur-md flex items-center justify-center p-3"><div class="w-full max-w-4xl max-h-[92dvh] overflow-y-auto rounded-3xl border border-amber-300/30 bg-zinc-950 shadow-2xl"><div class="sticky top-0 z-10 flex items-center justify-between p-4 bg-zinc-950/95 border-b border-white/10"><div><h2 class="font-uno text-3xl text-amber-300">🛍️ Tienda del Club</h2><p class="text-xs text-zinc-400">Comprá cosméticos con puntos de partidas online</p><p class="mt-1 text-[11px] font-bold text-emerald-300">✨ Selección diaria: 10 artículos rotativos • <span id="storeRefreshCountdown">Calculando...</span></p></div><div class="flex items-center gap-3"><span class="text-amber-300 font-extrabold">🪙 <b id="clubPointsBalance">0</b></span><button id="btnCloseStore" class="text-2xl text-zinc-400">✕</button></div></div><div class="p-4"><div class="flex gap-2 mb-4"><input id="storeSearchInput" type="search" placeholder="Buscar accesorios, pelos, ropa..." class="flex-1 min-w-0 rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-sm text-white"><select id="storeCategoryFilter" class="rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-sm text-white"><option value="all">Todo</option><option value="hair">Pelos</option><option value="acc">Accesorios</option><option value="shirt">Remeras</option><option value="face">Expresiones</option><option value="beard">Barbas</option><option value="frame">Marcos</option></select></div><div id="storeItemsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div></div></div></div>
+    <div id="leaderboardModal" class="hidden fixed inset-0 z-[230] bg-black/90 backdrop-blur-md flex items-center justify-center p-3"><div class="w-full max-w-5xl max-h-[92dvh] overflow-hidden rounded-3xl border border-amber-300/30 bg-gradient-to-br from-zinc-950 via-slate-950 to-amber-950/30 shadow-2xl">
+      <div class="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-white/10"><div><div class="text-[10px] font-black tracking-[.24em] text-amber-300">🏆 CIRCUITO GLOBAL</div><h2 class="font-uno text-2xl sm:text-3xl text-white">Leaderboard UNO! CLUB</h2><p class="text-xs text-zinc-400">Los mejores jugadores, sus rangos y sus ID de Firebase</p></div><button id="btnCloseLeaderboard" class="rounded-xl bg-zinc-800 px-3 py-2 text-white">✕</button></div>
+      <div class="p-3 sm:p-5"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><span id="leaderboardStatus" class="text-xs text-zinc-400">Conectando con Firebase...</span><button id="btnRefreshLeaderboard" class="rounded-lg border border-amber-300/25 bg-amber-950/30 px-3 py-2 text-[11px] font-bold text-amber-200">↻ Actualizar</button></div><div class="max-h-[65dvh] overflow-auto rounded-2xl border border-white/10"><table class="w-full min-w-[650px] text-left text-xs"><thead class="sticky top-0 bg-zinc-900 text-[10px] uppercase tracking-wider text-zinc-400"><tr><th class="p-3">#</th><th class="p-3">Jugador / ID</th><th class="p-3">Rango</th><th class="p-3 text-right">Rating</th><th class="p-3 text-right">Partidas</th><th class="p-3 text-right">Victorias</th></tr></thead><tbody id="leaderboardRows"><tr><td colspan="6" class="p-8 text-center text-zinc-500">Todavía no hay jugadores cargados.</td></tr></tbody></table></div><p class="mt-3 text-[10px] text-zinc-500">Se muestran hasta 100 perfiles. Los ID son identificadores de Firebase, no contraseñas ni datos de acceso.</p></div></div></div>
+
     <!-- Notificación / Toast elegante (sin alert()) -->
     <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex flex-col items-center gap-2 pointer-events-none w-full max-w-md px-4"></div>
 
@@ -969,6 +973,7 @@
 
                 <div class="flex items-center gap-2">
                     <button id="btnOpenSettings" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-sky-300" title="Configuración">⚙️</button>
+                    <button id="btnOpenLeaderboard" class="px-3 py-2 rounded-xl bg-zinc-900 border border-amber-300/30 text-amber-200" title="Leaderboard global">🏆 Ranking</button>
                     <button id="btnOpenTCG" class="px-3 py-2 rounded-xl bg-zinc-900 border border-fuchsia-400/30 text-fuchsia-300" title="UNO! TCG">🃏 TCG</button>
                     <button id="btnOpenArcade" class="px-3 py-2 rounded-xl bg-zinc-900 border border-emerald-400/30 text-emerald-300" title="Nuevos modos">🎮 Modos</button>
                     <button id="btnOpenStore" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-amber-300" title="Tienda">🛍️</button>
@@ -1521,7 +1526,7 @@
                     <span id="localPlayerAvatar" class="text-xl">😎</span>
                     <div>
                         <div class="flex items-center gap-1.5">
-                            <span id="localPlayerName" class="text-xs sm:text-sm font-extrabold text-white">Tú</span>
+                            <span id="localPlayerName" class="text-xs sm:text-sm font-extrabold text-white">Tú</span><span id="localPlayerRankBadge" class="inline-flex"></span>
                             <span id="localTeamPill" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
                         </div>
                         <span id="localCardCountText" class="text-[11px] text-zinc-400">7 cartas</span>
@@ -1684,7 +1689,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, runTransaction, serverTimestamp, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
         // =========================================================
@@ -1871,6 +1876,8 @@
         let firebaseReady = false;
         let authInitPromise = null;
         let unsubscribePublicRooms = null;
+        let unsubscribeLeaderboard = null;
+        const competitiveProfiles = new Map();
 
         function updateOnlineBadgeUI(status, detail = '') {
             const badge = document.getElementById('onlineStatusBadge');
@@ -1926,6 +1933,8 @@
 
             updateOnlineBadgeUI('connected', currentUserId);
             startPublicRoomsListener();
+            startCompetitiveLeaderboardListener();
+            syncCompetitiveProfile().catch(err => console.warn("No se pudo sincronizar el perfil competitivo:", err));
 
             return true;
 
@@ -4356,7 +4365,7 @@
                             ${renderCustomAvatarSVG(opp.avatar, 'w-9 h-9 sm:w-10 sm:h-10')}
                             <div class="text-left">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${opp.name}</span>${room.gameMode === 'survival' ? `<span class="text-[9px] font-black text-rose-300">${'❤️'.repeat(Math.max(0, Math.min(3, Number(opp.lives) || 0)))}</span>` : ''}
+                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${escapeLeaderboardText(opp.name)}</span>${renderPlayerRankBadge(opp.id)}${room.gameMode === 'survival' ? `<span class="text-[9px] font-black text-rose-300">${'❤️'.repeat(Math.max(0, Math.min(3, Number(opp.lives) || 0)))}</span>` : ''}
                                     ${opp.finishRank ? `<span class="text-[10px] font-black text-amber-300">#${opp.finishRank}</span>` : ''}
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
@@ -4377,6 +4386,7 @@
             if (!mySeat) return;
             document.getElementById('localPlayerAvatar').innerHTML = renderCustomAvatarSVG(mySeat.avatar, 'w-9 h-9');
             document.getElementById('localPlayerName').textContent = mySeat.name;
+            const localRankBadge=document.getElementById('localPlayerRankBadge');if(localRankBadge)localRankBadge.innerHTML=renderPlayerRankBadge(mySeat.id);
             document.getElementById('localCardCountText').textContent = room.gameMode === 'survival'
                 ? `${mySeat.finishRank ? '🏅 Eliminado' : mySeat.hand.length + (mySeat.hand.length === 1 ? ' carta' : ' cartas')} • ${'❤️'.repeat(Math.max(0, Math.min(3, Number(mySeat.lives) || 0)))}`
                 : (mySeat.finishRank ? `🏅 Puesto #${mySeat.finishRank}` : `${mySeat.hand.length} ${mySeat.hand.length === 1 ? 'carta' : 'cartas'}`);
@@ -4480,7 +4490,7 @@
             });
         }
 
-        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const delta=entry.rank===1?30:entry.rank===2?12:entry.rank===3?2:-12;const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')';}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI();renderCompetitiveRank();renderClubProgressHub()}
+        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const delta=entry.rank===1?30:entry.rank===2?12:entry.rank===3?2:-12;const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')';}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' puntos del Club'+ratingMsg,'success');updateClubWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))}
         function renderVictoryModal() {
             const room = state.room;
             const podium = room.podium || [];
@@ -4577,20 +4587,51 @@
         ];
 
         const UNO_COMPETITIVE_RANKS=[
-          {name:'Bronce I',icon:'🥉',min:0,max:799},{name:'Bronce II',icon:'🥉',min:800,max:899},
-          {name:'Plata I',icon:'🥈',min:900,max:999},{name:'Plata II',icon:'🥈',min:1000,max:1099},
-          {name:'Oro I',icon:'🥇',min:1100,max:1249},{name:'Oro II',icon:'🥇',min:1250,max:1399},
-          {name:'Platino',icon:'💠',min:1400,max:1599},{name:'Diamante',icon:'💎',min:1600,max:1849},
-          {name:'Maestro',icon:'⚔️',min:1850,max:2199},{name:'Leyenda',icon:'👑',min:2200,max:999999}
+          {name:'Bronce I',min:0,max:799,glyph:'I',colors:['#9a542c','#f5c28b','#4b2416']},{name:'Bronce II',min:800,max:899,glyph:'II',colors:['#b66a35','#ffd09a','#5b2b18']},
+          {name:'Plata I',min:900,max:999,glyph:'I',colors:['#64748b','#f8fafc','#334155']},{name:'Plata II',min:1000,max:1099,glyph:'II',colors:['#94a3b8','#ffffff','#475569']},
+          {name:'Oro I',min:1100,max:1249,glyph:'I',colors:['#a16207','#fde68a','#713f12']},{name:'Oro II',min:1250,max:1399,glyph:'II',colors:['#ca8a04','#fff1a8','#854d0e']},
+          {name:'Platino',min:1400,max:1599,glyph:'P',colors:['#0f766e','#99f6e4','#134e4a']},{name:'Diamante',min:1600,max:1849,glyph:'D',colors:['#0284c7','#bae6fd','#1e3a8a']},
+          {name:'Maestro',min:1850,max:2199,glyph:'M',colors:['#7c3aed','#ddd6fe','#3b0764']},{name:'Leyenda',min:2200,max:999999,glyph:'★',colors:['#be123c','#fde68a','#701a75']}
         ];
         function getCompetitiveRating(){return Math.max(0,Number(localStorage.getItem('uno_competitive_rating')||1000))}
         function getCompetitiveRank(rating=getCompetitiveRating()){return UNO_COMPETITIVE_RANKS.slice().reverse().find(r=>rating>=r.min)||UNO_COMPETITIVE_RANKS[0]}
+        function renderRankEmblem(rank,size=30){
+          const r=typeof rank==='number'?getCompetitiveRank(rank):(rank||UNO_COMPETITIVE_RANKS[0]),i=UNO_COMPETITIVE_RANKS.indexOf(r),c=r.colors||UNO_COMPETITIVE_RANKS[0].colors,id='unoRank'+Math.max(0,i),s=Math.max(16,Math.min(72,Number(size)||30));
+          return '<svg class="shrink-0 drop-shadow" width="'+s+'" height="'+s+'" viewBox="0 0 64 64" role="img" aria-label="Rango '+r.name+'"><defs><linearGradient id="'+id+'A" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset=".48" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient><linearGradient id="'+id+'B" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".72"/><stop offset="1" stop-color="'+c[1]+'" stop-opacity=".08"/></linearGradient></defs><path d="M32 3 54 12 59 31 52 47 32 61 12 47 5 31 10 12Z" fill="url(#'+id+'A)" stroke="'+c[1]+'" stroke-width="2.4"/><path d="M32 9 49 16 53 31 47 43 32 55 17 43 11 31 15 16Z" fill="url(#'+id+'B)" stroke="#fff" stroke-opacity=".65" stroke-width="1.2"/><path d="M32 15 37 25 48 27 40 35 42 47 32 41 22 47 24 35 16 27 27 25Z" fill="'+c[2]+'" stroke="'+c[1]+'" stroke-width="1.5"/><circle cx="32" cy="31" r="10.5" fill="'+c[0]+'" stroke="'+c[1]+'" stroke-width="1.4"/><text x="32" y="35" text-anchor="middle" font-family="Arial,sans-serif" font-size="'+(r.glyph.length>1?'10':'14')+'" font-weight="900" fill="#fff" stroke="#000" stroke-opacity=".28" stroke-width=".5" paint-order="stroke">'+r.glyph+'</text><path d="M17 13 20 18M47 13 44 18M12 34 17 35M52 34 47 35" stroke="#fff" stroke-opacity=".7" stroke-width="1.5" stroke-linecap="round"/></svg>';
+        }
+        function escapeLeaderboardText(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+        function renderPlayerRankBadge(uid){
+          const id=String(uid||''),p=competitiveProfiles.get(id),rating=id===currentUserId?getCompetitiveRating():Number(p?.rating??1000),rank=getCompetitiveRank(rating);
+          return '<span data-rank-player-id="'+escapeLeaderboardText(id)+'" class="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/55 px-1.5 py-0.5 text-[9px] font-black text-amber-100 whitespace-nowrap" title="'+rank.name+' · '+rating+' rating">'+renderRankEmblem(rank,18)+'<span>'+rank.name+'</span></span>';
+        }
+        function refreshRankBadgeElements(){document.querySelectorAll('[data-rank-player-id]').forEach(el=>{const uid=el.getAttribute('data-rank-player-id');el.outerHTML=renderPlayerRankBadge(uid)})}
         function competitiveSearchBand(waitSeconds=0){const radius=Math.min(500,150+Math.floor(Math.max(0,waitSeconds)/12)*50),rating=getCompetitiveRating();return {min:Math.max(0,rating-radius),max:rating+radius,radius}}
         function renderCompetitiveRank(){
           const rating=getCompetitiveRating(),rank=getCompetitiveRank(rating),idx=UNO_COMPETITIVE_RANKS.indexOf(rank),next=UNO_COMPETITIVE_RANKS[idx+1],progress=next?Math.max(0,Math.min(100,(rating-rank.min)/(next.min-rank.min)*100)):100,band=competitiveSearchBand();
           const name=document.getElementById('competitiveRankName'),score=document.getElementById('competitiveRankRating'),bar=document.getElementById('competitiveRankProgress'),nextEl=document.getElementById('competitiveRankNext'),delta=document.getElementById('competitiveRankDelta'),ladder=document.getElementById('competitiveRankLadder'),match=document.getElementById('competitiveMatchBand');
-          if(name)name.textContent=rank.icon+' '+rank.name;if(score)score.textContent=rating.toLocaleString('es-AR')+' puntos de rating';if(bar)bar.style.width=progress+'%';if(nextEl)nextEl.textContent=next?'Próximo: '+next.name+' · '+next.min+' pts':'¡Rango máximo alcanzado!';if(delta)delta.textContent=next?(next.min-rating)+' pts para ascender':'Nivel Leyenda';if(match)match.textContent='±'+band.radius+' rating · '+Math.floor(band.min)+'–'+Math.floor(band.max);
-          if(ladder)ladder.innerHTML=UNO_COMPETITIVE_RANKS.map((r,i)=>'<div class="rounded-lg border p-2 text-center '+(i<=idx?'border-amber-300/40 bg-amber-950/40 text-amber-200':'border-white/10 bg-black/30 text-zinc-500')+'"><div class="text-lg">'+r.icon+'</div><b class="block text-[10px]">'+r.name+'</b><span class="text-[9px]">'+r.min+'+</span></div>').join('');
+          if(name)name.innerHTML='<span class="inline-flex items-center gap-2">'+renderRankEmblem(rank,34)+'<span>'+rank.name+'</span></span>';if(score)score.textContent=rating.toLocaleString('es-AR')+' puntos de rating';if(bar)bar.style.width=progress+'%';if(nextEl)nextEl.textContent=next?'Próximo: '+next.name+' · '+next.min+' pts':'¡Rango máximo alcanzado!';if(delta)delta.textContent=next?(next.min-rating)+' pts para ascender':'Nivel Leyenda';if(match)match.textContent='±'+band.radius+' rating · '+Math.floor(band.min)+'–'+Math.floor(band.max);
+          if(ladder)ladder.innerHTML=UNO_COMPETITIVE_RANKS.map((r,i)=>'<div class="rounded-xl border p-2 text-center '+(i<=idx?'border-amber-300/40 bg-amber-950/40 text-amber-200':'border-white/10 bg-black/30 text-zinc-500')+'"><div class="flex justify-center">'+renderRankEmblem(r,34)+'</div><b class="block text-[10px] mt-1">'+r.name+'</b><span class="text-[9px]">'+r.min.toLocaleString('es-AR')+'+ pts</span></div>').join('');
+          refreshRankBadgeElements();
+        }
+        async function syncCompetitiveProfile(){
+          if(!firebaseReady||!db||!currentUser)return;
+          const uid=currentUser.uid,rating=getCompetitiveRating(),rank=getCompetitiveRank(rating),stats=getClubStats();
+          const profile={uid,name:String(state.playerName||currentUser.displayName||'Jugador').slice(0,24),rating,rankName:rank.name,rankTier:UNO_COMPETITIVE_RANKS.indexOf(rank),matches:Number(stats.matches||0),wins:Number(stats.wins||0),winRate:stats.matches?Math.round(stats.wins/stats.matches*100):0,avatar:state.playerAvatar||{},updatedAt:Date.now()};
+          await setDoc(doc(db,'artifacts',appId,'public','data','uno_leaderboard',uid),profile,{merge:true});competitiveProfiles.set(uid,profile);renderLeaderboardRows();refreshRankBadgeElements();
+        }
+        function renderLeaderboardRows(){
+          const body=document.getElementById('leaderboardRows');if(!body)return;const rows=Array.from(competitiveProfiles.values()).sort((a,b)=>(Number(b.rating)||0)-(Number(a.rating)||0)).slice(0,100);
+          if(!rows.length){body.innerHTML='<tr><td colspan="6" class="p-8 text-center text-zinc-500">Todavía no hay perfiles publicados. ¡Sé el primero!</td></tr>';return}
+          body.innerHTML=rows.map((p,i)=>{const rating=Math.max(0,Number(p.rating)||0),rank=getCompetitiveRank(rating),uid=escapeLeaderboardText(p.uid),name=escapeLeaderboardText(p.name||'Jugador');return '<tr class="'+(p.uid===currentUserId?'bg-amber-950/30':'bg-zinc-950/40')+' border-t border-white/5"><td class="p-3 font-black text-amber-200">'+(i+1)+'</td><td class="p-3"><b class="block text-white">'+name+'</b><code class="block mt-1 text-[9px] text-zinc-500 break-all">'+uid+'</code></td><td class="p-3"><span class="inline-flex items-center gap-1.5">'+renderRankEmblem(rank,28)+'<b class="text-amber-100">'+rank.name+'</b></span></td><td class="p-3 text-right font-black text-amber-200">'+rating.toLocaleString('es-AR')+'</td><td class="p-3 text-right">'+Number(p.matches||0).toLocaleString('es-AR')+'</td><td class="p-3 text-right text-emerald-300">'+Number(p.wins||0).toLocaleString('es-AR')+'</td></tr>'}).join('');
+        }
+        function startCompetitiveLeaderboardListener(){
+          if(!db||unsubscribeLeaderboard)return;const ref=query(collection(db,'artifacts',appId,'public','data','uno_leaderboard'),orderBy('rating','desc'),limit(100));
+          unsubscribeLeaderboard=onSnapshot(ref,snap=>{competitiveProfiles.clear();snap.forEach(d=>competitiveProfiles.set(d.id,{...d.data(),uid:d.id}));renderLeaderboardRows();refreshRankBadgeElements()},err=>{console.warn('Leaderboard Firebase:',err);const s=document.getElementById('leaderboardStatus');if(s)s.textContent='No se pudo leer el ranking. Revisá las reglas de Firestore.'});
+        }
+        async function openGlobalLeaderboard(){
+          document.getElementById('leaderboardModal')?.classList.remove('hidden');const status=document.getElementById('leaderboardStatus');if(status)status.textContent='Cargando clasificación global...';const ready=await initFirebase();
+          if(!ready){if(status)status.textContent='Firebase no está disponible. Probá de nuevo.';return}
+          try{const snap=await getDocs(query(collection(db,'artifacts',appId,'public','data','uno_leaderboard'),orderBy('rating','desc'),limit(100)));competitiveProfiles.clear();snap.forEach(d=>competitiveProfiles.set(d.id,{...d.data(),uid:d.id}));renderLeaderboardRows();if(status)status.textContent=competitiveProfiles.size+' jugadores en la clasificación'}catch(e){console.error(e);if(status)status.textContent='No se pudo cargar. Faltan reglas de lectura para el leaderboard.'}
         }
 
 
@@ -4698,6 +4739,7 @@
         function saveAvatarCfg() {
             try { localStorage.setItem('uno_player_avatar_cfg', JSON.stringify(state.playerAvatar)); } catch (e) {}
             updateAvatarStudioUI();
+            syncCompetitiveProfile().catch(()=>{});
         }
 
         // Inicializar controles de Inicio y Estudio de Avatar
@@ -4707,6 +4749,7 @@
             state.playerName = nameInput.value.trim() || 'Jugador';
             try { localStorage.setItem('uno_player_name', state.playerName); } catch (e) {}
         });
+        nameInput.addEventListener('change',()=>syncCompetitiveProfile().catch(()=>{}));
 
         document.querySelectorAll('.trait-cycle').forEach(btn => {
             btn.onclick = () => {
@@ -5184,6 +5227,7 @@
 
         // Botones del Menú Principal
         document.getElementById('btnOpenSettings').onclick=openClubSettings;document.getElementById('btnOpenSettingsGame').onclick=openClubSettings;document.getElementById('btnOpenStore').onclick=openClubStore;document.getElementById('btnOpenStoreGame').onclick=openClubStore;
+         document.getElementById('btnOpenLeaderboard')?.addEventListener('click',openGlobalLeaderboard);document.getElementById('btnCloseLeaderboard')?.addEventListener('click',()=>document.getElementById('leaderboardModal').classList.add('hidden'));document.getElementById('btnRefreshLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
         document.getElementById('btnClaimDailyReward')?.addEventListener('click',claimDailyReward);
         document.getElementById('clubOpenCollection')?.addEventListener('click',()=>document.getElementById('btnOpenStore')?.click());
         renderCompetitiveRank();renderDailyReward();
@@ -5431,7 +5475,7 @@
         });
 
         // Inicializar vista al cargar
-        updateAvatarStudioUI();updateClubWalletUI();loadClubSettings();
+        updateAvatarStudioUI();updateClubWalletUI();loadClubSettings();renderCompetitiveRank();
         showDeviceSetup(false);
         renderCurrentView();
 
@@ -5656,7 +5700,7 @@
             if(!snap.exists()){tcgOnlineSetStatus('Sala cerrada');showToast('La sala TCG fue cerrada.','warn');tcgOnlineExit(false);return;}
             const data=snap.data();tcgOnline.revision=data.revision||0;
             const info=document.getElementById('tcgOnlineRoomInfo');if(info)info.textContent='CÓDIGO: '+tcgOnline.code+' • '+(data.players||[]).filter(Boolean).length+'/2 jugadores • compartilo con tu hermano';
-            const players=data.players||[];const meLabel=document.getElementById('tcgMeLabel'),opLabel=document.getElementById('tcgOpponentLabel');if(meLabel)meLabel.textContent='🧑 '+(players[tcgOnline.seat]?.name||'Vos');if(opLabel)opLabel.textContent='⚔️ '+(players[1-tcgOnline.seat]?.name||'Rival');
+            const players=data.players||[];tcgOnline.players=players;const meLabel=document.getElementById('tcgMeLabel'),opLabel=document.getElementById('tcgOpponentLabel');if(meLabel)meLabel.textContent='🧑 '+(players[tcgOnline.seat]?.name||'Vos');if(opLabel)opLabel.textContent='⚔️ '+(players[1-tcgOnline.seat]?.name||'Rival');
             if(data.status==='waiting'){tcgOnlineSetStatus('Esperando rival…');return;}
             if(data.status!=='playing'||!data.battle)return;
             const raw=data.battle,me=raw.sides[tcgOnline.seat],op=raw.sides[1-tcgOnline.seat];if(!me||!op)return;
@@ -5886,6 +5930,7 @@
         function tcgBattleRender(){
           if(!tcgBattle)return;const b=tcgBattle,p=b.player,c=b.cpu;tcgShowBattleScreen();tcg3dRender(b);
           const meLabel=document.getElementById('tcgMeLabel'),opLabel=document.getElementById('tcgOpponentLabel');if(meLabel)meLabel.textContent=tcgOnline?'🧑 Tu equipo':'🧑 Tu equipo';if(opLabel)opLabel.textContent=tcgOnline?'⚔️ Rival online':'🤖 Rival IA';
+          const myRankHead=document.getElementById("tcgHeaderMyRank"),opRankHead=document.getElementById("tcgHeaderOpponentRank");if(myRankHead)myRankHead.innerHTML="TU RANGO "+renderPlayerRankBadge(currentUserId);const opponentUid=tcgOnline?.players?.[1-tcgOnline.seat]?.id;if(opRankHead)opRankHead.innerHTML=opponentUid?"RIVAL "+renderPlayerRankBadge(opponentUid):"RIVAL <span class=\"rounded-full border border-white/15 bg-black/40 px-2 py-1 text-zinc-300\">🤖 IA</span>";
           const cardView=(x,small=false)=>{if(!x)return '<div class="text-xs text-zinc-600 p-5">Espacio vacío</div>';const pct=Math.max(0,(x.hp-x.damage)/Math.max(1,x.maxHp)*100);const glow=({Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'})[x.type]||'#4338ca';const rarity=['V','EX','VMAX','VSTAR','Ultra Rare','Legendary'].includes(x.rarity);if(x.kind==='Character')return '<div class="tcg-card-3d '+(small?'tcg-board-card ':'')+(rarity?'tcg-card-rare ':'')+'"><div class="tcg-card-face tcg-pokemon-emoji-face" style="--tcg-glow:'+glow+'"><span class="tcg-pokemon-spark">✨ '+x.emoji+' ✨</span><div class="tcg-pokemon-big">'+x.emoji+'</div><span class="tcg-pokemon-spark">✦ '+x.emoji+' ✦</span></div><div class="tcg-pokemon-status">❤️ '+Math.max(0,x.hp-x.damage)+' / '+x.maxHp+'　⚡ '+x.energies.length+'</div></div>';return '<div class="tcg-card-3d '+(small?'tcg-board-card ':'')+(rarity?'tcg-card-rare ':'')+'"><div class="tcg-card-face" style="--tcg-glow:'+glow+'"><div class="tcg-card-meta"><span>'+x.rarity+'</span><span>'+x.type+'</span></div><span class="tcg-card-ribbon">'+(x.kind==='Energy'?'ENERGÍA':x.kind==='Supporter'?'ENTRENADOR':x.kind==='Stadium'?'ESTADIO':'OBJETO')+'</span><div class="tcg-card-art">'+x.emoji+'</div><b class="tcg-card-title">'+x.name+'</b></div></div>'};
           document.getElementById('tcgCpuActive').innerHTML='<div class="tcg-zone-label">POKÉMON ACTIVO</div>'+cardView(c.active);document.getElementById('tcgPlayerActive').innerHTML='<button type="button" data-tcg-energy-target="active" class="tcg-active-target"><span class="tcg-zone-label">POKÉMON ACTIVO · tocá para adjuntar energía</span>'+cardView(p.active)+'</button>';
           document.getElementById('tcgCpuBench').innerHTML=c.bench.map(x=>cardView(x,true)).join('');document.getElementById('tcgPlayerBench').innerHTML='<div class="tcg-zone-label w-full">TU BANCA · '+p.bench.length+'/5</div>'+p.bench.map((x,i)=>'<button class="tcg-bench-target" data-tcg-energy-target="'+i+'" data-tcg-bench="'+i+'"><span class="tcg-zone-label">'+(i+1)+'</span>'+cardView(x,true)+'</button>').join('');
@@ -6038,7 +6083,7 @@
 
     <div id="tcgBattleScreen" class="hidden fixed inset-0 z-[260]">
       <header class="tcg-match-header relative z-[6] flex min-h-[68px] items-center justify-between gap-3 px-3 sm:px-6 py-2">
-        <div class="min-w-0"><div class="font-uno text-xl sm:text-2xl text-cyan-200">UNO! <span class="text-amber-300">TCG</span></div><div class="text-[9px] sm:text-[10px] tracking-[.2em] text-cyan-100/60">ARENA DE COMBATE · PARTIDA EN CURSO</div></div>
+        <div class="min-w-0"><div class="font-uno text-xl sm:text-2xl text-cyan-200">UNO! <span class="text-amber-300">TCG</span></div><div class="text-[9px] sm:text-[10px] tracking-[.2em] text-cyan-100/60">ARENA DE COMBATE · PARTIDA EN CURSO</div><div class="mt-1 flex flex-wrap gap-2 text-[10px]"><span id="tcgHeaderMyRank" class="inline-flex items-center gap-1"></span><span id="tcgHeaderOpponentRank" class="inline-flex items-center gap-1"></span></div></div>
         <div class="flex items-center gap-1.5 sm:gap-2">
           <button id="tcgMatchSettings" class="tcg-match-action" title="Configuración">⚙️ <span class="hidden sm:inline">Configuración</span></button>
           <button id="tcgMatchPause" class="tcg-match-action" title="Pausar">Ⅱ <span class="hidden sm:inline">Pausa</span></button>
