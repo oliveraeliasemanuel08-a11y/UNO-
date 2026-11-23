@@ -675,7 +675,7 @@
 #tcgBattleArea .tcg-hand-card.tcg-energy-selected{transform:translateY(-17px);filter:drop-shadow(0 0 12px #facc15);outline:3px solid #facc15;outline-offset:3px;border-radius:13px}
 #tcgBattleArea .tcg-active-target,#tcgBattleArea .tcg-bench-target{cursor:pointer}
 #tcgMatchMenu{position:absolute;inset:68px 0 0;z-index:5;display:flex;align-items:center;justify-content:center;padding:18px;background:#020617bb;backdrop-filter:blur(10px)}
-#tcgMatchMenu.hidden{display:none}
+#tcgMatchMenu.hidden{display:none}\n#tcgBattleScreen.tcg-effects-off *,#tcgBattleScreen.tcg-effects-off *::before,#tcgBattleScreen.tcg-effects-off *::after{animation:none!important;transition:none!important}
 #tcgMatchMenu .tcg-match-panel{width:min(440px,100%);border:1px solid #67e8f966;border-radius:24px;background:linear-gradient(145deg,#102b3b,#080f1c);padding:22px;box-shadow:0 25px 80px #000c}
 .tcg-match-action{border:1px solid #ffffff24;border-radius:12px;padding:10px 14px;font-size:12px;font-weight:900;white-space:nowrap;background:#ffffff12}
 .tcg-match-action:hover{background:#ffffff22}
@@ -4786,7 +4786,7 @@
           const root=tcg3d.root,cards=tcg3d.cards,hitTargets=tcg3d.hitTargets;while(cards.children.length){const obj=cards.children.pop();obj.traverse?.(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m.map)m.map.dispose();m.dispose()})}})}while(hitTargets.children.length){const obj=hitTargets.children.pop();obj.geometry?.dispose();obj.material?.dispose()}
           const addTarget=(x,z,w,d,target)=>{const hit=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({transparent:true,opacity:.001,depthWrite:false,side:THREE.DoubleSide}));hit.rotation.x=-Math.PI/2;hit.position.set(x,.28,z);hit.userData.energyTarget=target;hitTargets.add(hit);if(b.selectedEnergy){const glow=new THREE.Mesh(new THREE.PlaneGeometry(w*.92,d*.92),new THREE.MeshBasicMaterial({color:'#facc15',transparent:true,opacity:.16,depthWrite:false,side:THREE.DoubleSide}));glow.rotation.x=-Math.PI/2;glow.position.set(x,.205,z);cards.add(glow);const edge=new THREE.Mesh(new THREE.BoxGeometry(w,.035,d),new THREE.MeshStandardMaterial({color:'#facc15',emissive:'#f59e0b',emissiveIntensity:1.1,transparent:true,opacity:.85}));edge.position.set(x,.19,z);cards.add(edge)}};
           const addCard=(card,x,z,scale=1,back=false)=>{if(!card&&!back)return;const tex=tcg3dCardTexture(card,back);const side=new THREE.MeshStandardMaterial({color:'#e8d8ae',roughness:.5});const face=new THREE.MeshStandardMaterial({map:tex,roughness:.42});const mesh=new THREE.Mesh(new THREE.BoxGeometry(1.22*scale,.075,1.72*scale),[side,side,face,side,side,side]);mesh.position.set(x,.24,z);mesh.rotation.x=-.13;mesh.castShadow=true;mesh.receiveShadow=true;cards.add(mesh);const shadow=new THREE.Mesh(new THREE.PlaneGeometry(1.35*scale,1.85*scale),new THREE.ShadowMaterial({opacity:.25}));shadow.rotation.x=-Math.PI/2;shadow.position.set(x,.145,z);cards.add(shadow)};
-          addCard(c.active,0,-3.35,1.08);addTarget(0,-3.35,1.9,2.35,'opponent');c.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,-1.55,.67);x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.55+(j%2)*.28,-2.15-Math.floor(j/2)*.28,.27));});c.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),-1.12-(j%3)*.34,-3.25-Math.floor(j/3)*.45,.32));addCard(p.active,0,3.35,1.08);addTarget(0,3.35,1.9,2.35,'active');p.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,1.55,.67);addTarget(bx,1.55,1.48,1.55,String(i));x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.55+(j%2)*.28,2.12+Math.floor(j/2)*.28,.27));});p.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),1.12+(j%3)*.34,3.25+Math.floor(j/3)*.45,.32));
+          addCard(c.active,0,-3.35,1.08);c.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,-1.55,.67);x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.55+(j%2)*.28,-2.15-Math.floor(j/2)*.28,.27));});c.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),-1.12-(j%3)*.34,-3.25-Math.floor(j/3)*.45,.32));addCard(p.active,0,3.35,1.08);addTarget(0,3.35,1.9,2.35,'active');p.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,1.55,.67);addTarget(bx,1.55,1.48,1.55,String(i));x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.55+(j%2)*.28,2.12+Math.floor(j/2)*.28,.27));});p.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),1.12+(j%3)*.34,3.25+Math.floor(j/3)*.45,.32));
           for(let i=0;i<Math.min(4,p.deck.length);i++)addCard(null,5.55,3.3-i*.045,.56,true);for(let i=0;i<Math.min(4,c.deck.length);i++)addCard(null,-5.55,-3.3+i*.045,.56,true);
           for(let i=0;i<Math.min(6,p.prizes);i++)addCard(null,5.45+(i%2)*.38,1.2+Math.floor(i/2)*.42,.35,true);for(let i=0;i<Math.min(6,c.prizes);i++)addCard(null,-5.45-(i%2)*.38,-1.2-Math.floor(i/2)*.42,.35,true);
         }
@@ -4879,7 +4879,7 @@
           if(tcgOnline)tcgOnlineExit(true);
           tcgBattle=null;tcgHideBattleScreen(true);
         });
-        document.getElementById('tcgMatchSound')?.addEventListener('change',e=>{window.tcgMatchSoundEnabled=!!e.target.checked;});
+        document.getElementById('tcgMatchSound')?.addEventListener('change',e=>{document.getElementById('tcgBattleScreen')?.classList.toggle('tcg-effects-off',!e.target.checked);});
     </script>
 
     <div id="unoTcgModal" class="hidden fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
@@ -4953,7 +4953,7 @@
           <div class="text-[10px] tracking-[.25em] text-cyan-300 font-black">MENÚ DE PARTIDA</div>
           <h2 class="font-uno text-3xl text-white mt-1">Pausa y configuración</h2>
           <p class="text-xs text-slate-300 mt-2">La partida queda en esta pantalla. Podés continuar cuando quieras.</p>
-          <label class="flex items-center justify-between gap-3 rounded-xl bg-white/5 p-3 mt-4 text-sm"><span>✨ Efectos y animaciones</span><input id="tcgMatchSound" type="checkbox" checked class="h-5 w-5 accent-cyan-400"></label>
+          <label class="flex items-center justify-between gap-3 rounded-xl bg-white/5 p-3 mt-4 text-sm"><span>✨ Efectos visuales y animaciones</span><input id="tcgMatchSound" type="checkbox" checked class="h-5 w-5 accent-cyan-400"></label>
           <div class="grid grid-cols-2 gap-2 mt-4">
             <button id="tcgMatchResume" class="tcg-match-action tcg-match-primary">▶ Continuar</button>
             <button id="tcgMatchLeave" class="tcg-match-action text-rose-200 border-rose-400/40">🚪 Abandonar</button>
