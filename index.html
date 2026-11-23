@@ -668,12 +668,24 @@
 #tcgBattleViewport{height:calc(100dvh - 68px);overflow:auto;overscroll-behavior:contain;padding:12px clamp(8px,2vw,28px) 24px}
 #tcgBattleViewport>#tcgBattleArea{display:flex;flex-direction:column;gap:14px;max-width:1500px;margin:0 auto}
 #tcgBattleArea>.tcg-arena{width:100%;padding:clamp(8px,1.5vw,18px);border-radius:24px;background:radial-gradient(ellipse at 50% 42%,#174e48 0%,#0b2530 58%,#06101a 100%);border:1px solid #6ee7b755;box-shadow:inset 0 0 55px #34d39916,0 24px 65px #0009}
-#tcgThreeBoard{height:clamp(440px,57vh,690px);min-height:440px;border:1px solid #f7d98b55;border-radius:18px;box-shadow:inset 0 0 35px #0008,0 12px 34px #0008}
+#tcgThreeBoard{height:clamp(500px,66vh,760px);min-height:500px;position:relative;overflow:hidden;border:1px solid #f7d98b55;border-radius:18px;box-shadow:inset 0 0 35px #0008,0 12px 34px #0008}
+#tcgThreeBoard .tcg-hand-overlay{position:absolute;z-index:4;left:0;right:0;bottom:8px;display:flex;justify-content:center;align-items:flex-end;gap:clamp(3px,.65vw,10px);padding:8px 12px 10px;overflow-x:auto;overflow-y:visible;pointer-events:auto;scrollbar-width:thin;background:linear-gradient(0deg,#03121fee 0%,#03121fbb 72%,transparent 100%);touch-action:pan-x}
+#tcgThreeBoard .tcg-hand-overlay button{position:relative;flex:0 0 clamp(66px,7.4vw,104px);width:clamp(66px,7.4vw,104px);aspect-ratio:2.5/3.5;border:2px solid #e8d7a4;border-radius:10px;padding:4px;background:linear-gradient(145deg,#fff7d6,#b9a5ff 38%,#172554 72%,#080b18);box-shadow:0 8px 18px #000b;transform:translateY(0);transition:transform .14s ease,border-color .14s ease;cursor:pointer;color:white}
+#tcgThreeBoard .tcg-hand-overlay button:active{transform:translateY(-12px) scale(1.04)}
+#tcgThreeBoard .tcg-hand-overlay button.selected{transform:translateY(-15px);border-color:#facc15;box-shadow:0 0 0 2px #facc15,0 0 18px #facc15aa}
+#tcgThreeBoard .tcg-hand-overlay .hand-face{height:100%;border-radius:6px;padding:5px 3px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;background:radial-gradient(circle at 50% 36%,var(--hand-glow,#4338ca),#111827 72%);overflow:hidden}
+#tcgThreeBoard .tcg-hand-overlay .hand-meta{width:100%;display:flex;justify-content:space-between;font-size:clamp(6px,.62vw,9px);font-weight:900;gap:2px}
+#tcgThreeBoard .tcg-hand-overlay .hand-emoji{font-size:clamp(22px,3vw,39px);line-height:1.1;text-shadow:0 4px 8px #000}
+#tcgThreeBoard .tcg-hand-overlay .hand-name{font-size:clamp(7px,.75vw,10px);font-weight:900;line-height:1.05;text-align:center;overflow-wrap:anywhere}
+#tcgThreeBoard .tcg-hand-overlay .hand-kind{font-size:clamp(6px,.6vw,8px);font-weight:900;color:#fde68a}
+#tcgThreeBoard .tcg-deck-hint{position:absolute;z-index:3;right:12px;bottom:clamp(145px,19vh,190px);padding:5px 8px;border-radius:8px;background:#06131dcc;color:#fef3c7;font-size:10px;font-weight:900;pointer-events:none}
+@media(max-width:640px){#tcgThreeBoard{height:560px;min-height:560px}#tcgThreeBoard .tcg-hand-overlay{justify-content:flex-start;padding:8px 8px 10px}#tcgThreeBoard .tcg-hand-overlay button{flex-basis:clamp(67px,17vw,88px);width:clamp(67px,17vw,88px)}}
 #tcgBattleArea #tcgPlayerHand{min-height:170px;align-items:flex-end;padding:12px 10px 20px}
 #tcgBattleArea .tcg-hand-card{flex:0 0 105px;transition:transform .18s ease,filter .18s ease;cursor:pointer}
 #tcgBattleArea .tcg-hand-card:hover{transform:translateY(-13px) scale(1.04);z-index:5}
 #tcgBattleArea .tcg-hand-card.tcg-energy-selected{transform:translateY(-17px);filter:drop-shadow(0 0 12px #facc15);outline:3px solid #facc15;outline-offset:3px;border-radius:13px}
 #tcgBattleArea .tcg-active-target,#tcgBattleArea .tcg-bench-target{cursor:pointer}
+#tcgAttackPicker{display:flex}#tcgAttackPicker.hidden{display:none}#tcgAttackPicker .tcg-attack-dialog{width:min(390px,100%);max-height:85vh;overflow:auto;border:1px solid #fbbf2466;border-radius:22px;background:linear-gradient(145deg,#172b3b,#080f1c);padding:20px;box-shadow:0 25px 80px #000d}
 #tcgMatchMenu{position:absolute;inset:68px 0 0;z-index:5;display:flex;align-items:center;justify-content:center;padding:18px;background:#020617bb;backdrop-filter:blur(10px)}
 #tcgMatchMenu.hidden{display:none}
 #tcgBattleScreen.tcg-effects-off *,#tcgBattleScreen.tcg-effects-off *::before,#tcgBattleScreen.tcg-effects-off *::after{animation:none!important;transition:none!important}
@@ -4782,7 +4794,7 @@
             const scene=new THREE.Scene();scene.background=new THREE.Color('#07191d');
             const camera=new THREE.PerspectiveCamera(37,1,.1,100);camera.position.set(0,12,17);camera.lookAt(0,0,0);
             const renderer=new THREE.WebGLRenderer({antialias:false,alpha:false,powerPreference:'low-power',stencil:false,depth:true});
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=false;host.replaceChildren(renderer.domElement);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=false;host.replaceChildren(renderer.domElement);const handOverlay=document.createElement('div');handOverlay.className='tcg-hand-overlay';handOverlay.id='tcgHandOverlay';host.appendChild(handOverlay);const deckHint=document.createElement('div');deckHint.className='tcg-deck-hint';deckHint.textContent='🂠 TOCÁ EL MAZO PARA ROBAR';host.appendChild(deckHint);
             scene.add(new THREE.HemisphereLight('#d8f4ff','#10251d',1.8));
             const key=new THREE.DirectionalLight('#fff1c9',2.1);key.position.set(-5,12,8);scene.add(key);
             const rim=new THREE.PointLight('#42d9ff',22,22);rim.position.set(5,5,-5);scene.add(rim);
@@ -4801,8 +4813,7 @@
             renderer.domElement.addEventListener('pointerup',ev=>{
               const rect=renderer.domElement.getBoundingClientRect();pointer.x=((ev.clientX-rect.left)/rect.width)*2-1;pointer.y=-((ev.clientY-rect.top)/rect.height)*2+1;
               raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(tcg3d.hitTargets.children,false)[0];if(!hit)return;
-              if(hit.object.userData.handIndex!==undefined)tcgPlayFromHand(hit.object.userData.handIndex);
-              else if(hit.object.userData.energyTarget!==undefined)tcgHandleBoardTarget(hit.object.userData.energyTarget);
+              if(hit.object.userData.energyTarget!==undefined)tcgHandleBoardTarget(hit.object.userData.energyTarget);
             },{passive:true});
             const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);renderer.render(scene,camera)};
             tcg3d.resize=resize;if(window.ResizeObserver){tcg3d.resizeObserver=new ResizeObserver(resize);tcg3d.resizeObserver.observe(host)}else window.addEventListener('resize',resize,{passive:true});resize();
@@ -4827,15 +4838,14 @@
           addCard(c.active,0,-3.35,1.02);
           c.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,-1.55,.63);x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.48+(j%2)*.25,-2.05-Math.floor(j/2)*.23,.23))});
           c.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),-1.05-(j%3)*.3,-3.2-Math.floor(j/3)*.36,.27));
-          addCard(p.active,0,3.25,1.02);addTarget(0,3.25,1.85,2.05,'active');
+          addCard(p.active,0,3.25,1.02);addTarget(0,3.25,1.85,2.05,'active');addTarget(5.55,3.3,1.35,1.55,'deck');
           p.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,1.42,.63);addTarget(bx,1.42,1.35,1.45,String(i));x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.48+(j%2)*.25,1.9+Math.floor(j/2)*.23,.23))});
           p.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),1.05+(j%3)*.3,3.17+Math.floor(j/3)*.36,.27));
           for(let i=0;i<Math.min(4,p.deck.length);i++)addCard(null,5.55,3.3-i*.045,.5,true);
           for(let i=0;i<Math.min(4,c.deck.length);i++)addCard(null,-5.55,-3.3+i*.045,.5,true);
           for(let i=0;i<Math.min(6,p.prizes);i++)addCard(null,5.45+(i%2)*.38,1.2+Math.floor(i/2)*.42,.32,true);
           for(let i=0;i<Math.min(6,c.prizes);i++)addCard(null,-5.45-(i%2)*.38,-1.2-Math.floor(i/2)*.42,.32,true);
-          const hand=p.hand.slice(0,12),spacing=Math.min(.88,8.4/Math.max(1,hand.length)),startX=-(hand.length-1)*spacing/2;
-          hand.forEach((id,i)=>addCard(tcgCard(id),startX+i*spacing,4.55,.49,false,i));
+          const overlay=document.getElementById('tcgHandOverlay');if(overlay){const colors={Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'};overlay.innerHTML=p.hand.map((id,i)=>{const card=tcgCard(id);if(!card)return '';const kind=card.kind==='Character'?'POKÉMON':card.kind==='Energy'?'ENERGÍA':card.kind==='Supporter'?'ENTRENADOR':card.kind==='Stadium'?'ESTADIO':'OBJETO';return '<button type="button" data-tcg-hand-index="'+i+'" class="'+(b.selectedEnergy===id?'selected':'')+'" aria-label="'+card.name+'"><span class="hand-face" style="--hand-glow:'+(colors[card.type]||'#4338ca')+'"><span class="hand-meta"><span>'+card.rarity+'</span><span>'+card.type+'</span></span><span class="hand-emoji">'+card.emoji+'</span><b class="hand-name">'+card.name+'</b><span class="hand-kind">'+kind+'</span></span></button>'}).join('');overlay.querySelectorAll('[data-tcg-hand-index]').forEach(btn=>btn.addEventListener('click',()=>tcgPlayFromHand(Number(btn.dataset.tcgHandIndex))))}
           tcg3d.renderer.render(tcg3d.scene,tcg3d.camera);
         }
 
@@ -4848,12 +4858,9 @@
           document.getElementById('tcgCpuPrizes').textContent=c.prizes+' premios';document.getElementById('tcgPlayerPrizes').textContent=p.prizes+' premios';
           document.getElementById('tcgBattleTurn').textContent=b.over?'Partida terminada':b.turn==='player'?'🟢 Tu turno':(tcgOnline?'🔴 Turno del rival':'Turno de la IA');document.getElementById('tcgBattleStatus').textContent=b.over?'Duelo finalizado':b.turn!=='player'?(tcgOnline?'Esperando la jugada del rival…':'La IA está jugando…'):b.phase==='draw'?'Robá una carta para comenzar':b.phase==='main'?'Jugá cartas, adjuntá energía y atacá':'Turno terminado';
           document.getElementById('tcgBattleLog').innerHTML=b.log.map(x=>'<div>• '+x+'</div>').join('');
-          document.getElementById('tcgPlayerHand').replaceChildren(); // Las cartas de la mano se dibujan directamente en el tablero WebGL.
+          document.getElementById('tcgPlayerHand').replaceChildren();
           document.getElementById('tcgHandCount').textContent=p.hand.length+' cartas • mazo '+p.deck.length;
-          ['tcgDrawTurn','tcgAttachEnergy','tcgRetreat','tcgEndTurn'].forEach(id=>document.getElementById(id).disabled=b.over||b.turn!=='player');
-          const attackButton=document.getElementById('tcgAttack');if(attackButton)attackButton.disabled=b.over||b.turn!=='player'||b.phase!=='main';
-          document.getElementById('tcgDrawTurn').disabled=b.over||b.turn!=='player'||b.phase!=='draw';
-          document.getElementById('tcgAttachEnergy').disabled=b.over||b.turn!=='player'||b.phase!=='main'||p.energyAttached;
+          document.getElementById('tcgEndTurn').disabled=b.over||b.turn!=='player';
           document.querySelectorAll('[data-tcg-energy-target]').forEach(el=>el.onclick=()=>{if(b.selectedEnergy){tcgAttachEnergy(el.dataset.tcgEnergyTarget==='active'?'active':el.dataset.tcgEnergyTarget);return}if(el.hasAttribute('data-tcg-bench')&&b.turn==='player'&&b.phase==='main'){const i=Number(el.dataset.tcgBench);if(!p.bench[i])return;[p.active,p.bench[i]]=[p.bench[i],p.active];tcgLog('Promoviste '+p.active.name+' al puesto Activo.');tcgBattleRender()}});
           if(tcgOnline&&!tcgApplyingRemote)tcgOnlinePublish();
         }
@@ -4866,7 +4873,8 @@
           else if(c.kind==='Stadium'){b.stadium=id;p.hand.splice(i,1);p.discard.push(id);tcgLog('Estadio en juego: '+c.name)}
           else {showToast('Esta carta no se juega directamente.','warn');return}tcgBattleRender()}
         function tcgAttachEnergy(target='active'){const b=tcgBattle;if(!b||b.over||b.turn!=='player'||b.phase!=='main'||b.player.energyAttached)return;const p=b.player;let id=b.selectedEnergy;if(!id){const ix=p.hand.findIndex(cid=>tcgCard(cid)?.kind==='Energy');if(ix<0){showToast('No tenés energías en la mano.','warn');return}id=p.hand[ix];b.selectedEnergy=id;showToast('Energía elegida: tocá tu Pokémon Activo o uno de la Banca para adjuntarla.','success');tcgBattleRender();return}const ix=p.hand.indexOf(id);if(ix<0){b.selectedEnergy=null;return}let recipient=target==='active'?p.active:p.bench[Number(target)];if(!recipient){showToast('Elegí un Pokémon válido de tu campo.','warn');return}p.hand.splice(ix,1);recipient.energies.push(id);p.energyAttached=true;b.selectedEnergy=null;tcgLog('Adjuntaste '+(tcgCard(id)?.name||'una energía')+' a '+recipient.name+'.');tcgBattleRender()}
-        function tcgAttack(){const b=tcgBattle;if(!b||b.over||b.turn!=='player'||b.phase!=='main')return;const p=b.player,active=p.active,attacks=TCG_ATTACKS[active.id]||[];const atk=attacks.find(a=>active.energies.length>=a[1]);if(!atk){showToast('No tenés energía suficiente para atacar.','warn');return}const target=b.cpu.active;target.damage+=atk[2];tcgLog(active.name+' usó '+atk[0]+' e hizo '+atk[2]+' de daño.');if(target.damage>=target.hp){b.cpu.discard.push(target.id);if(b.cpu.prizes>0)b.cpu.prizes--;if(b.cpu.bench.length){b.cpu.active=b.cpu.bench.shift();tcgLog('El rival promocionó un personaje de su banca.')}else{tcgBattleFinish('player');return}}if(b.cpu.prizes<=0){tcgBattleFinish('player');return}b.phase='attackDone';tcgBattleRender()}
+        function tcgChooseAttack(){const b=tcgBattle;if(!b||b.over||b.turn!=='player'||b.phase!=='main')return;const active=b.player.active,all=TCG_ATTACKS[active.id]||[],available=all.filter(a=>active.energies.length>=a[1]);const options=available.length?available:[[active.abilityName||'Habilidad básica',0,20]];const panel=document.getElementById('tcgAttackPicker');if(!panel)return;panel.innerHTML='<div class="tcg-attack-dialog"><div class="text-xs font-black tracking-widest text-amber-300">ELEGÍ TU ATAQUE</div><h3 class="font-uno text-2xl mt-1">'+active.name+'</h3><p class="text-xs text-slate-300 mt-1">Energías adjuntas: '+active.energies.length+'</p><div class="grid gap-2 mt-4">'+options.map((a,i)=>'<button type="button" data-attack-choice="'+i+'" class="rounded-xl border border-amber-300/30 bg-slate-800 p-3 text-left"><b>'+a[0]+'</b><span class="float-right text-amber-200">'+a[2]+' daño</span><small class="block text-slate-400">Costo: '+a[1]+' energía'+(a[1]===1?'':'s')+'</small></button>').join('')+'</div><button id="tcgAttackCancel" class="mt-3 w-full rounded-lg bg-white/10 p-2 text-xs">Cancelar</button></div>';panel.classList.remove('hidden');panel.querySelectorAll('[data-attack-choice]').forEach(btn=>btn.onclick=()=>{const a=options[Number(btn.dataset.attackChoice)];panel.classList.add('hidden');tcgAttack(a)});document.getElementById('tcgAttackCancel').onclick=()=>panel.classList.add('hidden')}
+        function tcgAttack(chosen){const b=tcgBattle;if(!b||b.over||b.turn!=='player'||b.phase!=='main')return;const active=b.player.active,attacks=TCG_ATTACKS[active.id]||[],atk=chosen||attacks.find(a=>active.energies.length>=a[1]);if(!atk){showToast('No hay un ataque disponible.','warn');return}if(active.energies.length<atk[1]){showToast('No tenés energía suficiente.','warn');return}const target=b.cpu.active;target.damage+=atk[2];tcgLog(active.name+' usó '+atk[0]+' e hizo '+atk[2]+' de daño.');if(target.damage>=target.hp){b.cpu.discard.push(target.id);if(b.cpu.prizes>0)b.cpu.prizes--;if(b.cpu.bench.length){b.cpu.active=b.cpu.bench.shift();tcgLog('El rival promocionó un personaje de su banca.')}else{tcgBattleFinish('player');return}}if(b.cpu.prizes<=0){tcgBattleFinish('player');return}b.phase='attackDone';tcgBattleRender()}
         function tcgBattleFinish(winner){const b=tcgBattle;b.over=true;const el=document.getElementById('tcgBattleResult');el.classList.remove('hidden');el.innerHTML=tcgOnline?'<div class="text-2xl">🏁 ¡Duelo terminado!</div><p class="text-sm mt-1">La partida PvP llegó a su final.</p>':winner==='player'?'<div class="text-2xl">🏆 ¡VICTORIA!</div><p class="text-sm mt-1">Ganaste el duelo de prueba contra la IA.</p>':'<div class="text-2xl">🤖 La IA ganó</div><p class="text-sm mt-1">¡Probá otro mazo y volvé a intentarlo!</p>';tcgLog(winner==='player'?'¡Ganaste la partida!':'La IA ganó la partida.');tcgBattleRender()}
         function tcgEndPlayerTurn(){const b=tcgBattle;if(!b||b.over||b.turn!=='player')return;if(b.phase!=='attackDone'){if(b.phase==='draw'){tcgDrawTurn();}if(b.phase==='main'){showToast('Podés atacar antes de terminar el turno.','warn');return}}b.turn='cpu';b.phase='draw';if(tcgOnline&&b.cpu){b.cpu.energyAttached=false;b.cpu.playedSupporter=false;b.cpu.turnDrawn=false;}tcgBattleRender();if(tcgOnline){tcgOnlinePublish();return}setTimeout(tcgCpuTurn,650)}
         function tcgCpuTurn(){const b=tcgBattle;if(!b||b.over)return;const c=b.cpu;if(c.deck.length)c.hand.push(c.deck.pop());let ei=c.hand.findIndex(id=>tcgCard(id)?.kind==='Energy');if(ei>=0)c.active.energies.push(c.hand.splice(ei,1)[0]);let bi=c.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id).rarity==='Basic');if(bi>=0&&c.bench.length<5)c.bench.push(tcgCardInstance(c.hand.splice(bi,1)[0]));const atk=(TCG_ATTACKS[c.active.id]||[]).find(a=>c.active.energies.length>=a[1]);if(atk){b.player.active.damage+=atk[2];tcgLog('La IA usó '+atk[0]+' e hizo '+atk[2]+' de daño.');if(b.player.active.damage>=b.player.active.hp){if(b.player.prizes>0)b.player.prizes--;if(b.player.bench.length){b.player.active=b.player.bench.shift();tcgLog('Tu personaje activo cayó: elegí uno de la banca en tu próximo turno.')}else{tcgBattleFinish('cpu');return}}}b.turn='player';b.phase='draw';b.player.energyAttached=false;b.player.playedSupporter=false;b.selectedEnergy=null;tcgBattleRender()}
@@ -4876,7 +4884,7 @@
         document.getElementById('tcgLeaveOnline').onclick=()=>tcgOnlineExit(true);
         document.getElementById('tcgDrawTurn').onclick=tcgDrawTurn;document.getElementById('tcgAttachEnergy').onclick=tcgAttachEnergy;document.getElementById('tcgEndTurn').onclick=tcgEndPlayerTurn;
         document.getElementById('tcgRetreat').onclick=()=>{const b=tcgBattle;if(!b||b.turn!=='player'||b.phase!=='main'||!b.player.bench.length)return;const cost=b.player.active.energies.length?1:0;if(b.player.active.energies.length<cost){showToast('No tenés energía para retirarte.','warn');return}const old=b.player.active;b.player.active=b.player.bench.shift();if(cost)old.energies.pop();b.player.bench.push(old);tcgLog('Retiraste al personaje activo.');tcgBattleRender()};
-        const tcgAttackBtn=document.createElement('button');tcgAttackBtn.id='tcgAttack';tcgAttackBtn.className='rounded-lg bg-rose-700 p-2 text-xs font-bold';tcgAttackBtn.textContent='⚔️ Atacar';document.getElementById('tcgEndTurn').parentElement.insertBefore(tcgAttackBtn,document.getElementById('tcgEndTurn'));tcgAttackBtn.onclick=tcgAttack;
+        /* El ataque se selecciona tocando el Pokémon activo. */
 
         // La arena se desacopla del lobby: el HUD de partida vive en su propia pantalla.
         let tcgBattleAnchor=null;
@@ -4901,7 +4909,9 @@
         }
         function tcgHandleBoardTarget(target){
           const b=tcgBattle;if(!b||b.over||b.turn!=='player'||b.phase!=='main')return;
+          if(target==='deck'){if(b.phase==='draw')tcgDrawTurn();else showToast('Ya robaste este turno.','warn');return;}
           if(b.selectedEnergy){tcgAttachEnergy(target);return;}
+          if(target==='active'){tcgChooseAttack();return;}
           if(target!=='active'){
             const i=Number(target),p=b.player;if(!Number.isInteger(i)||!p.bench[i])return;
             [p.active,p.bench[i]]=[p.bench[i],p.active];tcgLog('Promoviste '+p.active.name+' al puesto Activo.');tcgBattleRender();
@@ -4975,8 +4985,8 @@
                 <div class="tcg-side tcg-self rounded-xl bg-emerald-950/30 border border-emerald-400/20 p-3"><div class="flex justify-between text-xs"><b id="tcgMeLabel">🧑 Tu equipo</b><span id="tcgPlayerPrizes">6 premios</span></div><div id="tcgPlayerActive" class="mt-2 min-h-24"></div><div id="tcgPlayerBench" class="tcg-bench-row flex gap-2 flex-wrap mt-2"></div><div class="tcg-zone-strip"><span>🂠 MAZO</span><span>🏆 PREMIOS: 6</span><span>🗑️ DESCARTE</span></div></div>
               </div></div><div class="tcg-board-bottomline">TU LADO DEL CAMPO · ADJUNTÁ ENERGÍA Y PREPARÁ TU ATAQUE</div></div>
               <div class="rounded-xl bg-zinc-950/80 border border-white/10 p-3"><div class="flex flex-wrap justify-between gap-2 text-xs"><b id="tcgBattleTurn">Tu turno</b><span id="tcgBattleStatus" class="text-cyan-200">Preparando partida...</span></div><div id="tcgBattleLog" class="text-[11px] text-zinc-400 mt-2 max-h-20 overflow-y-auto"></div></div>
-              <div class="rounded-xl bg-black/30 border border-white/10 p-3"><div class="flex justify-between items-center"><b class="text-sm">Tu mano · cartas integradas en la mesa 3D</b><span id="tcgHandCount" class="text-xs text-zinc-400"></span></div><div id="tcgPlayerHand" class="flex gap-2 overflow-x-auto py-3"></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button id="tcgDrawTurn" class="rounded-lg bg-sky-700 p-2 text-xs font-bold">Robar carta</button><button id="tcgAttachEnergy" class="rounded-lg bg-amber-600 p-2 text-xs font-bold">Adjuntar energía</button><button id="tcgRetreat" class="rounded-lg bg-zinc-700 p-2 text-xs font-bold">Retirar activo</button><button id="tcgEndTurn" class="rounded-lg bg-emerald-700 p-2 text-xs font-bold">Terminar turno</button></div></div>
-              <div id="tcgBattleResult" class="hidden rounded-xl bg-amber-950/50 border border-amber-300/30 p-4 text-center"></div>
+              <div class="rounded-xl bg-black/30 border border-white/10 p-3"><div class="flex justify-between items-center"><b class="text-sm">Tu mano · cartas integradas en la mesa 3D</b><span id="tcgHandCount" class="text-xs text-zinc-400"></span></div><div id="tcgPlayerHand" class="flex gap-2 overflow-x-auto py-3"></div><div class="flex justify-end"><button id="tcgEndTurn" class="rounded-lg bg-emerald-700 px-4 py-2 text-xs font-bold">Terminar turno</button></div></div>
+              <div id="tcgBattleResult" class="hidden rounded-xl bg-amber-950/50 border border-amber-300/30 p-4 text-center"></div><div id="tcgAttackPicker" class="hidden fixed inset-0 z-[280] items-center justify-center bg-black/75 p-4"></div>
             </div>
           </section>
           </section>
