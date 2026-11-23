@@ -4557,6 +4557,8 @@
         document.getElementById('tcgDrawTurn').onclick=tcgDrawTurn;document.getElementById('tcgAttachEnergy').onclick=tcgAttachEnergy;document.getElementById('tcgEndTurn').onclick=tcgEndPlayerTurn;
         document.getElementById('tcgRetreat').onclick=()=>{const b=tcgBattle;if(!b||b.turn!=='player'||b.phase!=='main'||!b.player.bench.length)return;const cost=b.player.active.energies.length?1:0;if(b.player.active.energies.length<cost){showToast('No tenés energía para retirarte.','warn');return}const old=b.player.active;b.player.active=b.player.bench.shift();if(cost)old.energies.pop();b.player.bench.push(old);tcgLog('Retiraste al personaje activo.');tcgBattleRender()};
         const tcgAttackBtn=document.createElement('button');tcgAttackBtn.id='tcgAttack';tcgAttackBtn.className='rounded-lg bg-rose-700 p-2 text-xs font-bold';tcgAttackBtn.textContent='⚔️ Atacar';document.getElementById('tcgEndTurn').parentElement.insertBefore(tcgAttackBtn,document.getElementById('tcgEndTurn'));tcgAttackBtn.onclick=tcgAttack;
+    </scr
+
     <div id="unoTcgModal" class="hidden fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
       <div class="max-w-5xl mx-auto rounded-3xl border border-fuchsia-400/30 bg-gradient-to-br from-zinc-900 via-slate-950 to-fuchsia-950/30 shadow-2xl">
         <div class="flex items-center justify-between gap-3 p-5 border-b border-white/10">
@@ -4606,8 +4608,7 @@
         </div>
       </div>
     </div>
-
-    </script>
+ipt>
 
 </body>
 </html>
