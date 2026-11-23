@@ -4589,14 +4589,15 @@
         function arcadeStartAgain(){if(arcade.mode)arcadeOpenGame(arcade.mode);}
 
         // UNO! POK — Texas Hold'em con fichas virtuales y evaluación real de manos.
-        function pokerDeck(){const suits=['♠','♥','♦','♣'],d=[];for(const suit of suits)for(let v=2;v<=14;v++)d.push({v,suit});return arcadeShuffle(d);}
-        function pokerCard(c){const red=c.suit==='♥'||c.suit==='♦';const v=c.v===14?'A':c.v===13?'K':c.v===12?'Q':c.v===11?'J':c.v;return '<div class="arcade-poker-card '+(red?'red':'')+'"><span class="poker-corner">'+v+'<br>'+c.suit+'</span><span class="poker-center">'+c.suit+'</span><span class="poker-corner bottom">'+v+'<br>'+c.suit+'</span></div>';}
+        function pokerDeck(){const rank={skip:10,reverse:11,draw2:12,wild:13,wild_draw4:14};return arcadeUnoDeck().map(c=>({...c,v:Number.isFinite(Number(c.value))?Number(c.value):(rank[c.value]||0),suit:c.color}));}
+        function pokerCard(c){return arcadeUnoCard({...c,color:c.color||c.suit,value:c.value??String(c.v)},false,'arcade-poker-uno');}
         function pokerCombos(a,k){if(k===0)return [[]];if(a.length<k)return [];const [h,...tail]=a;return pokerCombos(tail,k-1).map(x=>[h,...x]).concat(pokerCombos(tail,k));}
         function pokerEval5(cards){
           const vals=cards.map(c=>c.v).sort((a,b)=>b-a),counts={};vals.forEach(v=>counts[v]=(counts[v]||0)+1);
           const groups=Object.entries(counts).map(([v,n])=>({v:Number(v),n})).sort((a,b)=>b.n-a.n||b.v-a.v);
           const flush=cards.every(c=>c.suit===cards[0].suit);const uniq=[...new Set(vals)];let straight=0;
           if(uniq.length===5){if(uniq[0]-uniq[4]===4)straight=uniq[0];else if(uniq.join(',')==='14,5,4,3,2')straight=5;}
+          if(groups[0].n===5)return [9,groups[0].v];
           if(flush&&straight)return [8,straight];
           if(groups[0].n===4)return [7,groups[0].v,groups[1].v];
           if(groups[0].n===3&&groups[1].n===2)return [6,groups[0].v,groups[1].v];
@@ -4606,7 +4607,7 @@
           if(groups[0].n===2)return [1,groups[0].v,...groups.slice(1).map(g=>g.v)];
           return [0,...vals];
         }
-        const pokerRankNames=['Carta alta','Pareja','Doble pareja','Trío','Escalera','Color','Full house','Póker','Escalera de color'];
+        const pokerRankNames=['Carta alta','Pareja','Doble pareja','Trío','Escalera','Color','Full house','Póker','Escalera de color','Quintilla UNO'];
         function pokerBest(cards){let best=null;for(const c of pokerCombos(cards,5)){const score=pokerEval5(c);if(!best||pokerCompare(score,best.score)>0)best={score,cards:c};}return best;}
         function pokerCompare(a,b){for(let i=0;i<Math.max(a.length,b.length);i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x-y;}return 0;}
         function arcadeStartPoker(){
@@ -4687,7 +4688,10 @@
         function battleHumanDraw(){const g=arcade.game;if(!g||g.turn!==0)return;const c=g.deck.length?g.deck.pop():arcadeUnoDeck().pop();g.players[0].hand.push(c);g.log='Robaste una carta y cediste el turno.';g.turn=battleNextAlive(0);battleRender();battleBotTurn();}
 
         // UNO! ROBADO — Casita Robada: captura del centro y robo de pilas rivales.
-        function robadoRank(c){if(c.value==='wild'||c.value==='wild_draw4')return '★';if(c.value==='skip')return 'S';if(c.value==='reverse')return 'R';if(c.value==='draw2')return 'D';return c.value;}
+        function robadoRank(c){if(c.value==='wild')return '★';if(c.value==='wild_draw4')return '+4';if(c.value==='skip')return 'SALTO';if(c.value==='reverse')return 'REVERSA';if(c.value==='draw2')return '+2';return String(c.value);}
+        function robadoCardBg(c){return c.color==='wild'?'linear-gradient(135deg,#dc2626 0 25%,#2563eb 25% 50%,#16a34a 50% 75%,#eab308 75%)':arcadeColorHex[c.color]||'#333';}
+        function robadoPileMarkup(pile){if(!pile.length)return '<div style="height:92px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:9px;letter-spacing:.15em;border:1px dashed #ffffff30;border-radius:12px;margin:8px auto">CASITA VACÍA</div>';return '<div style="position:relative;height:96px;max-width:150px;margin:8px auto">'+pile.slice(-4).map((c,i,a)=>'<div class="arcade-playing-card" style="position:absolute!important;pointer-events:none;width:50px!important;height:76px!important;min-width:50px!important;left:calc(50% - 25px + '+((i-(a.length-1)/2)*8)+'px);top:'+(i*3)+'px;z-index:'+(i+1)+';transform:rotate('+((i-(a.length-1)/2)*5)+'deg);background:'+robadoCardBg(c)+'">'+arcadeCardFace(c)+'</div>').join('')+'</div>';}
+        function robadoNextLocal(g,from){if(g.players.every(p=>p.hand.length===0)&&g.deck.length){g.players.forEach(p=>{for(let n=0;n<3&&g.deck.length;n++)p.hand.push(g.deck.pop());});g.log='🃏 Nueva ronda: se repartieron hasta 3 cartas a cada jugador.';}if(!g.deck.length&&g.players.every(p=>p.hand.length===0)){robadoFinish();return -1;}for(let n=1;n<=g.players.length;n++){const i=(from+n)%g.players.length;if(g.players[i].hand.length)return i;}robadoFinish();return -1;}
         function arcadeStartRobado(){
           const deck=arcadeUnoDeck(),players=arcadeNames.map((name,i)=>({name,hand:[],pile:[],bot:i>0}));
           players.forEach(p=>{for(let n=0;n<3;n++)p.hand.push(deck.pop());});
@@ -4696,8 +4700,8 @@
         }
         function robadoRender(){
           const g=arcade.game;if(!g)return;const human=g.players[0],done=g.deck.length===0&&g.players.every(p=>p.hand.length===0);
-          const piles=g.players.map((p,i)=>'<div class="arcade-seat"><b class="text-sm">'+p.name+'</b><div class="text-xs text-amber-200 mt-1">🏠 '+p.pile.length+' cartas</div><div class="text-[10px] text-zinc-400 mt-1">'+(p.pile.length?'Arriba: '+robadoRank(p.pile[p.pile.length-1]):'Casita vacía')+'</div></div>').join('');
-          const center=g.center.map(c=>'<button data-robado-center="'+c.id+'" class="arcade-playing-card" style="background:linear-gradient(145deg,#ffffff35 0%,transparent 38%,#00000028 100%),radial-gradient(ellipse at 50% 48%,#ffffff38 0 39%,transparent 40%),'+arcadeColorHex[c.color]+'">'+arcadeCardFace(c)+'</button>').join('');
+          const piles=g.players.map((p,i)=>'<div class="arcade-seat robado-seat"><div class="flex justify-between gap-2"><b class="text-sm">'+p.name+(i===0?' · VOS':'')+'</b><span class="text-xs text-amber-200">'+p.pile.length+' cartas</span></div>'+robadoPileMarkup(p.pile)+'<div class="text-[10px] text-zinc-400 mt-1">'+(p.pile.length?'Superior: '+robadoRank(p.pile[p.pile.length-1]):'Construí tu casita')+'</div></div>').join('');
+          const center=g.center.map(c=>'<button data-robado-center="'+c.id+'" class="arcade-playing-card" style="background:'+robadoCardBg(c)+'">'+arcadeCardFace(c)+'</button>').join('');
           const hand=human.hand.map(c=>arcadeUnoCard(c,true)).join('');
           arcadeRender('<div class="grid grid-cols-2 md:grid-cols-4 gap-2">'+piles+'</div><div class="mt-4 rounded-2xl bg-sky-950/30 border border-sky-400/20 p-4"><div class="flex flex-wrap justify-between gap-2"><b class="text-sm">🃏 Mesa central</b><span class="text-xs text-zinc-400">Mazo: '+g.deck.length+'</span></div><div class="flex flex-wrap justify-center gap-2 mt-3 min-h-[86px]">'+(center||'<span class="text-xs text-zinc-500">No quedan cartas en el centro.</span>')+'</div></div><div class="mt-5"><div class="text-xs text-zinc-400 mb-2">TU MANO · elegí una carta</div><div class="flex flex-wrap justify-center gap-2">'+hand+'</div></div><div class="text-center text-xs text-zinc-300 mt-3">'+g.log+'</div>'+(done?'<div class="text-center mt-4"><button data-robado-again class="arcade-action text-amber-200">Nueva partida</button></div>':''));
         }
@@ -4710,9 +4714,7 @@
             const rival=g.players[targetIndex];if(!rival||!rival.pile.length||robadoRank(rival.pile[rival.pile.length-1])!==rank){showToast('No coincide con la carta superior de esa casita.','warn');return;}
             const stolen=rival.pile.splice(0);p.hand.splice(idx,1);p.pile.push(...stolen,card);g.log='😈 ¡Robaste toda la casita de '+rival.name+'!';
           }else{g.center.push(card);p.hand.splice(idx,1);g.log='Dejaste una carta en el centro.';}
-          if(!g.deck.length&&g.players.every(x=>!x.hand.length)){robadoFinish();return;}
-          if(!p.hand.length&&g.deck.length)for(let n=0;n<3&&g.deck.length;n++)p.hand.push(g.deck.pop());
-          g.turn=1;robadoRender();robadoBotTurn();
+          const next=robadoNextLocal(g,0);if(next<0)return;g.turn=next;robadoRender();if(next!==0)robadoBotTurn();
         }
         function robadoBotTurn(){
           const g=arcade.game;if(!g||g.turn<1||g.turn>3)return;arcade.timer=setTimeout(()=>{
@@ -4722,12 +4724,7 @@
               else if(pi>=0){const stolen=g.players[pi].pile.splice(0);p.hand.splice(i,1);p.pile.push(...stolen,c);g.log='🤖 '+p.name+' robó la casita de '+g.players[pi].name+'.';played=true;}
             }
             if(!played&&p.hand.length){g.center.push(p.hand.shift());g.log='🤖 '+p.name+' dejó una carta en el centro.';}
-            if(!p.hand.length&&g.deck.length)for(let n=0;n<3&&g.deck.length;n++)p.hand.push(g.deck.pop());
-            if(!g.players[0].hand.length&&g.deck.length)for(let n=0;n<3&&g.deck.length;n++)g.players[0].hand.push(g.deck.pop());
-            if(!g.deck.length&&g.players.every(x=>!x.hand.length)){robadoFinish();return;}
-            g.turn=seatIndex>=3?0:seatIndex+1;
-            if(g.turn===0&&!g.players[0].hand.length&&!g.deck.length){g.turn=1;robadoBotTurn();return;}
-            robadoRender();if(g.turn!==0)robadoBotTurn();
+            const next=robadoNextLocal(g,seatIndex);if(next<0)return;g.turn=next;robadoRender();if(g.turn!==0)robadoBotTurn();
           },700);
         }
         function robadoFinish(){const g=arcade.game;const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];g.log='🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas en su casita.';g.turn=-1;robadoRender();document.getElementById('arcadeGameContent').insertAdjacentHTML('beforeend','<div class="text-center mt-4"><button data-robado-again class="arcade-action text-amber-200">Nueva partida</button></div>');}
@@ -4943,7 +4940,7 @@
           arcadeRender('<div class="grid grid-cols-2 md:grid-cols-4 gap-2">'+seats+'</div><div class="mt-4 rounded-2xl bg-rose-950/40 p-4 text-center"><div class="font-uno text-2xl">RONDA '+g.round+'</div><p class="text-sm mt-2">'+arcadeEsc(g.over?g.message:g.log)+'</p><p class="text-xs text-zinc-400 mt-2">'+(can?'¡TU TURNO!':'Turno de '+arcadeEsc(g.players[g.turn]?.name||'…'))+'</p></div><div class="mt-4 text-center"><div class="text-xs text-zinc-400 mb-2">TU MANO · tocá una carta para atacar</div><div class="flex flex-wrap justify-center gap-2">'+(me?me.hand.map(c=>arcadeUnoCard(c,can)).join(''):'')+'</div>'+(can?'<button data-aonline-battle-draw class="arcade-action mt-4">Robar y pasar turno</button>':'')+(g.over&&r.hostId===currentUserId?'<button data-aonline-rematch class="arcade-action mt-4">Volver a luchar</button>':(g.over?'<span class="text-xs text-zinc-400">Esperando revancha del anfitrión…</span>':''))+'</div>');
         }
         function robadoOnlineRank(c){return robadoRank(c);}
-        function robadoOnlineNext(g,from){for(let n=1;n<=g.players.length;n++){const i=(from+n)%g.players.length;if(!g.players[i].left)return i;}return from;}
+        function robadoOnlineNext(g,from){if(g.players.every(p=>p.hand.length===0)&&g.deck.length){g.players.forEach(p=>{for(let n=0;n<3&&g.deck.length;n++)p.hand.push(g.deck.pop());});g.log='🃏 Nueva ronda: se repartieron hasta 3 cartas a cada jugador.';}for(let n=1;n<=g.players.length;n++){const i=(from+n)%g.players.length;if(g.players[i].hand.length)return i;}return from;}
         async function arcadeOnlineRobadoAction(cardId,targetType,targetId){
           await arcadeOnlineMutate((r,g)=>{
             const i=g.players.findIndex(p=>p.id===currentUserId);if(i<0||g.over||g.turn!==i)return false;const p=g.players[i];
@@ -4953,7 +4950,6 @@
             else if(targetType==='player'){const rival=g.players.findIndex((x,j)=>j!==i&&x.id===targetId);if(rival<0||!g.players[rival].pile.length||robadoOnlineRank(g.players[rival].pile.at(-1))!==rank)return false;const stolen=g.players[rival].pile.splice(0);p.hand.splice(ci,1);p.pile.push(...stolen,c);g.log=p.name+' robó la casita de '+g.players[rival].name+'.';}
             else if(targetType==='discard'){if(g.center.some(x=>robadoOnlineRank(x)===rank)||g.players.some((x,j)=>j!==i&&x.pile.length&&robadoOnlineRank(x.pile[x.pile.length-1])===rank))return false;g.center.push(c);p.hand.splice(ci,1);g.log=p.name+' dejó una carta en el centro.';}
             else return false;
-            if(!p.hand.length&&g.deck.length)for(let n=0;n<3&&g.deck.length;n++)p.hand.push(g.deck.pop());
             if(!g.deck.length&&g.players.every(x=>!x.hand.length)){const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];arcadeOnlineFinish(r,g,'🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas.');return true;}
             g.turn=robadoOnlineNext(g,i);return true;
           });
@@ -4961,9 +4957,9 @@
         }
         function arcadeOnlineRenderRobado(r,g){
           const me=g.players.find(p=>p.id===currentUserId),can=me&&!g.over&&g.players[g.turn]?.id===currentUserId,selected=arcadeOnline.selectedCard;
-          const piles=g.players.map(p=>'<button data-aonline-pile="'+arcadeEsc(p.id)+'" class="arcade-seat text-left '+(selected&&p.id!==currentUserId?'hover:border-sky-300':'')+'"><b class="text-sm">'+arcadeEsc(p.name)+'</b><div class="text-xs text-amber-200 mt-1">🏠 '+p.pile.length+' cartas</div><div class="text-[10px] text-zinc-400">'+(p.pile.length?'Superior: '+arcadeEsc(robadoOnlineRank(p.pile[p.pile.length-1])):'Casita vacía')+'</div></button>').join('');
-          const center=g.center.map(c=>'<button data-aonline-center="'+c.id+'" class="arcade-playing-card" style="background:linear-gradient(145deg,#ffffff35 0%,transparent 38%,#00000028 100%),radial-gradient(ellipse at 50% 48%,#ffffff38 0 39%,transparent 40%),'+arcadeColorHex[c.color]+'">'+arcadeCardFace(c)+'</button>').join('');
-          const hand=me?me.hand.map(c=>'<button data-aonline-robado-card="'+c.id+'" class="arcade-playing-card '+(selected===c.id?'ring-4 ring-amber-300':'')+'" style="background:linear-gradient(145deg,#ffffff35 0%,transparent 38%,#00000028 100%),radial-gradient(ellipse at 50% 48%,#ffffff38 0 39%,transparent 40%),'+arcadeColorHex[c.color]+'">'+arcadeCardFace(c)+'</button>').join():'';
+          const piles=g.players.map(p=>'<button data-aonline-pile="'+arcadeEsc(p.id)+'" class="arcade-seat text-left robado-seat '+(selected&&p.id!==currentUserId?'hover:border-sky-300':'')+'"><div class="flex justify-between gap-2"><b class="text-sm">'+arcadeEsc(p.name)+'</b><span class="text-xs text-amber-200">'+p.pile.length+' cartas</span></div>'+robadoPileMarkup(p.pile)+'<div class="text-[10px] text-zinc-400">'+(p.pile.length?'Superior: '+arcadeEsc(robadoOnlineRank(p.pile[p.pile.length-1])):'Construí tu casita')+'</div></button>').join('');
+          const center=g.center.map(c=>'<button data-aonline-center="'+c.id+'" class="arcade-playing-card" style="background:'+robadoCardBg(c)+'">'+arcadeCardFace(c)+'</button>').join('');
+          const hand=me?me.hand.map(c=>'<button data-aonline-robado-card="'+c.id+'" class="arcade-playing-card '+(selected===c.id?'ring-4 ring-amber-300':'')+'" style="background:'+robadoCardBg(c)+'">'+arcadeCardFace(c)+'</button>').join():'';
           arcadeRender('<div class="grid grid-cols-2 md:grid-cols-4 gap-2">'+piles+'</div><div class="mt-4 rounded-2xl bg-sky-950/30 p-4"><div class="flex justify-between text-xs"><b>MESA CENTRAL</b><span>Mazo: '+g.deck.length+'</span></div><div class="flex flex-wrap justify-center gap-2 mt-3">'+center+'</div></div><div class="mt-4 text-center"><p class="text-xs text-zinc-400 mb-2">'+(can?(selected?'Ahora tocá una carta del centro o una casita rival que coincida.':'Elegí una carta de tu mano.'):'Turno de '+arcadeEsc(g.players[g.turn]?.name||'…'))+'</p><div class="flex flex-wrap justify-center gap-2">'+hand+'</div><p class="text-xs text-zinc-300 mt-3">'+arcadeEsc(g.log)+'</p>'+(can&&selected?'<button data-aonline-robado-discard class="arcade-action mt-3">Dejar esta carta en el centro</button>':'')+(!me?.hand.length&&!g.deck.length&&can?'<button data-aonline-robado-pass class="arcade-action mt-3">Pasar turno</button>':'')+(g.over&&r.hostId===currentUserId?'<button data-aonline-rematch class="arcade-action mt-3">Nueva partida</button>':(g.over?'<span class="text-xs text-zinc-400">Esperando revancha del anfitrión…</span>':''))+'</div>');
         }
         async function arcadeOnlineRematch(){
