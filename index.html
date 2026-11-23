@@ -4725,9 +4725,9 @@
         function tcgBeginBattle(){
           if(tcgDeck.length!==60){showToast('Necesitás un mazo de exactamente 60 cartas. Usá Crear mazo inicial para probar.','warn');return}
           const player=tcgMakeSide(tcgDeck),cpu=tcgMakeSide(tcgDeck);[player,cpu].forEach(side=>{for(let i=0;i<7;i++)side.hand.push(side.deck.pop())});
-          const setup=side=>{let ix=side.hand.findIndex(c=>tcgCard(c)?.kind==='Character'&&['Basic'].includes(tcgCard(c).rarity));if(ix<0)ix=side.hand.findIndex(c=>tcgCard(c)?.kind==='Character');if(ix<0)return false;side.active=tcgCardInstance(side.hand.splice(ix,1)[0].id);side.prizes=6;return true};
+          const setup=side=>{let ix=side.hand.findIndex(c=>tcgCard(c)?.kind==='Character'&&['Basic'].includes(tcgCard(c).rarity));if(ix<0)ix=side.hand.findIndex(c=>tcgCard(c)?.kind==='Character');if(ix<0)return false;side.active=tcgCardInstance(side.hand.splice(ix,1)[0]);side.prizes=6;return true};
           if(!setup(player)||!setup(cpu)){showToast('El mazo necesita personajes para poder iniciar.','warn');return}
-          [player,cpu].forEach(side=>{for(let i=0;i<5;i++){const ix=side.hand.findIndex(c=>tcgCard(c)?.kind==='Character');if(ix>=0)side.bench.push(tcgCardInstance(side.hand.splice(ix,1)[0].id))}});
+          [player,cpu].forEach(side=>{for(let i=0;i<5;i++){const ix=side.hand.findIndex(c=>tcgCard(c)?.kind==='Character');if(ix>=0)side.bench.push(tcgCardInstance(side.hand.splice(ix,1)[0]))}});
           tcgBattle={player,cpu,turn:'player',phase:'draw',first:true,log:[],selectedEnergy:null,over:false};tcgLog('¡Comienza el duelo! Cada jugador tiene seis premios.');document.getElementById('tcgBattleArea').classList.remove('hidden');tcgBattleRender();
         }
         function tcgBattleRender(){
