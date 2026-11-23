@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO! CLUB v2.3.0 — Mesa Oficial Online & Equipos</title>
+    <title>UNO! CLUB v2.4.0 — Mesa Oficial Online & Equipos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -591,7 +591,36 @@
         .arcade-rules-panel{border:1px solid #d6b56b55;background:linear-gradient(145deg,#10291fdd,#07130fdd);border-radius:18px;padding:14px;margin-top:14px}
         .arcade-rules-panel h4{font:800 13px 'Inter',sans-serif;color:#f6d58a;letter-spacing:.08em;margin-bottom:8px}
         .arcade-rules-panel ol{padding-left:20px;display:grid;gap:6px;color:#e5eee8;font-size:12px;line-height:1.5}
+
         .arcade-rules-panel li::marker{color:#f5c66d;font-weight:900}
+        /* Acabado de cartas premium: relieve, brillo, doble marco y animación de reparto */
+        .arcade-felt-board{perspective:1200px;transform-origin:50% 35%;animation:arcadeBoardEnter .48s cubic-bezier(.2,.8,.2,1) both}
+        .arcade-playing-card{background-image:linear-gradient(145deg,#ffffff38 0%,transparent 34%,#00000025 100%),radial-gradient(ellipse at 50% 48%,#ffffff32 0 39%,transparent 40%);border:3px solid #fff;box-shadow:0 10px 16px #0009,0 2px 0 #ffffff55,inset 0 0 0 2px #ffffff85,inset 0 -10px 18px #0002;animation:arcadeCardDeal .48s cubic-bezier(.18,.8,.25,1) both;will-change:transform}
+        .arcade-playing-card:nth-child(2){animation-delay:.045s}.arcade-playing-card:nth-child(3){animation-delay:.09s}.arcade-playing-card:nth-child(4){animation-delay:.135s}.arcade-playing-card:nth-child(5){animation-delay:.18s}.arcade-playing-card:nth-child(6){animation-delay:.225s}.arcade-playing-card:nth-child(7){animation-delay:.27s}.arcade-playing-card:nth-child(8){animation-delay:.315s}.arcade-playing-card:nth-child(9){animation-delay:.36s}
+        .arcade-playing-card:before{border:2px solid #ffffffd9;box-shadow:inset 0 0 12px #0003,0 0 0 1px #ffffff35;background:linear-gradient(135deg,#ffffff24,#00000012)}
+        .arcade-playing-card:after{inset:4px;border:1px solid #ffffff99;box-shadow:inset 0 0 0 1px #0002}
+        .arcade-card-symbol{font-size:clamp(27px,4vw,40px);filter:drop-shadow(0 3px 2px #0006);transform:rotate(-4deg)}
+        .arcade-card-corner{font-size:11px;font-weight:1000}
+        .arcade-playing-card:not(:disabled){cursor:pointer}
+        .arcade-playing-card:disabled{cursor:default;opacity:1}
+        .arcade-poker-card{background-image:linear-gradient(145deg,#fff 0%,#f8fafc 42%,#dbe3ee 100%);box-shadow:0 12px 18px #0009,0 2px 0 #ffffff,inset 0 0 0 2px #b7c4d4;animation:arcadeCardDeal .5s cubic-bezier(.18,.8,.25,1) both}
+        .arcade-poker-card:nth-child(2){animation-delay:.07s}.arcade-poker-card:nth-child(3){animation-delay:.14s}.arcade-poker-card:nth-child(4){animation-delay:.21s}.arcade-poker-card:nth-child(5){animation-delay:.28s}
+        .arcade-poker-card .poker-center{filter:drop-shadow(0 2px 1px #0002)}
+        .arcade-seat{animation:arcadeSeatEnter .38s ease both;transition:transform .2s,border-color .2s,box-shadow .2s}
+        .arcade-seat:hover{transform:translateY(-2px);border-color:#e9c77b66;box-shadow:0 8px 20px #0005}
+        .arcade-table-label{animation:arcadeFadeIn .65s ease both}
+        .arcade-action{transition:transform .16s,filter .16s,box-shadow .16s}
+        .arcade-action:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.16);box-shadow:0 7px 16px #0005}
+        .arcade-action:active:not(:disabled){transform:translateY(1px) scale(.97)}
+        .arcade-turn-active{animation:arcadeTurnPulse 1.8s ease-in-out infinite}
+        .arcade-mode-solo{display:inline-flex;align-items:center;gap:5px;border:1px solid #f5c66d55;border-radius:999px;padding:4px 9px;color:#f7d68d;background:#f5c66d12;font-size:10px;font-weight:900;letter-spacing:.04em}
+        @keyframes arcadeBoardEnter{0%{opacity:0;transform:perspective(1200px) rotateX(7deg) translateY(14px) scale(.985)}100%{opacity:1;transform:perspective(1200px) rotateX(0) translateY(0) scale(1)}}
+        @keyframes arcadeCardDeal{0%{opacity:0;transform:translateY(22px) rotate(-7deg) scale(.84);filter:brightness(1.6)}65%{opacity:1;transform:translateY(-4px) rotate(2deg) scale(1.035)}100%{opacity:1;transform:translateY(0) rotate(-1deg) scale(1);filter:brightness(1)}}
+        @keyframes arcadeSeatEnter{0%{opacity:0;transform:translateY(9px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes arcadeFadeIn{0%{opacity:0;letter-spacing:.35em}100%{opacity:1;letter-spacing:.22em}}
+        @keyframes arcadeTurnPulse{0%,100%{box-shadow:0 0 0 0 #f5c66d00}50%{box-shadow:0 0 0 4px #f5c66d30}}
+        @media(prefers-reduced-motion:reduce){.arcade-felt-board,.arcade-playing-card,.arcade-poker-card,.arcade-seat,.arcade-table-label,.arcade-turn-active{animation:none!important;transition:none!important}}
+
         @media(max-width:640px){#arcadeScreen{padding:10px!important}.arcade-card{padding:14px!important}.arcade-playing-card{width:54px}.arcade-poker-card{width:52px}.arcade-felt-board{border-width:6px;border-radius:22px;padding:10px}.arcade-rules-panel{padding:11px}}
 
         @media(max-width:640px){#arcadeScreen{padding:10px!important}.arcade-card{padding:14px!important}.arcade-playing-card{width:48px}.arcade-poker-card{width:42px}}
@@ -792,7 +821,7 @@
 </style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
-    <div id="gameVersionBadge" class="fixed top-2 left-2 z-[180] rounded-lg border border-emerald-300/30 bg-black/75 px-2.5 py-1 text-[10px] font-black tracking-wider text-emerald-200 shadow-lg pointer-events-none">UNO! CLUB v2.3.0</div>
+    <div id="gameVersionBadge" class="fixed top-2 left-2 z-[180] rounded-lg border border-emerald-300/30 bg-black/75 px-2.5 py-1 text-[10px] font-black tracking-wider text-emerald-200 shadow-lg pointer-events-none">UNO! CLUB v2.4.0</div>
     <div id="deviceSetupModal" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-5">
         <div class="w-full max-w-md rounded-3xl border border-amber-300/30 bg-zinc-950 p-6 text-center shadow-2xl">
             <div class="text-4xl mb-3">🎮</div>
@@ -1084,9 +1113,11 @@
           <div id="arcadeSetupEmoji" class="text-4xl">🎮</div>
           <h3 id="arcadeSetupTitle" class="font-uno text-2xl mt-2"></h3>
           <div id="arcadeSetupRules" class="text-sm text-zinc-300 mt-2"></div>
-          <div class="flex flex-col sm:flex-row gap-2 mt-5">
-            <button id="arcadeSetupCreate" class="arcade-action border-emerald-400/40 text-emerald-200 flex-1">➕ Crear sala online</button>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5">
+            <button id="arcadeSetupSolo" class="arcade-action border-amber-400/50 text-amber-100 flex-1">🤖 Jugar solo contra bots</button>
+            <button id="arcadeSetupCreate" class="arcade-action border-emerald-400/40 text-emerald-200 flex-1">🌐 Crear sala online</button>
           </div>
+          <p class="text-[11px] text-amber-100/70 mt-2">Modo individual: vos contra 3 rivales controlados por la IA.</p>
           <div class="border-t border-white/10 mt-4 pt-4">
             <div class="text-xs font-black text-zinc-300 mb-2">UNIRSE A UNA SALA DE ESTE MODO</div>
             <div class="flex flex-col sm:flex-row gap-2">
@@ -4501,16 +4532,16 @@
           return arcadeShuffle(d);
         }
         function arcadeCardFace(c){const label=c.value==='skip'?'⊘':c.value==='reverse'?'↻':c.value==='draw2'?'+2':c.value==='wild'?'★':c.value==='wild_draw4'?'+4':String(c.value);return '<span class="arcade-card-corner">'+label+'</span><span class="arcade-card-symbol">'+label+'</span><span class="arcade-card-corner bottom">'+label+'</span>';}
-        function arcadeUnoCard(c,clickable=false,extra=''){const bg=c.color==='wild'?'linear-gradient(135deg,#dc2626 0 25%,#2563eb 25% 50%,#16a34a 50% 75%,#eab308 75%)':arcadeColorHex[c.color];return '<button '+(clickable?'data-arcade-card="'+c.id+'"':'disabled')+' class="arcade-playing-card '+extra+'" style="background:'+bg+';'+(clickable?'cursor:pointer':'')+'">'+arcadeCardFace(c)+'</button>';}
+        function arcadeUnoCard(c,clickable=false,extra=''){const bg=c.color==='wild'?'linear-gradient(135deg,#dc2626 0 25%,#2563eb 25% 50%,#16a34a 50% 75%,#eab308 75%)':arcadeColorHex[c.color];const layered='linear-gradient(145deg,#ffffff35 0%,transparent 38%,#00000028 100%),radial-gradient(ellipse at 50% 48%,#ffffff38 0 39%,transparent 40%),'+bg;return '<button '+(clickable?'data-arcade-card="'+c.id+'"':'disabled')+' class="arcade-playing-card '+extra+'" style="background:'+layered+';'+(clickable?'cursor:pointer':'')+'">'+arcadeCardFace(c)+'</button>';}
         function arcadeOpenGame(mode){
           clearTimeout(arcade.timer);arcade.mode=mode;
           document.getElementById('arcadeModeMenu').classList.add('hidden');
           document.getElementById('arcadeGamePanel').classList.remove('hidden');
           const meta={poker:['MESA DE PÓKER','UNO! POK','Texas Hold’em contra tres rivales IA.'],battle:['ARENA DE COMBATE','UNO! BATALLA','Jugá cartas para atacar, defenderte y sobrevivir.'],robado:['JUEGO DE CAPTURAS','UNO! ROBADO','La Casita Robada reinventada con cartas UNO.']}[mode];
-          document.getElementById('arcadeGameEyebrow').textContent=meta[0];document.getElementById('arcadeGameTitle').textContent=meta[1];document.getElementById('arcadeGameSubtitle').textContent=meta[2];
+          document.getElementById('arcadeGameEyebrow').textContent='MODO SOLO · CONTRA 3 BOTS IA';document.getElementById('arcadeGameTitle').textContent=meta[1];document.getElementById('arcadeGameSubtitle').textContent=meta[2]+' · Vos contra tres rivales controlados por la IA.';
           if(mode==='poker') arcadeStartPoker(); else if(mode==='battle') arcadeStartBattle(); else arcadeStartRobado();
         }
-        function arcadeRender(html){document.getElementById('arcadeGameContent').innerHTML='<div class="arcade-felt-board"><div class="arcade-table-label">MESA DE JUEGO · UNO! CLUB</div>'+html+'</div>';}
+        function arcadeRender(html){const root=document.getElementById('arcadeGameContent');root.innerHTML='<div class="arcade-felt-board arcade-board-enter"><div class="arcade-table-label">MESA DE JUEGO · UNO! CLUB</div>'+html+'</div>';}
         function arcadeHome(){clearTimeout(arcade.timer);arcade.game=null;arcade.mode=null;document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeGamePanel').classList.add('hidden');document.getElementById('homeScreen').classList.remove('hidden');}
         function arcadeBackToModes(){clearTimeout(arcade.timer);arcade.game=null;document.getElementById('arcadeGamePanel').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}
         function arcadeStartAgain(){if(arcade.mode)arcadeOpenGame(arcade.mode);}
@@ -4907,6 +4938,7 @@
         }
         document.querySelectorAll('[data-arcade-menu]').forEach(b=>b.addEventListener('click',()=>arcadeShowModeSetup(b.dataset.arcadeMenu)));
         document.getElementById('arcadeSetupBack').onclick=()=>{document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');};
+        document.getElementById('arcadeSetupSolo').onclick=()=>arcadeOpenGame(arcadeOnline.selectedMode);
         document.getElementById('arcadeSetupCreate').onclick=()=>arcadeOnlineCreate(arcadeOnline.selectedMode);
         document.getElementById('arcadeJoinBtn').onclick=()=>arcadeOnlineJoin(document.getElementById('arcadeJoinCode').value,arcadeOnline.selectedMode);
         document.getElementById('arcadeJoinCode').addEventListener('keydown',e=>{if(e.key==='Enter')arcadeOnlineJoin(e.currentTarget.value,arcadeOnline.selectedMode);});
