@@ -1037,28 +1037,36 @@
           <article class="arcade-card p-5 flex flex-col">
             <div class="text-5xl mb-3">♠️</div><div class="text-[10px] font-black tracking-widest text-amber-300">CASINO DE CARTAS</div><h3 class="font-uno text-2xl mt-1">UNO! POK</h3>
             <p class="text-sm text-zinc-400 mt-2 flex-1">Póker Texas Hold'em: dos cartas privadas, cinco comunitarias, apuestas por rondas y pozo. Fichas virtuales, sin dinero real.</p>
-            <div class="flex items-center justify-between mt-5"><span class="text-xs text-amber-200">🪙 1.000 fichas iniciales</span><button data-arcade-create="poker" class="arcade-action border-amber-400/40 text-amber-200">Crear sala online →</button></div>
+            <div class="flex items-center justify-between mt-5"><span class="text-xs text-amber-200">🪙 1.000 fichas iniciales</span><button data-arcade-menu="poker" class="arcade-action border-amber-400/40 text-amber-200">Abrir menú →</button></div>
           </article>
           <article class="arcade-card p-5 flex flex-col">
             <div class="text-5xl mb-3">⚔️</div><div class="text-[10px] font-black tracking-widest text-rose-300">COMBATE POR TURNOS</div><h3 class="font-uno text-2xl mt-1">UNO! BATALLA</h3>
             <p class="text-sm text-zinc-400 mt-2 flex-1">Cuatro combatientes, 100 de vida, ataques con cartas UNO, escudos, curación y habilidades especiales. Sobreviví hasta el final.</p>
-            <div class="flex items-center justify-between mt-5"><span class="text-xs text-rose-200">❤️ 100 HP por jugador</span><button data-arcade-create="battle" class="arcade-action border-rose-400/40 text-rose-200">Crear sala online →</button></div>
+            <div class="flex items-center justify-between mt-5"><span class="text-xs text-rose-200">❤️ 100 HP por jugador</span><button data-arcade-menu="battle" class="arcade-action border-rose-400/40 text-rose-200">Abrir menú →</button></div>
           </article>
           <article class="arcade-card p-5 flex flex-col">
             <div class="text-5xl mb-3">🏠</div><div class="text-[10px] font-black tracking-widest text-sky-300">CLÁSICO ARGENTINO</div><h3 class="font-uno text-2xl mt-1">UNO! ROBADO</h3>
             <p class="text-sm text-zinc-400 mt-2 flex-1">Inspirado en la Casita Robada: capturá cartas del centro y robá la casita rival igualando el valor de su carta superior.</p>
-            <div class="flex items-center justify-between mt-5"><span class="text-xs text-sky-200">🃏 Capturá y acumulá</span><button data-arcade-create="robado" class="arcade-action border-sky-400/40 text-sky-200">Crear sala online →</button></div>
+            <div class="flex items-center justify-between mt-5"><span class="text-xs text-sky-200">🃏 Capturá y acumulá</span><button data-arcade-menu="robado" class="arcade-action border-sky-400/40 text-sky-200">Abrir menú →</button></div>
           </article>
         </div>
-        <div class="arcade-card p-4 mt-4">
-          <div class="font-black text-sm">🔗 Unirse a una sala</div>
-          <p class="text-xs text-zinc-400 mt-1">Pedile el código de 6 caracteres al anfitrión.</p>
-          <div class="flex flex-col sm:flex-row gap-2 mt-3">
-            <input id="arcadeJoinCode" maxlength="6" autocomplete="off" placeholder="CÓDIGO" class="min-w-0 flex-1 rounded-xl bg-black/40 border border-white/15 px-4 py-3 text-white font-black tracking-[.25em] uppercase">
-            <button id="arcadeJoinBtn" class="arcade-action text-emerald-200">Unirme a la sala</button>
+        <section id="arcadeModeSetup" class="hidden arcade-card p-5 mt-4">
+          <button id="arcadeSetupBack" class="text-xs text-zinc-400 mb-3">← Volver a los modos</button>
+          <div id="arcadeSetupEmoji" class="text-4xl">🎮</div>
+          <h3 id="arcadeSetupTitle" class="font-uno text-2xl mt-2"></h3>
+          <p id="arcadeSetupRules" class="text-sm text-zinc-300 mt-2"></p>
+          <div class="flex flex-col sm:flex-row gap-2 mt-5">
+            <button id="arcadeSetupCreate" class="arcade-action border-emerald-400/40 text-emerald-200 flex-1">➕ Crear sala online</button>
           </div>
-          <p id="arcadeOnlineStatus" class="text-[11px] text-zinc-500 mt-2">El multijugador utiliza tu conexión Firebase de UNO! CLUB.</p>
-        </div>
+          <div class="border-t border-white/10 mt-4 pt-4">
+            <div class="text-xs font-black text-zinc-300 mb-2">UNIRSE A UNA SALA DE ESTE MODO</div>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input id="arcadeJoinCode" maxlength="6" autocomplete="off" placeholder="CÓDIGO DE 6 CARACTERES" class="min-w-0 flex-1 rounded-xl bg-black/40 border border-white/15 px-4 py-3 text-white font-black tracking-[.2em] uppercase">
+              <button id="arcadeJoinBtn" class="arcade-action text-emerald-200">Unirme →</button>
+            </div>
+          </div>
+          <p class="text-[11px] text-zinc-500 mt-3">Partidas online en tiempo real mediante Firebase · 2 a 4 jugadores.</p>
+        </section>
         <section id="arcadeGamePanel" class="hidden mt-5">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-4"><div><div id="arcadeGameEyebrow" class="text-[10px] tracking-widest text-emerald-300 font-black"></div><h3 id="arcadeGameTitle" class="font-uno text-2xl sm:text-3xl"></h3><p id="arcadeGameSubtitle" class="text-xs text-zinc-400 mt-1"></p></div><button id="arcadeExitGame" class="arcade-action">← Volver a modos</button></div>
           <div id="arcadeGameContent" class="rounded-3xl border border-white/10 bg-black/35 p-3 sm:p-5 min-h-[420px]"></div>
@@ -4619,7 +4627,7 @@
         }
         function robadoFinish(){const g=arcade.game;const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];g.log='🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas en su casita.';g.turn=-1;robadoRender();document.getElementById('arcadeGameContent').insertAdjacentHTML('beforeend','<div class="text-center mt-4"><button data-robado-again class="arcade-action text-amber-200">Nueva partida</button></div>');}
 
-        document.getElementById('btnOpenArcade').onclick=()=>{document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeGamePanel').classList.add('hidden');};
+        document.getElementById('btnOpenArcade').onclick=()=>{document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeGamePanel').classList.add('hidden');};
         document.getElementById('arcadeBackHome').onclick=arcadeHome;
         document.getElementById('arcadeExitGame').onclick=arcadeBackToModes;
         document.querySelectorAll('[data-arcade-start]').forEach(b=>b.addEventListener('click',()=>arcadeOpenGame(b.dataset.arcadeStart)));
@@ -4663,7 +4671,7 @@
           }catch(e){console.error('Arcade create:',e);showToast(e.message||'No se pudo crear la sala online.','danger');}
           finally{arcadeOnline.busy=false;}
         }
-        async function arcadeOnlineJoin(raw){
+        async function arcadeOnlineJoin(raw,expectedMode){
           if(arcadeOnline.busy)return;arcadeOnline.busy=true;
           try{
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
@@ -4671,7 +4679,7 @@
             const ref=arcadeOnlineRef(code);
             await runTransaction(db,async tx=>{
               const snap=await tx.get(ref);if(!snap.exists())throw new Error('No existe esa sala.');
-              const room=snap.data();if(!room.arcadeRoom)throw new Error('Ese código pertenece a una sala UNO clásica.');
+              const room=snap.data();if(!room.arcadeRoom)throw new Error('Ese código pertenece a una sala UNO clásica.');if(expectedMode&&room.arcadeMode!==expectedMode)throw new Error('Ese código pertenece a '+metaTitle(room.arcadeMode)+', no a '+metaTitle(expectedMode)+'.');
               if(room.status!=='lobby')throw new Error('La partida ya comenzó.');
               const seats=room.seats||[];if(seats.some(s=>s.id===currentUserId))return;
               const idx=seats.findIndex(s=>!s.id);if(idx<0)throw new Error('La sala está completa.');
@@ -4816,7 +4824,7 @@
             if(targetType==='center'){const x=g.center.findIndex(v=>v.id===targetId);if(x<0||robadoOnlineRank(g.center[x])!==rank)return false;const match=g.center.splice(x,1)[0];p.hand.splice(ci,1);p.pile.push(match,c);g.log=p.name+' capturó una carta del centro.';}
             else if(targetType==='player'){const rival=g.players.findIndex((x,j)=>j!==i&&x.id===targetId);if(rival<0||!g.players[rival].pile.length||robadoOnlineRank(g.players[rival].pile.at(-1))!==rank)return false;const stolen=g.players[rival].pile.splice(0);p.hand.splice(ci,1);p.pile.push(...stolen,c);g.log=p.name+' robó la casita de '+g.players[rival].name+'.';}
             else if(targetType==='discard'){if(g.center.some(x=>robadoOnlineRank(x)===rank)||g.players.some((x,j)=>j!==i&&x.pile.length&&robadoOnlineRank(x.pile[x.pile.length-1])===rank))return false;g.center.push(c);p.hand.splice(ci,1);g.log=p.name+' dejó una carta en el centro.';}
-            else if(targetType==='pass'){if(p.hand.length||g.deck.length)return false;g.log=p.name+' pasó porque no tiene cartas.';}
+            else if(targetType==='pass'){if(p.hand.length||g.deck.length)return false;g.log=p.name+' pasó porque no tiene cartas.';g.turn=(i+1)%g.players.length;if(g.players.every(x=>!x.hand.length)){const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];arcadeOnlineFinish(r,g,'🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas.');}return true;}
             else return false;
             if(!p.hand.length&&g.deck.length)for(let n=0;n<3&&g.deck.length;n++)p.hand.push(g.deck.pop());
             if(!g.deck.length&&g.players.every(x=>!x.hand.length)){const winner=[...g.players].sort((a,b)=>b.pile.length-a.pile.length)[0];arcadeOnlineFinish(r,g,'🏆 '+winner.name+' ganó con '+winner.pile.length+' cartas.');return true;}
@@ -4836,9 +4844,18 @@
           try{await runTransaction(db,async tx=>{const ref=arcadeOnlineRef(r.code),snap=await tx.get(ref);if(!snap.exists())throw new Error('Sala cerrada');const live=snap.data();if(live.hostId!==currentUserId)return;tx.update(ref,{status:'lobby',arcadeState:null,updatedAt:Date.now()});});}
           catch(e){showToast('No se pudo preparar la revancha.','danger');}
         }
-        document.querySelectorAll('[data-arcade-create]').forEach(b=>b.addEventListener('click',()=>arcadeOnlineCreate(b.dataset.arcadeCreate)));
-        document.getElementById('arcadeJoinBtn').onclick=()=>arcadeOnlineJoin(document.getElementById('arcadeJoinCode').value);
-        document.getElementById('arcadeJoinCode').addEventListener('keydown',e=>{if(e.key==='Enter')arcadeOnlineJoin(e.currentTarget.value);});
+        function arcadeShowModeSetup(mode){
+          const meta=arcadeModeMeta[mode];if(!meta)return;arcadeOnline.selectedMode=mode;
+          document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.remove('hidden');
+          document.getElementById('arcadeSetupEmoji').textContent=meta.emoji;document.getElementById('arcadeSetupTitle').textContent=meta.title;
+          document.getElementById('arcadeSetupRules').textContent=({poker:'Texas Hold’em: cada jugador recibe 2 cartas privadas. Se revelan 5 cartas comunitarias en flop, turn y river. Apostá, igualá o retirate para ganar el pozo de fichas virtuales.',battle:'Cada jugador comienza con 100 HP y 7 cartas UNO. Jugá cartas para atacar al siguiente rival, curarte con verde o ganar escudo con reversa. El último en pie gana.',robado:'Inspirado en la Casita Robada argentina. Reparto de 3 cartas, 4 en el centro. Igualá números/valores para capturar cartas o robar toda una casita por su carta superior.'})[mode];
+          document.getElementById('arcadeJoinCode').value='';
+        }
+        document.querySelectorAll('[data-arcade-menu]').forEach(b=>b.addEventListener('click',()=>arcadeShowModeSetup(b.dataset.arcadeMenu)));
+        document.getElementById('arcadeSetupBack').onclick=()=>{document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');};
+        document.getElementById('arcadeSetupCreate').onclick=()=>arcadeOnlineCreate(arcadeOnline.selectedMode);
+        document.getElementById('arcadeJoinBtn').onclick=()=>arcadeOnlineJoin(document.getElementById('arcadeJoinCode').value,arcadeOnline.selectedMode);
+        document.getElementById('arcadeJoinCode').addEventListener('keydown',e=>{if(e.key==='Enter')arcadeOnlineJoin(e.currentTarget.value,arcadeOnline.selectedMode);});
         document.getElementById('arcadeGameContent').addEventListener('click',e=>{
           if(e.target.closest('[data-aonline-copy]')){GenUIcopyArcade(arcadeOnline.code);return;}
           if(e.target.closest('[data-aonline-leave]')){arcadeOnlineLeave(true);return;}
