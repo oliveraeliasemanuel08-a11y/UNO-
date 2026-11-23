@@ -4756,7 +4756,7 @@
             <div class="h-2 rounded-full bg-zinc-800 mt-2 overflow-hidden"><div id="tcgDeckProgress" class="h-full bg-fuchsia-500" style="width:0%"></div></div>
             <div id="tcgDeckList" class="space-y-1 mt-3 max-h-64 overflow-y-auto"></div>
             <div class="grid grid-cols-2 gap-2 mt-4"><button id="tcgAutoDeck" class="rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 p-3 text-xs font-black">✨ Crear mazo inicial</button><button id="tcgClearDeck" class="rounded-xl bg-zinc-700 hover:bg-zinc-600 p-3 text-xs font-bold">Vaciar mazo</button></div>
-            <p id="tcgDeckHint" class="text-[11px] text-zinc-500 mt-3">La colección y el mazo se guardan localmente en este navegador. El combate online y las recompensas sincronizadas se incorporarán en la siguiente fase.</p>
+            <p id="tcgDeckHint" class="text-[11px] text-zinc-500 mt-3">La colección y el mazo se guardan localmente en este navegador. El TCG ya permite crear salas online y sincronizar el tablero entre dos jugadores.</p>
 
           <section class="lg:col-span-2 rounded-2xl border border-emerald-400/25 bg-emerald-950/20 p-4">
               <div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold text-lg text-emerald-200">🌐 TCG Online sincronizado</h3><p class="text-xs text-zinc-400">Creá una sala o entrá con el código de otro jugador.</p></div><span id="tcgOnlineStatus" class="text-xs text-zinc-400">Desconectado</span></div>
@@ -4764,7 +4764,7 @@
               <div id="tcgOnlineRoomInfo" class="text-xs text-emerald-200 mt-2"></div>
             </section>
             <section class="lg:col-span-2 rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-950/30 to-black/40 p-4">
-            <div class="flex flex-wrap justify-between items-center gap-3"><div><h3 class="font-uno text-2xl text-cyan-200">⚔️ Campo de batalla TCG</h3><p class="text-xs text-zinc-400">Primer formato de prueba: 1 contra 1 contra la IA • seis premios • activo y banca</p></div><button id="tcgBattleStart" class="rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black px-4 py-2 text-sm">⚔️ Iniciar partida</button></div>
+            <div class="flex flex-wrap justify-between items-center gap-3"><div><h3 class="font-uno text-2xl text-cyan-200">⚔️ Campo de batalla TCG</h3><p class="text-xs text-zinc-400">Formato 1 contra 1: contra IA o en sala online • seis premios • activo y banca</p></div><button id="tcgBattleStart" class="rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black px-4 py-2 text-sm">⚔️ Iniciar partida</button></div>
             <div id="tcgBattleArea" class="hidden mt-4 space-y-3">
               <div class="grid grid-cols-2 gap-3">
                 <div class="rounded-xl bg-rose-950/30 border border-rose-400/20 p-3"><div class="flex justify-between text-xs"><b>🤖 Rival IA</b><span id="tcgCpuPrizes">6 premios</span></div><div id="tcgCpuActive" class="mt-2 min-h-24"></div><div id="tcgCpuBench" class="flex gap-2 flex-wrap mt-2"></div></div>
