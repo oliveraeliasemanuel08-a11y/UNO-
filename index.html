@@ -685,6 +685,12 @@
 @media(max-width:640px){#tcgBattleScreen .tcg-match-header{min-height:62px}#tcgBattleViewport{height:calc(100dvh - 62px);padding:7px 6px 18px}#tcgThreeBoard{height:440px;min-height:440px}#tcgBattleArea #tcgPlayerHand{min-height:145px}#tcgBattleArea .tcg-hand-card{flex-basis:86px}}
 @media(prefers-reduced-motion:reduce){#tcgBattleScreen *{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 
+
+/* Rendimiento y mano integrada al mismo tablero 3D */
+#tcgBattleArea #tcgPlayerHand{display:none!important}
+#tcgBattleArea .tcg-hand-panel{background:linear-gradient(180deg,#0c2430,#07131d)!important}
+#tcgThreeBoard canvas{display:block;width:100%;height:100%;touch-action:pan-y}
+#tcgThreeBoard{contain:layout paint size}
 </style>
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
@@ -4762,34 +4768,73 @@
         // Tablero 3D real de Pokémon TCG con Three.js (escena WebGL independiente del HUD).
         let tcg3d={scene:null,camera:null,renderer:null,root:null,signature:'',raf:0,resize:null};
         function tcg3dCardTexture(card,back=false){
-          const canvas=document.createElement('canvas');canvas.width=256;canvas.height=356;const x=canvas.getContext('2d');
-          const grad=x.createLinearGradient(0,0,256,356);if(back){grad.addColorStop(0,'#163b79');grad.addColorStop(1,'#07152e')}else{const colors={Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'};grad.addColorStop(0,colors[card?.type]||'#4338ca');grad.addColorStop(1,'#101827')}
-          x.fillStyle=grad;x.fillRect(0,0,256,356);x.strokeStyle='#f6d98a';x.lineWidth=9;x.strokeRect(7,7,242,342);x.strokeStyle='#fff8';x.lineWidth=2;x.strokeRect(17,17,222,322);
-          if(back){x.fillStyle='#f7d66b';x.font='900 42px Arial';x.textAlign='center';x.fillText('UNO! CLUB',128,190);x.font='bold 16px Arial';x.fillText('POKÉMON TCG',128,220)}else{ x.fillStyle='#fff';x.textAlign='left';x.font='bold 17px Arial';x.fillText(String(card?.rarity||'BÁSICO').toUpperCase(),24,43);x.textAlign='right';x.fillText((card?.hp||'')+' PS',232,43);x.textAlign='center';x.font='100px Arial';x.fillText(card?.emoji||'✨',128,190);x.fillStyle='#fff';x.font='900 23px Arial';x.fillText(String(card?.name||'Pokémon').slice(0,19),128,240);x.font='bold 15px Arial';x.fillText(card?.type||'Pokémon',128,267);x.fillStyle='#fef3c7';x.font='bold 13px Arial';x.fillText('ENERGÍAS  '+(card?.energies?.length||0),128,316)}
-          const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;return tex;
+          const key=back?'__uno_card_back':String(card?.uid||card?.id||card?.name||'card')+':'+(card?.damage||0)+':'+(card?.energies?.length||0);
+          tcg3d.textureCache ||= new Map();if(tcg3d.textureCache.has(key))return tcg3d.textureCache.get(key);
+          const canvas=document.createElement('canvas');canvas.width=192;canvas.height=266;const x=canvas.getContext('2d');
+          const grad=x.createLinearGradient(0,0,192,266);if(back){grad.addColorStop(0,'#163b79');grad.addColorStop(1,'#07152e')}else{const colors={Fire:'#b91c1c',Water:'#0369a1',Electric:'#a16207',Plant:'#15803d',Psychic:'#7e22ce',Darkness:'#334155',Metal:'#475569',Dragon:'#6d28d9',Fighting:'#9a3412',Colorless:'#475569'};grad.addColorStop(0,colors[card?.type]||'#4338ca');grad.addColorStop(1,'#101827')}
+          x.fillStyle=grad;x.fillRect(0,0,192,266);x.strokeStyle='#f6d98a';x.lineWidth=7;x.strokeRect(5,5,182,256);x.strokeStyle='#fff8';x.lineWidth=1.5;x.strokeRect(13,13,166,240);
+          if(back){x.fillStyle='#f7d66b';x.font='900 30px Arial';x.textAlign='center';x.fillText('UNO! CLUB',96,143);x.font='bold 13px Arial';x.fillText('POKÉMON TCG',96,166)}else{x.fillStyle='#fff';x.textAlign='left';x.font='bold 13px Arial';x.fillText(String(card?.rarity||'BÁSICO').toUpperCase(),18,33);x.textAlign='right';x.fillText((card?.hp||'')+' PS',174,33);x.textAlign='center';x.font='76px Arial';x.fillText(card?.emoji||'✨',96,143);x.fillStyle='#fff';x.font='900 17px Arial';x.fillText(String(card?.name||'Pokémon').slice(0,16),96,181);x.font='bold 12px Arial';x.fillText(card?.type||'Pokémon',96,202);x.fillStyle='#fef3c7';x.font='bold 11px Arial';x.fillText('ENERGÍAS '+(card?.energies?.length||0),96,235)}
+          const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;tex.generateMipmaps=false;tex.minFilter=THREE.LinearFilter;tcg3d.textureCache.set(key,tex);return tex;
         }
-        function tcg3dInit(){const host=document.getElementById('tcgThreeBoard');if(!host||tcg3d.renderer)return;
-          try{const scene=new THREE.Scene();scene.background=new THREE.Color('#07191d');scene.fog=new THREE.Fog('#07191d',17,32);const camera=new THREE.PerspectiveCamera(37,1,.1,100);camera.position.set(0,12,17);camera.lookAt(0,0,0);
-            const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;host.replaceChildren(renderer.domElement);
-            scene.add(new THREE.HemisphereLight('#d8f4ff','#10251d',2));const key=new THREE.DirectionalLight('#fff1c9',3);key.position.set(-5,12,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);const rim=new THREE.PointLight('#42d9ff',45,22);rim.position.set(5,5,-5);scene.add(rim);
-            const root=new THREE.Group();scene.add(root);const cards=new THREE.Group();root.add(cards);const hitTargets=new THREE.Group();root.add(hitTargets);const base=new THREE.Mesh(new THREE.BoxGeometry(15,.65,11),new THREE.MeshStandardMaterial({color:'#6b3d20',roughness:.55}));base.position.y=-.38;base.receiveShadow=true;base.castShadow=true;root.add(base);
-            const trim=new THREE.Mesh(new THREE.BoxGeometry(14.5,.12,10.5),new THREE.MeshStandardMaterial({color:'#d6ad58',metalness:.7,roughness:.28}));trim.position.y=-.02;root.add(trim);
-            const felt=new THREE.Mesh(new THREE.BoxGeometry(14.1,.12,10.1),new THREE.MeshStandardMaterial({color:'#17634b',roughness:.92}));felt.position.y=.06;felt.receiveShadow=true;root.add(felt);
-            const lineMat=new THREE.MeshStandardMaterial({color:'#d6f4d8',transparent:true,opacity:.48});
-            for(const z of [-.45,.45]){const line=new THREE.Mesh(new THREE.BoxGeometry(13.3,.012,.025),lineMat);line.position.set(0,.13,z*2);root.add(line)}
-            const zone=(x,z,w,d,color)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,.025,d),new THREE.MeshStandardMaterial({color,transparent:true,opacity:.24,roughness:1}));m.position.set(x,.14,z);root.add(m);const edge=new THREE.Mesh(new THREE.BoxGeometry(w+.04,.035,d+.04),new THREE.MeshStandardMaterial({color,wireframe:true,transparent:true,opacity:.7}));edge.position.set(x,.145,z);root.add(edge)};
+        function tcg3dInit(){
+          const host=document.getElementById('tcgThreeBoard');if(!host||tcg3d.renderer)return;
+          try{
+            const scene=new THREE.Scene();scene.background=new THREE.Color('#07191d');
+            const camera=new THREE.PerspectiveCamera(37,1,.1,100);camera.position.set(0,12,17);camera.lookAt(0,0,0);
+            const renderer=new THREE.WebGLRenderer({antialias:false,alpha:false,powerPreference:'low-power',stencil:false,depth:true});
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=false;host.replaceChildren(renderer.domElement);
+            scene.add(new THREE.HemisphereLight('#d8f4ff','#10251d',1.8));
+            const key=new THREE.DirectionalLight('#fff1c9',2.1);key.position.set(-5,12,8);scene.add(key);
+            const rim=new THREE.PointLight('#42d9ff',22,22);rim.position.set(5,5,-5);scene.add(rim);
+            const root=new THREE.Group();scene.add(root);const cards=new THREE.Group();root.add(cards);const hitTargets=new THREE.Group();root.add(hitTargets);
+            const base=new THREE.Mesh(new THREE.BoxGeometry(15,.65,11),new THREE.MeshStandardMaterial({color:'#6b3d20',roughness:.72}));base.position.y=-.38;root.add(base);
+            const trim=new THREE.Mesh(new THREE.BoxGeometry(14.5,.12,10.5),new THREE.MeshStandardMaterial({color:'#d6ad58',metalness:.35,roughness:.48}));trim.position.y=-.02;root.add(trim);
+            const felt=new THREE.Mesh(new THREE.BoxGeometry(14.1,.12,10.1),new THREE.MeshStandardMaterial({color:'#17634b',roughness:1}));felt.position.y=.06;root.add(felt);
+            const lineMat=new THREE.MeshBasicMaterial({color:'#d6f4d8',transparent:true,opacity:.42});
+            for(const z of [-.9,.9]){const line=new THREE.Mesh(new THREE.BoxGeometry(13.3,.012,.025),lineMat);line.position.set(0,.13,z);root.add(line)}
+            const zone=(x,z,w,d,color)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.12,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,.132,z);root.add(m)};
             zone(0,-3.45,5.3,2.1,'#f87171');zone(0,-1.45,9.5,1.6,'#fb7185');zone(0,1.4,9.5,1.6,'#34d399');zone(0,3.45,5.3,2.1,'#4ade80');
-            tcg3d={...tcg3d,scene,camera,renderer,root,cards,hitTargets};const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('pointerup',ev=>{const rect=renderer.domElement.getBoundingClientRect();pointer.x=((ev.clientX-rect.left)/rect.width)*2-1;pointer.y=-((ev.clientY-rect.top)/rect.height)*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(tcg3d.hitTargets.children,false)[0];if(hit&&hit.object.userData.energyTarget!==undefined)tcgHandleBoardTarget(hit.object.userData.energyTarget);});const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};tcg3d.resize=resize;new ResizeObserver(resize).observe(host);resize();
-            const loop=()=>{tcg3d.raf=requestAnimationFrame(loop);root.rotation.y=Math.sin(performance.now()*.00018)*.008;renderer.render(scene,camera)};loop();
+            const cardGeometry=new THREE.BoxGeometry(1.22,.055,1.72),targetGeometry=new THREE.PlaneGeometry(1,1);
+            const sideMaterial=new THREE.MeshBasicMaterial({color:'#e8d8ae'}),targetMaterial=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide});
+            tcg3d={...tcg3d,scene,camera,renderer,root,cards,hitTargets,cardGeometry,targetGeometry,sideMaterial,targetMaterial,textureCache:tcg3d.textureCache||new Map()};
+            const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+            renderer.domElement.addEventListener('pointerup',ev=>{
+              const rect=renderer.domElement.getBoundingClientRect();pointer.x=((ev.clientX-rect.left)/rect.width)*2-1;pointer.y=-((ev.clientY-rect.top)/rect.height)*2+1;
+              raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(tcg3d.hitTargets.children,false)[0];if(!hit)return;
+              if(hit.object.userData.handIndex!==undefined)tcgPlayFromHand(hit.object.userData.handIndex);
+              else if(hit.object.userData.energyTarget!==undefined)tcgHandleBoardTarget(hit.object.userData.energyTarget);
+            },{passive:true});
+            const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);renderer.render(scene,camera)};
+            tcg3d.resize=resize;if(window.ResizeObserver){tcg3d.resizeObserver=new ResizeObserver(resize);tcg3d.resizeObserver.observe(host)}else window.addEventListener('resize',resize,{passive:true});resize();
           }catch(e){console.error('TCG 3D init:',e);host.innerHTML='<div class="p-6 text-center text-amber-100">No se pudo iniciar el renderizador 3D. Recargá la página o activá la aceleración por hardware.</div>'}
         }
-        function tcg3dRender(b){const host=document.getElementById('tcgThreeBoard');if(!host||!b)return;tcg3dInit();if(!tcg3d.root)return;const p=b.player,c=b.cpu;const sig=JSON.stringify([p.active?.uid,p.active?.damage,p.active?.energies,p.bench.map(x=>[x.uid,x.damage,x.energies]),c.active?.uid,c.active?.damage,c.active?.energies,c.bench.map(x=>[x.uid,x.damage,x.energies]),p.deck.length,p.prizes,c.deck.length,c.prizes,b.selectedEnergy]);if(sig===tcg3d.signature)return;tcg3d.signature=sig;
-          const root=tcg3d.root,cards=tcg3d.cards,hitTargets=tcg3d.hitTargets;while(cards.children.length){const obj=cards.children.pop();obj.traverse?.(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m.map)m.map.dispose();m.dispose()})}})}while(hitTargets.children.length){const obj=hitTargets.children.pop();obj.geometry?.dispose();obj.material?.dispose()}
-          const addTarget=(x,z,w,d,target)=>{const hit=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({transparent:true,opacity:.001,depthWrite:false,side:THREE.DoubleSide}));hit.rotation.x=-Math.PI/2;hit.position.set(x,.28,z);hit.userData.energyTarget=target;hitTargets.add(hit);if(b.selectedEnergy){const glow=new THREE.Mesh(new THREE.PlaneGeometry(w*.92,d*.92),new THREE.MeshBasicMaterial({color:'#facc15',transparent:true,opacity:.16,depthWrite:false,side:THREE.DoubleSide}));glow.rotation.x=-Math.PI/2;glow.position.set(x,.205,z);cards.add(glow);const edge=new THREE.Mesh(new THREE.BoxGeometry(w,.035,d),new THREE.MeshStandardMaterial({color:'#facc15',emissive:'#f59e0b',emissiveIntensity:1.1,transparent:true,opacity:.85}));edge.position.set(x,.19,z);cards.add(edge)}};
-          const addCard=(card,x,z,scale=1,back=false)=>{if(!card&&!back)return;const tex=tcg3dCardTexture(card,back);const side=new THREE.MeshStandardMaterial({color:'#e8d8ae',roughness:.5});const face=new THREE.MeshStandardMaterial({map:tex,roughness:.42});const mesh=new THREE.Mesh(new THREE.BoxGeometry(1.22*scale,.075,1.72*scale),[side,side,face,side,side,side]);mesh.position.set(x,.24,z);mesh.rotation.x=-.13;mesh.castShadow=true;mesh.receiveShadow=true;cards.add(mesh);const shadow=new THREE.Mesh(new THREE.PlaneGeometry(1.35*scale,1.85*scale),new THREE.ShadowMaterial({opacity:.25}));shadow.rotation.x=-Math.PI/2;shadow.position.set(x,.145,z);cards.add(shadow)};
-          addCard(c.active,0,-3.35,1.08);c.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,-1.55,.67);x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.55+(j%2)*.28,-2.15-Math.floor(j/2)*.28,.27));});c.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),-1.12-(j%3)*.34,-3.25-Math.floor(j/3)*.45,.32));addCard(p.active,0,3.35,1.08);addTarget(0,3.35,1.9,2.35,'active');p.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,1.55,.67);addTarget(bx,1.55,1.48,1.55,String(i));x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.55+(j%2)*.28,2.12+Math.floor(j/2)*.28,.27));});p.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),1.12+(j%3)*.34,3.25+Math.floor(j/3)*.45,.32));
-          for(let i=0;i<Math.min(4,p.deck.length);i++)addCard(null,5.55,3.3-i*.045,.56,true);for(let i=0;i<Math.min(4,c.deck.length);i++)addCard(null,-5.55,-3.3+i*.045,.56,true);
-          for(let i=0;i<Math.min(6,p.prizes);i++)addCard(null,5.45+(i%2)*.38,1.2+Math.floor(i/2)*.42,.35,true);for(let i=0;i<Math.min(6,c.prizes);i++)addCard(null,-5.45-(i%2)*.38,-1.2-Math.floor(i/2)*.42,.35,true);
+        function tcg3dRender(b){
+          const host=document.getElementById('tcgThreeBoard');if(!host||!b)return;tcg3dInit();if(!tcg3d.root)return;
+          const p=b.player,c=b.cpu;
+          const sig=JSON.stringify([p.active?.uid,p.active?.damage,p.active?.energies,p.bench.map(x=>[x.uid,x.damage,x.energies]),c.active?.uid,c.active?.damage,c.active?.energies,c.bench.map(x=>[x.uid,x.damage,x.energies]),p.hand,p.deck.length,p.prizes,c.deck.length,c.prizes,b.selectedEnergy]);
+          if(sig===tcg3d.signature){tcg3d.renderer.render(tcg3d.scene,tcg3d.camera);return}tcg3d.signature=sig;
+          const cards=tcg3d.cards,hitTargets=tcg3d.hitTargets;cards.clear();hitTargets.clear();
+          const addTarget=(x,z,w,d,target)=>{const hit=new THREE.Mesh(tcg3d.targetGeometry,tcg3d.targetMaterial);hit.rotation.x=-Math.PI/2;hit.position.set(x,.31,z);hit.scale.set(w,d,1);hit.userData.energyTarget=target;hitTargets.add(hit);if(b.selectedEnergy){const glow=new THREE.Mesh(tcg3d.targetGeometry,new THREE.MeshBasicMaterial({color:'#facc15',transparent:true,opacity:.2,depthWrite:false}));glow.rotation.x=-Math.PI/2;glow.position.set(x,.205,z);glow.scale.set(w*.92,d*.92,1);cards.add(glow)}};
+          const addCard=(card,x,z,scale=1,back=false,handIndex=null)=>{
+            if(!card&&!back)return;
+            const tex=tcg3dCardTexture(card,back),face=new THREE.MeshBasicMaterial({map:tex});
+            const mesh=new THREE.Mesh(tcg3d.cardGeometry,[tcg3d.sideMaterial,tcg3d.sideMaterial,face,tcg3d.sideMaterial,tcg3d.sideMaterial,tcg3d.sideMaterial]);
+            mesh.position.set(x,.24,z);mesh.rotation.x=-.13;mesh.scale.set(scale,1,scale);cards.add(mesh);
+            if(handIndex!==null){const hit=new THREE.Mesh(tcg3d.targetGeometry,tcg3d.targetMaterial);hit.rotation.x=-Math.PI/2;hit.position.set(x,.315,z);hit.scale.set(1.18*scale,1.68*scale,1);hit.userData.handIndex=handIndex;hitTargets.add(hit)}
+          };
+          addCard(c.active,0,-3.35,1.02);
+          c.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,-1.55,.63);x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.48+(j%2)*.25,-2.05-Math.floor(j/2)*.23,.23))});
+          c.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),-1.05-(j%3)*.3,-3.2-Math.floor(j/3)*.36,.27));
+          addCard(p.active,0,3.25,1.02);addTarget(0,3.25,1.85,2.05,'active');
+          p.bench.slice(0,5).forEach((x,i)=>{const bx=(i-2)*1.65;addCard(x,bx,1.42,.63);addTarget(bx,1.42,1.35,1.45,String(i));x.energies.forEach((id,j)=>addCard(tcgCard(id),bx+.48+(j%2)*.25,1.9+Math.floor(j/2)*.23,.23))});
+          p.active?.energies?.forEach((id,j)=>addCard(tcgCard(id),1.05+(j%3)*.3,3.17+Math.floor(j/3)*.36,.27));
+          for(let i=0;i<Math.min(4,p.deck.length);i++)addCard(null,5.55,3.3-i*.045,.5,true);
+          for(let i=0;i<Math.min(4,c.deck.length);i++)addCard(null,-5.55,-3.3+i*.045,.5,true);
+          for(let i=0;i<Math.min(6,p.prizes);i++)addCard(null,5.45+(i%2)*.38,1.2+Math.floor(i/2)*.42,.32,true);
+          for(let i=0;i<Math.min(6,c.prizes);i++)addCard(null,-5.45-(i%2)*.38,-1.2-Math.floor(i/2)*.42,.32,true);
+          const hand=p.hand.slice(0,12),spacing=Math.min(.88,8.4/Math.max(1,hand.length)),startX=-(hand.length-1)*spacing/2;
+          hand.forEach((id,i)=>addCard(tcgCard(id),startX+i*spacing,4.55,.49,false,i));
+          tcg3d.renderer.render(tcg3d.scene,tcg3d.camera);
         }
 
         function tcgBattleRender(){
@@ -4929,7 +4974,7 @@
                 <div class="tcg-side tcg-self rounded-xl bg-emerald-950/30 border border-emerald-400/20 p-3"><div class="flex justify-between text-xs"><b id="tcgMeLabel">🧑 Tu equipo</b><span id="tcgPlayerPrizes">6 premios</span></div><div id="tcgPlayerActive" class="mt-2 min-h-24"></div><div id="tcgPlayerBench" class="tcg-bench-row flex gap-2 flex-wrap mt-2"></div><div class="tcg-zone-strip"><span>🂠 MAZO</span><span>🏆 PREMIOS: 6</span><span>🗑️ DESCARTE</span></div></div>
               </div></div><div class="tcg-board-bottomline">TU LADO DEL CAMPO · ADJUNTÁ ENERGÍA Y PREPARÁ TU ATAQUE</div></div>
               <div class="rounded-xl bg-zinc-950/80 border border-white/10 p-3"><div class="flex flex-wrap justify-between gap-2 text-xs"><b id="tcgBattleTurn">Tu turno</b><span id="tcgBattleStatus" class="text-cyan-200">Preparando partida...</span></div><div id="tcgBattleLog" class="text-[11px] text-zinc-400 mt-2 max-h-20 overflow-y-auto"></div></div>
-              <div class="rounded-xl bg-black/30 border border-white/10 p-3"><div class="flex justify-between items-center"><b class="text-sm">Tu mano</b><span id="tcgHandCount" class="text-xs text-zinc-400"></span></div><div id="tcgPlayerHand" class="flex gap-2 overflow-x-auto py-3"></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button id="tcgDrawTurn" class="rounded-lg bg-sky-700 p-2 text-xs font-bold">Robar carta</button><button id="tcgAttachEnergy" class="rounded-lg bg-amber-600 p-2 text-xs font-bold">Adjuntar energía</button><button id="tcgRetreat" class="rounded-lg bg-zinc-700 p-2 text-xs font-bold">Retirar activo</button><button id="tcgEndTurn" class="rounded-lg bg-emerald-700 p-2 text-xs font-bold">Terminar turno</button></div></div>
+              <div class="rounded-xl bg-black/30 border border-white/10 p-3"><div class="flex justify-between items-center"><b class="text-sm">Tu mano · cartas integradas en la mesa 3D</b><span id="tcgHandCount" class="text-xs text-zinc-400"></span></div><div id="tcgPlayerHand" class="flex gap-2 overflow-x-auto py-3"></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button id="tcgDrawTurn" class="rounded-lg bg-sky-700 p-2 text-xs font-bold">Robar carta</button><button id="tcgAttachEnergy" class="rounded-lg bg-amber-600 p-2 text-xs font-bold">Adjuntar energía</button><button id="tcgRetreat" class="rounded-lg bg-zinc-700 p-2 text-xs font-bold">Retirar activo</button><button id="tcgEndTurn" class="rounded-lg bg-emerald-700 p-2 text-xs font-bold">Terminar turno</button></div></div>
               <div id="tcgBattleResult" class="hidden rounded-xl bg-amber-950/50 border border-amber-300/30 p-4 text-center"></div>
             </div>
           </section>
