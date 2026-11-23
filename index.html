@@ -999,6 +999,13 @@
             </section>
 
 
+            <section id="accountLinkPanel" class="mt-3 rounded-2xl border border-sky-300/25 bg-gradient-to-r from-sky-950/35 to-zinc-950 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="min-w-0"><div class="text-[10px] font-black tracking-[.18em] text-sky-300">🔐 PROTEGER MI PERFIL</div><h3 class="font-uno text-lg text-white">Guardá tu progreso</h3><p id="accountLinkStatus" class="text-[11px] text-zinc-400">Tu perfil actual es anónimo. Vinculá Google para recuperarlo en otros dispositivos.</p></div>
+                <button id="btnLinkGoogleAccount" type="button" class="shrink-0 rounded-xl border border-sky-300/30 bg-sky-400 px-4 py-2.5 text-xs font-extrabold text-zinc-950 hover:bg-sky-300">Vincular con Google</button>
+              </div>
+            </section>
+
             <section id="clubProgressHub" class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
               <article class="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-950/40 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-sky-300">📊 TU PERFIL</div><h3 class="font-uno text-xl">Trayectoria del Club</h3></div><span class="text-2xl">🧑‍🚀</span></div><div class="grid grid-cols-3 gap-2 mt-3"><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatMatches" class="block text-xl text-white">0</b><span class="text-[9px] text-zinc-400">Partidas</span></div><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatWins" class="block text-xl text-emerald-300">0</b><span class="text-[9px] text-zinc-400">Victorias</span></div><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatWinRate" class="block text-xl text-amber-200">0%</b><span class="text-[9px] text-zinc-400">Efectividad</span></div></div><p id="clubStatBest" class="mt-2 text-[10px] text-zinc-400">Tu historia recién empieza. ¡A jugar!</p></article>
               <article class="rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-950/35 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-emerald-300">🎯 DESAFÍOS</div><h3 class="font-uno text-xl">Misiones activas</h3></div><span class="text-2xl">⚡</span></div><div id="clubMissionsList" class="mt-3 space-y-2"></div><p class="mt-2 text-[9px] text-zinc-500">Las misiones se actualizan con tus resultados registrados en este navegador.</p></article>
@@ -1676,7 +1683,7 @@
     <!-- ========================================================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
@@ -1932,6 +1939,59 @@
 
     return authInitPromise;
 }
+        function renderAccountLinkStatus() {
+            const status = document.getElementById('accountLinkStatus');
+            const button = document.getElementById('btnLinkGoogleAccount');
+            if (!status || !button) return;
+            const linked = !!currentUser?.providerData?.some(p => p.providerId === 'google.com');
+            if (linked) {
+                status.textContent = '✅ Cuenta Google vinculada. Tu UID y tu progreso se conservan.';
+                button.textContent = 'Google vinculado';
+                button.disabled = true;
+                button.className = 'shrink-0 rounded-xl border border-emerald-300/30 bg-emerald-500/15 px-4 py-2.5 text-xs font-extrabold text-emerald-200 cursor-default';
+            } else {
+                status.textContent = currentUser?.isAnonymous
+                    ? 'Tu perfil actual es anónimo. Vinculá Google para recuperarlo en otros dispositivos.'
+                    : 'Vinculá Google para proteger tu progreso competitivo.';
+                button.textContent = 'Vincular con Google';
+                button.disabled = false;
+            }
+        }
+
+        async function linkGoogleAccount() {
+            const ready = await initFirebase();
+            if (!ready || !auth?.currentUser) {
+                showToast('No se pudo conectar con Firebase. Intentá nuevamente.', 'danger');
+                return;
+            }
+            if (auth.currentUser.providerData.some(p => p.providerId === 'google.com')) {
+                currentUser = auth.currentUser;
+                renderAccountLinkStatus();
+                showToast('Tu cuenta Google ya está vinculada.', 'success');
+                return;
+            }
+            try {
+                const provider = new GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' });
+                const result = await linkWithPopup(auth.currentUser, provider);
+                currentUser = result.user;
+                currentUserId = result.user.uid;
+                renderAccountLinkStatus();
+                showToast('✅ Google vinculado. Tu perfil conserva el mismo identificador.', 'success');
+            } catch (err) {
+                console.error('Error vinculando Google:', err);
+                if (err.code === 'auth/credential-already-in-use' || err.code === 'auth/email-already-in-use') {
+                    showToast('Ese Google ya pertenece a otra cuenta. No se fusionaron perfiles para evitar perder progreso.', 'warn');
+                } else if (err.code === 'auth/popup-closed-by-user') {
+                    showToast('Cerraste la ventana de Google antes de terminar.', 'warn');
+                } else if (err.code === 'auth/operation-not-allowed') {
+                    showToast('Primero habilitá Google en Firebase Authentication.', 'warn');
+                } else {
+                    showToast('No se pudo vincular Google. Revisá los dominios autorizados de Firebase.', 'danger');
+                }
+            }
+        }
+
         function startPublicRoomsListener() {
             if (unsubscribePublicRooms || !db || !currentUser) return;
             const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'uno_rooms');
@@ -5153,6 +5213,7 @@
             await syncRoomToCloud();
         };
 
+        document.getElementById('btnLinkGoogleAccount')?.addEventListener('click', linkGoogleAccount);
         document.getElementById('modeTeamsBtn').onclick = async () => {
             if (!state.room || state.room.hostId !== currentUserId) return;
             state.room.teamMode = true;
