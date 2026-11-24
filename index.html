@@ -1103,6 +1103,7 @@
 .uno-grand-closing{opacity:0;transition:opacity .45s ease}
 @media(prefers-reduced-motion:reduce){.uno-grand-unlock:before,.uno-grand-emblem-wrap,.uno-grand-title,.uno-grand-panel,.uno-grand-ring,.uno-grand-champion-emblem{animation:none!important}}
 </style>
+    <link rel="stylesheet" href="uno-pok-3d.css">
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
     <div id="gameVersionBadge" class="fixed top-2 left-2 z-[180] rounded-lg border border-emerald-300/30 bg-black/75 px-2.5 py-1 text-[10px] font-black tracking-wider text-emerald-200 shadow-lg pointer-events-none">UNO! CLUB v2.9.8</div>
@@ -5888,12 +5889,45 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           arcade.game={players,deck,community:[],pot:small+big,currentBet:big,stage:0,street:0,over:false,message:'Preflop: igualá 10 fichas, subí o retirate.'};
           pokerRender();
         }
+
+        // UNO! POK VIP: capa 3D compartida por partidas locales y salas Firebase.
+        // Solo representa el estado recibido: no modifica apuestas, saldos ni turnos.
+        function pokerStageMarkup(data, controlsHtml, currencyLabel) {
+          const raw = data.players || [];
+          const hero = Math.max(0, Math.min(raw.length - 1, Number(data.heroIndex) || 0));
+          const ordered = raw.slice(hero).concat(raw.slice(0, hero));
+          const turn = raw.length ? ((Number(data.turnIndex) - hero + raw.length) % raw.length) : -1;
+          const stageNames = ['PRE-FLOP','FLOP','TURN','RIVER','SHOWDOWN'];
+          const stageName = stageNames[Math.max(0,Math.min(4,Number(data.stage)||0))];
+          const seats = ordered.map((p,i) => {
+            const folded=!!p.folded, stack=Number(p.stack ?? p.chips ?? 0), bet=Number(p.bet||0), active=!data.over&&i===turn, isHero=i===0;
+            const cards=p.hand||p.cards||[];
+            const visible=folded?'RETIRADO':(isHero||data.over?cards.map(pokerCardShort).join(' · '):'🂠  🂠');
+            const meta=(bet>0?'APUESTA '+currencyLabel+fmtPokerNumber(bet):'SIN APUESTA')+(p.allIn?' · ALL-IN':'');
+            return '<div class="uno-pok-seat '+(active?'is-turn ':'')+(folded?'is-folded':'')+'" data-seat="'+i+'"><div class="seat-name">'+arcadeEsc(p.name||('Jugador '+(i+1)))+(isHero?' · VOS':'')+'</div><div class="seat-stack">'+currencyLabel+fmtPokerNumber(stack)+'</div><div class="seat-meta">'+arcadeEsc(visible)+'</div><div class="seat-meta">'+arcadeEsc(meta)+'</div>'+(active?'<div class="seat-turn">● EN TURNO</div>':'')+'</div>';
+          }).join('');
+          const stage='<div class="uno-pok-stage"><div id="unoPok3DStage" aria-label="Mesa 3D de UNO POK"><div class="uno-pok-stage-fallback"></div></div><div class="uno-pok-stage-top"><strong>UNO! POK</strong><span>VIP TABLE · '+stageName+'</span></div><div class="uno-pok-pot"><small>'+(data.online?'POZO EN DIAMANTES':'POZO TOTAL')+'</small><b>'+currencyLabel+fmtPokerNumber(data.pot)+'</b></div>'+seats+'<div class="uno-pok-stage-message">'+arcadeEsc(data.message||'Esperando jugada…')+'</div></div>';
+          const hand=(data.heroCards||[]).map(c=>'<div class="uno-pok-mini-card '+arcadeEsc(c.color||c.suit||'wild')+'">'+arcadeEsc(pokerCardShort(c))+'</div>').join('');
+          const panel='<div class="uno-pok-actionbar"><div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-[9px] font-black tracking-[.2em] text-amber-200">TUS CARTAS PRIVADAS</div><div class="uno-pok-mini-hand">'+hand+'</div></div><div class="text-right"><div class="text-[9px] font-black tracking-[.2em] text-emerald-200">TU JUGADA</div><div class="text-sm font-black text-white mt-2">'+arcadeEsc(data.handName||'Esperando acción')+'</div></div></div>'+controlsHtml+'</div>';
+          return stage+panel;
+        }
+        function pokerCardShort(c) {
+          const v=c?.value??c?.v;
+          if(v==='skip')return '⊘';if(v==='reverse')return '↻';if(v==='draw2')return '+2';if(v==='wild')return 'W';if(v==='wild_draw4')return '+4';
+          return String(v??'?');
+        }
+        function fmtPokerNumber(n){return Number(n||0).toLocaleString('es-AR');}
+        function pokerMountStage(data,controls,currency) {
+          arcadeRender(pokerStageMarkup(data,controls,currency));
+          document.querySelector('#arcadeGameContent .arcade-felt-board')?.classList.add('uno-pok-vip-board');
+          const list=data.players||[],hero=Math.max(0,Number(data.heroIndex)||0),ordered=list.slice(hero).concat(list.slice(0,hero));
+          requestAnimationFrame(()=>{if(window.unoPok3D)window.unoPok3D.render({players:ordered,community:data.community||[],pot:data.pot||0,heroIndex:0,turnIndex:list.length?((Number(data.turnIndex)-hero+list.length)%list.length):-1,over:!!data.over});});
+        }
         function pokerRender(){
-          const g=arcade.game;if(!g)return;const p=g.players[0],stages=['Preflop','Flop','Turn','River','Showdown'];
-          const seats=g.players.map((x,i)=>'<div class="arcade-seat '+(x.folded?'opacity-40':'')+'"><div class="flex justify-between gap-2"><b class="text-sm">'+x.name+(i===0?' (vos)':'')+'</b><span class="text-xs text-amber-200">🪙 '+x.stack+'</span></div><div class="text-[10px] text-zinc-400 mt-1">'+(x.folded?'RETIRADO':(i===0||g.over?x.hand.map(c=>c.v===14?'A':c.v===13?'K':c.v===12?'Q':c.v===11?'J':c.v).join(' · '):'🂠 🂠'))+'</div></div>').join('');
-          const comm=g.community.map(pokerCard).join('')||'<span class="text-xs text-zinc-500">Las cartas comunitarias aparecerán en el flop.</span>';
-          const can=!g.over;const call=Math.max(0,g.currentBet-p.bet);
-          arcadeRender('<div class="grid grid-cols-2 md:grid-cols-4 gap-2">'+seats+'</div><div class="mt-5 rounded-2xl bg-emerald-950/60 border border-emerald-400/20 p-4 text-center"><div class="text-[10px] tracking-widest text-emerald-200">POZO TOTAL</div><div class="font-uno text-4xl text-amber-300">🪙 '+g.pot+'</div><div class="text-xs text-zinc-300 mt-1">'+stages[g.stage]+' · '+g.message+'</div><div class="flex justify-center flex-wrap gap-2 mt-4 min-h-[100px] items-center">'+comm+'</div></div><div class="mt-5"><div class="text-xs text-zinc-400 mb-2">TUS CARTAS PRIVADAS</div><div class="flex gap-3 justify-center">'+p.hand.map(pokerCard).join('')+'</div></div>'+(can?'<div class="flex flex-wrap justify-center gap-2 mt-5"><button data-poker-action="fold" class="arcade-action text-rose-200">Retirarme</button><button data-poker-action="call" class="arcade-action text-emerald-200">'+(call?'Igualar 🪙 '+call:'Pasar / Check')+'</button><button data-poker-action="raise" class="arcade-action border-amber-400/40 text-amber-200">Subir +20</button></div>':'<div class="text-center mt-5"><button data-poker-action="again" class="arcade-action text-amber-200">Nueva mano</button></div>')+'<div class="text-center text-[10px] text-zinc-500 mt-4">Las fichas son virtuales y solo se guardan en este navegador.</div>');
+          const g=arcade.game;if(!g)return;const p=g.players[0],call=Math.max(0,g.currentBet-p.bet);
+          const controls=g.over?'<div class="flex justify-center mt-4"><button data-poker-action="again" class="arcade-action text-amber-100 border-amber-300/40">♠ Nueva mano</button></div>':'<div class="flex flex-wrap justify-center gap-2 mt-4"><button data-poker-action="fold" class="arcade-action text-rose-200">Retirarme</button><button data-poker-action="call" class="arcade-action text-emerald-200">'+(call?'Igualar 🪙 '+call:'Pasar / Check')+'</button><button data-poker-action="raise" class="arcade-action text-amber-100 border-amber-300/40">Subir +20</button></div>';
+          const best=p.folded?null:pokerBest([...p.hand,...g.community]);
+          pokerMountStage({players:g.players,community:g.community,pot:g.pot,stage:g.stage,turnIndex:0,heroIndex:0,over:g.over,message:g.message,heroCards:p.hand,handName:best?pokerRankNames[best.score[0]]:'Retirado'},controls,'🪙 ');
         }
         function pokerAward(winners){
           const g=arcade.game;const share=Math.floor(g.pot/winners.length),remainder=g.pot-share*winners.length;winners.forEach((i,k)=>g.players[i].stack+=share+(k===0?remainder:0));g.pot=0;g.over=true;
@@ -6245,13 +6279,15 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             arcadeOnlinePokerAdvance(r,g);return true;
           });
         }
-        function arcadeOnlineRenderPoker(r,g){
-          const me=g.players.find(p=>p.id===currentUserId),can=me&&!g.over&&g.players[g.turn]?.id===currentUserId;
-          const seats=g.players.map(p=>'<div class="arcade-seat '+(p.folded?'opacity-40':'')+'"><b>'+arcadeEsc(p.name)+'</b><div class="text-xs text-cyan-200 mt-1">◆ '+p.stack+'</div><div class="text-[10px] text-zinc-400">'+(p.folded?'RETIRADO':(p.id===currentUserId||g.over?p.hand.map(c=>c.v===14?'A':c.v).join(' · '):'🂠 🂠'))+'</div>'+(g.turn===g.players.indexOf(p)&&!g.over?'<div class="text-[10px] text-emerald-300">SU TURNO</div>':'')+'</div>').join('');
-          const comm=g.community.map(pokerCard).join('');
-          arcadeRender('<div class="grid grid-cols-2 md:grid-cols-4 gap-2">'+seats+'</div><div class="mt-4 rounded-2xl bg-emerald-950/50 p-4 text-center"><div class="text-[10px] tracking-widest text-emerald-200">POZO EN DIAMANTES</div><div class="font-uno text-4xl text-cyan-200">◆ '+g.pot+'</div><p class="text-sm mt-2">'+arcadeEsc(g.message)+'</p><div class="flex flex-wrap justify-center gap-2 mt-4 min-h-[90px]">'+(comm||'<span class="text-xs text-zinc-400">Esperando flop…</span>')+'</div></div><div class="mt-4 text-center"><div class="text-xs text-zinc-400 mb-2">TUS CARTAS</div><div class="flex justify-center gap-3">'+(me?me.hand.map(pokerCard).join(''):'')+'</div><p class="text-xs text-zinc-400 mt-2">'+(can?'¡Es tu turno!':'Turno de '+arcadeEsc(g.players[g.turn]?.name||'…'))+'</p><div class="flex justify-center flex-wrap gap-2 mt-3">'+(can?'<button data-aonline-poker="fold" class="arcade-action">Retirarme</button><button data-aonline-poker="call" class="arcade-action text-emerald-200">Igualar '+Math.max(0,g.currentBet-(me?.bet||0))+'</button><button data-aonline-poker="raise" class="arcade-action text-amber-200">Subir +'+Math.max(1,Math.ceil((g.buyIn||100)/10))+'</button>':'')+(g.over?'<div class="text-xs text-cyan-100 mt-2">🏆 Entrada: '+Number(r.pokerStake||0)+' ◆ · pozo de entrada: '+(Number(r.pokerStake||0)*(g.players||[]).length)+' ◆. El premio se acredita a la cuenta Google del ganador.</div><span class="text-xs text-zinc-400 block mt-2">Para otra mano, creá una nueva sala y elegí otra entrada.</span>':'')+'</div></div>');
-        }
-        async function arcadeOnlineBattlePlay(cardId){
+         function arcadeOnlineRenderPoker(r,g){
+           const meIndex=g.players.findIndex(p=>p.id===currentUserId),me=g.players[meIndex],can=me&&!g.over&&g.players[g.turn]?.id===currentUserId;
+           const due=Math.max(0,g.currentBet-(me?.bet||0)),raiseBy=Math.max(1,Math.ceil((g.buyIn||100)/10));
+           const controls=can?'<div class="flex flex-wrap justify-center gap-2 mt-4"><button data-aonline-poker="fold" class="arcade-action text-rose-200">Retirarme</button><button data-aonline-poker="call" class="arcade-action text-emerald-200">Igualar ◆ '+due+'</button><button data-aonline-poker="raise" class="arcade-action text-amber-100 border-amber-300/40">Subir +'+raiseBy+'</button></div>':'<div class="text-center text-xs text-zinc-300 mt-4">'+(g.over?'🏆 Mano finalizada':'Turno de '+arcadeEsc(g.players[g.turn]?.name||'…'))+'</div>';
+           const payout=g.over?'<div class="text-center text-xs text-cyan-100 mt-3">Entrada: '+Number(r.pokerStake||0)+' ◆ · pozo de entrada: '+(Number(r.pokerStake||0)*(g.players||[]).length)+' ◆. El premio se acredita a la cuenta Google del ganador.</div>':'';
+           const best=me&&!me.folded?pokerBest([...me.hand,...g.community]):null;
+           pokerMountStage({players:g.players,community:g.community,pot:g.pot,stage:g.stage,turnIndex:g.turn,heroIndex:Math.max(0,meIndex),over:g.over,message:g.message,heroCards:me?.hand||[],handName:best?pokerRankNames[best.score[0]]:'Retirado',online:true},controls+payout,'◆ ');
+         }
+async function arcadeOnlineBattlePlay(cardId){
           await arcadeOnlineMutate((r,g)=>{
             const i=g.players.findIndex(p=>p.id===currentUserId);if(i<0||g.over||g.turn!==i)return false;const p=g.players[i],ci=p.hand.findIndex(c=>c.id===cardId);if(ci<0)return false;const c=p.hand.splice(ci,1)[0],targetIdx=arcadeNextPlayer(g,i),target=g.players[targetIdx];
             if(c.color==='green'&&c.value!=='wild'&&c.value!=='wild_draw4'){p.hp=Math.min(100,p.hp+Math.max(8,battlePower(c)));g.log=p.name+' recuperó vida.';}
@@ -7240,5 +7276,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
       </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="uno-pok-3d.js"></script>
 </body>
 </html>
