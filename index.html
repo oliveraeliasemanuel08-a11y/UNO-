@@ -640,7 +640,7 @@
         #arcadeGameScreen .arcade-seat:nth-child(2){animation-delay:.05s}#arcadeGameScreen .arcade-seat:nth-child(3){animation-delay:.1s}#arcadeGameScreen .arcade-seat:nth-child(4){animation-delay:.15s}
         #arcadeGameScreen .arcade-poker-card{animation:arcadeCardDeal .48s cubic-bezier(.18,.8,.25,1) both;transition:transform .2s,filter .2s}
 
-        /* UNO! POK: reparto cinematográfico real, carta por carta */
+        /* UNO HOLD’EM POKER 3D: reparto cinematográfico real, carta por carta */
         @keyframes pokerUnoDeal {
             0% { opacity:0; transform:translate3d(0,-115px,90px) rotateY(180deg) rotateZ(-18deg) scale(.52); filter:brightness(1.8) blur(1px); }
             58% { opacity:1; transform:translate3d(0,7px,0) rotateY(18deg) rotateZ(4deg) scale(1.07); filter:brightness(1.18); }
@@ -1103,7 +1103,7 @@
 .uno-grand-closing{opacity:0;transition:opacity .45s ease}
 @media(prefers-reduced-motion:reduce){.uno-grand-unlock:before,.uno-grand-emblem-wrap,.uno-grand-title,.uno-grand-panel,.uno-grand-ring,.uno-grand-champion-emblem{animation:none!important}}
 </style>
-    <link rel="stylesheet" href="uno-pok-3d.css">
+    <link rel="stylesheet" href="uno-holdem-poker-3d.css">
 </head>
 <body class="casino-table flex flex-col justify-between select-none">
     <div id="gameVersionBadge" class="fixed top-2 left-2 z-[180] flex flex-wrap items-center gap-2 rounded-lg border border-emerald-300/30 bg-black/80 px-2.5 py-1 text-[10px] font-black tracking-wider text-emerald-200 shadow-lg pointer-events-none" aria-label="UNO! CLUB versión 2.9.9, EYN Corporation"><span>UNO! CLUB v2.9.9</span><span class="h-3 w-px bg-emerald-300/40" aria-hidden="true"></span><span class="text-amber-300">EYN Corporation&apos;s</span></div>
@@ -1398,7 +1398,7 @@
                         <button id="btnOpenCompetitive" type="button" class="btn-shimmer relative overflow-hidden w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-600 text-zinc-950 font-bold shadow-xl border border-yellow-200/60 flex items-center justify-between transition-all hover:-translate-y-0.5 active:scale-[0.99]">
                           <span class="flex items-center gap-4"><span class="w-12 h-12 rounded-2xl bg-black/15 flex items-center justify-center text-2xl">🏆</span><span class="text-left"><span class="block text-base sm:text-lg font-extrabold">COMPETITIVO</span><span class="block text-xs font-semibold text-amber-950/80 mt-0.5">Rangos, clasificatorias y leaderboard</span></span></span><span class="text-xs bg-black/15 px-3.5 py-1.5 rounded-xl font-extrabold">ENTRAR →</span>
                         </button>
-                        <button id="btnOpenArcade" type="button" class="w-full rounded-2xl border border-emerald-400/30 bg-emerald-950/60 px-4 py-3 text-left text-sm font-extrabold text-emerald-200 hover:bg-emerald-900/70">🎮 MODOS DE JUEGO · UNO! POK / BATALLA / ROBADO</button>
+                        <button id="btnOpenArcade" type="button" class="w-full rounded-2xl border border-emerald-400/30 bg-emerald-950/60 px-4 py-3 text-left text-sm font-extrabold text-emerald-200 hover:bg-emerald-900/70">🎮 MODOS DE JUEGO · UNO HOLD'EM POKER 3D / BATALLA / ROBADO</button>
                     </div>
 
                     <!-- Unirse con código -->
@@ -1486,7 +1486,7 @@
 <section id="clubInboxScreen" class="hidden fixed inset-0 z-[250] overflow-y-auto bg-[#070b16] p-3 sm:p-6"><div class="mx-auto flex min-h-[calc(100dvh-1.5rem)] max-w-6xl flex-col"><header class="mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-3"><div><div class="text-[10px] font-black tracking-[.22em] text-emerald-300">UNO! CLUB SOCIAL</div><h2 class="font-uno text-2xl text-white sm:text-3xl">Mensajes</h2><p class="text-[10px] text-zinc-400">Hablá con otros jugadores por su ID.</p></div><button id="btnCloseInbox" class="rounded-xl bg-zinc-800 px-4 py-3 text-sm font-bold">← Menú</button></header><div class="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-[280px_minmax(0,1fr)]"><aside class="rounded-2xl border border-white/10 bg-zinc-950/80 p-3"><div class="mb-2 flex items-center justify-between"><b class="text-sm text-white">Conversaciones</b><span id="inboxConversationCount" class="text-[10px] text-zinc-500">0 chats</span></div><div id="inboxConversationList" class="max-h-[35dvh] space-y-2 overflow-y-auto md:max-h-[65dvh]"><p class="text-xs text-zinc-500">Todavía no tenés mensajes.</p></div><button id="btnInboxFindPlayer" class="mt-3 w-full rounded-xl border border-sky-300/20 bg-sky-950/30 px-3 py-3 text-xs font-bold text-sky-200">🔎 Buscar jugador por ID</button></aside><main class="flex min-h-[55dvh] flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/80 md:min-h-0"><div id="dmConversationHeader" class="border-b border-white/10 p-3"><b class="text-sm text-zinc-300">Elegí una conversación</b><p class="text-[10px] text-zinc-500">Buscá a alguien por su ID para iniciar un chat.</p></div><div id="dmMessages" class="flex-1 space-y-2 overflow-y-auto p-3"><p class="py-10 text-center text-xs text-zinc-500">Tus mensajes aparecerán acá en tiempo real.</p></div><form id="dmSendForm" class="flex gap-2 border-t border-white/10 p-3"><input id="dmMessageInput" maxlength="500" autocomplete="off" placeholder="Escribí un mensaje..." class="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/50 px-3 py-3 text-sm text-white" disabled><button id="dmSendButton" type="submit" class="rounded-xl bg-emerald-400 px-4 py-3 text-xs font-black text-zinc-950 disabled:opacity-40" disabled>Enviar</button></form></main></div></div></section>
 <div id="playerLookupModal" class="hidden fixed inset-0 z-[240] bg-black/90 backdrop-blur-md p-3 flex items-center justify-center"><div class="w-full max-w-xl max-h-[90dvh] overflow-y-auto rounded-3xl border border-sky-300/25 bg-gradient-to-br from-zinc-950 via-sky-950/30 to-black p-4 sm:p-6 shadow-2xl"><div class="flex items-center justify-between gap-3"><div><div class="text-[10px] tracking-[.2em] text-sky-300 font-black">DIRECTORIO UNO! CLUB</div><h3 class="font-uno text-2xl text-white">Buscar jugador por ID</h3><p class="text-xs text-zinc-400 mt-1">Pegá el ID exacto del jugador para ver su perfil.</p></div><button id="btnClosePlayerLookup" class="rounded-xl bg-zinc-800 px-3 py-2">✕</button></div><div class="flex gap-2 mt-4"><input id="playerLookupInput" type="text" autocomplete="off" placeholder="ID del jugador..." class="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/50 px-3 py-3 font-mono text-xs text-white"><button id="btnSearchPlayerId" class="rounded-xl bg-sky-500 px-4 py-3 text-xs font-black text-zinc-950">BUSCAR</button></div><div id="playerLookupResult" class="mt-4 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-300">El perfil encontrado aparecerá acá.</div></div></div>
     <!-- ========================================================= -->
-    <!-- ARCADE: MODOS INDEPENDIENTES UNO! POK / BATALLA / ROBADO -->
+    <!-- ARCADE: MODOS INDEPENDIENTES UNO HOLD'EM POKER 3D / BATALLA / ROBADO -->
     <!-- ========================================================= -->
     <section id="arcadeScreen" class="hidden fixed inset-0 z-[65] overflow-y-auto arcade-screen p-3 sm:p-6">
       <div class="max-w-6xl mx-auto">
@@ -1496,8 +1496,8 @@
         </header>
         <div id="arcadeModeMenu" class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <article class="arcade-card p-5 flex flex-col">
-            <div class="text-5xl mb-3">♠️</div><div class="text-[10px] font-black tracking-widest text-amber-300">CASINO DE CARTAS</div><h3 class="font-uno text-2xl mt-1">UNO! POK</h3>
-            <p class="text-sm text-zinc-400 mt-2 flex-1">Póker Texas Hold'em: dos cartas privadas, cinco comunitarias, apuestas por rondas y pozo. Fichas virtuales, sin dinero real.</p>
+            <div class="text-5xl mb-3">♠️</div><div class="text-[10px] font-black tracking-widest text-amber-300">TEXAS HOLD’EM 3D</div><h3 class="font-uno text-2xl mt-1">UNO HOLD'EM POKER 3D</h3>
+            <p class="text-sm text-zinc-400 mt-2 flex-1">Texas Hold’em clásico en una mesa 3D: baraja francesa de 52 cartas, dos cartas privadas, cinco comunitarias y showdown. La economía y las apuestas se ajustarán en una próxima actualización.</p>
             <div class="flex items-center justify-between mt-5"><span class="text-xs text-amber-200">🪙 1.000 fichas iniciales</span><button data-arcade-menu="poker" class="arcade-action border-amber-400/40 text-amber-200">Abrir menú →</button></div>
           </article>
           <article class="arcade-card p-5 flex flex-col">
@@ -3799,7 +3799,7 @@
                 } else if (err.message === "ROOM_FULL") {
                     showToast("La sala está completa.", "danger");
                 } else if (err.message === "ARCADE_ROOM") {
-                    showToast("Ese código es de UNO! POK, BATALLA o ROBADO. Entrá desde 🎮 Modos.", "warn");
+                    showToast("Ese código es de UNO HOLD'EM POKER 3D, BATALLA o ROBADO. Entrá desde 🎮 Modos.", "warn");
                 } else {
                     showToast("No se pudo entrar a la sala. Verifica el código.", "danger");
                 }
@@ -5831,7 +5831,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
 
 
         // =========================================================
-        // ARCADE LOCAL: UNO! POK, UNO! BATALLA y UNO! ROBADO
+        // ARCADE LOCAL: UNO HOLD'EM POKER 3D, UNO! BATALLA y UNO! ROBADO
         // Se ejecutan aislados del estado de las salas UNO/Firebase.
         // =========================================================
         const arcade = { mode:null, game:null, timer:null };
@@ -5851,7 +5851,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           clearTimeout(arcade.timer);arcade.mode=mode;
           document.getElementById('arcadeScreen').classList.add('hidden');
           document.getElementById('arcadeGameScreen').classList.remove('hidden');
-          const meta={poker:['MESA DE PÓKER','UNO! POK','Texas Hold’em contra tres rivales IA.'],battle:['ARENA DE COMBATE','UNO! BATALLA','Jugá cartas para atacar, defenderte y sobrevivir.'],robado:['JUEGO DE CAPTURAS','UNO! ROBADO','La Casita Robada reinventada con cartas UNO.']}[mode];
+          const meta={poker:['MESA TEXAS HOLD’EM','UNO HOLD'EM POKER 3D','Texas Hold’em contra tres rivales IA.'],battle:['ARENA DE COMBATE','UNO! BATALLA','Jugá cartas para atacar, defenderte y sobrevivir.'],robado:['JUEGO DE CAPTURAS','UNO! ROBADO','La Casita Robada reinventada con cartas UNO.']}[mode];
           document.getElementById('arcadeGameEyebrow').textContent='MODO SOLO · CONTRA 3 BOTS IA';document.getElementById('arcadeGameTitle').textContent=meta[1];document.getElementById('arcadeGameSubtitle').textContent=meta[2]+' · Vos contra tres rivales controlados por la IA.';
           if(mode==='poker') arcadeStartPoker(); else if(mode==='battle') arcadeStartBattle(); else arcadeStartRobado();
         }
@@ -5860,9 +5860,9 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         function arcadeBackToModes(){clearTimeout(arcade.timer);arcade.game=null;document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');}
         function arcadeStartAgain(){if(arcade.mode)arcadeOpenGame(arcade.mode);}
 
-        // UNO! POK — Texas Hold'em con fichas virtuales y evaluación real de manos.
-        function pokerDeck(){const rank={skip:10,reverse:11,draw2:12,wild:13,wild_draw4:14};return arcadeUnoDeck().map(c=>({...c,v:Number.isFinite(Number(c.value))?Number(c.value):(rank[c.value]||0),suit:c.color}));}
-        function pokerCard(c){return arcadeUnoCard({...c,color:c.color||c.suit,value:c.value??String(c.v)},false,'arcade-poker-uno');}
+        // UNO HOLD'EM POKER 3D — Texas Hold'em con fichas virtuales y evaluación real de manos.
+        function pokerDeck(){const suits=[{suit:'hearts',symbol:'♥',red:true},{suit:'diamonds',symbol:'♦',red:true},{suit:'clubs',symbol:'♣',red:false},{suit:'spades',symbol:'♠',red:false}],ranks=[2,3,4,5,6,7,8,9,10,11,12,13,14],faces={11:'J',12:'Q',13:'K',14:'A'};const deck=[];let id=0;for(const s of suits)for(const v of ranks)deck.push({id:'h'+id++,suit:s.suit,symbol:s.symbol,color:s.red?'red':'black',v,value:faces[v]||String(v)});return arcadeShuffle(deck);}
+        function pokerCard(c){const red=c.color==='red'||['hearts','diamonds'].includes(c.suit);const label=c.value??String(c.v),suit=c.symbol||({hearts:'♥',diamonds:'♦',clubs:'♣',spades:'♠'}[c.suit]||'♠');return '<div class="arcade-poker-card '+(red?'red':'black')+'"><span class="poker-corner">'+arcadeEsc(label)+suit+'</span><span class="poker-center">'+suit+'</span><span class="poker-corner bottom">'+arcadeEsc(label)+suit+'</span></div>';}
         function pokerCombos(a,k){if(k===0)return [[]];if(a.length<k)return [];const [h,...tail]=a;return pokerCombos(tail,k-1).map(x=>[h,...x]).concat(pokerCombos(tail,k));}
         function pokerEval5(cards){
           const vals=cards.map(c=>c.v).sort((a,b)=>b-a),counts={};vals.forEach(v=>counts[v]=(counts[v]||0)+1);
@@ -5879,7 +5879,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           if(groups[0].n===2)return [1,groups[0].v,...groups.slice(1).map(g=>g.v)];
           return [0,...vals];
         }
-        const pokerRankNames=['Carta alta','Pareja','Doble pareja','Trío','Escalera','Color','Full house','Póker','Escalera de color','Quintilla UNO'];
+        const pokerRankNames=['Carta alta','Pareja','Doble pareja','Trío','Escalera','Color','Full house','Póker','Escalera de color'];
         function pokerBest(cards){let best=null;for(const c of pokerCombos(cards,5)){const score=pokerEval5(c);if(!best||pokerCompare(score,best.score)>0)best={score,cards:c};}return best;}
         function pokerCompare(a,b){for(let i=0;i<Math.max(a.length,b.length);i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x-y;}return 0;}
         function arcadeStartPoker(){
@@ -5890,7 +5890,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           pokerRender();
         }
 
-        // UNO! POK VIP: capa 3D compartida por partidas locales y salas Firebase.
+        // UNO HOLD'EM POKER 3D VIP: capa 3D compartida por partidas locales y salas Firebase.
         // Solo representa el estado recibido: no modifica apuestas, saldos ni turnos.
         function pokerStageMarkup(data, controlsHtml, currencyLabel) {
           const raw = data.players || [];
@@ -5904,24 +5904,23 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             const cards=p.hand||p.cards||[];
             const visible=folded?'RETIRADO':(isHero||data.over?cards.map(pokerCardShort).join(' · '):'🂠  🂠');
             const meta=(bet>0?'APUESTA '+currencyLabel+fmtPokerNumber(bet):'SIN APUESTA')+(p.allIn?' · ALL-IN':'');
-            return '<div class="uno-pok-seat '+(active?'is-turn ':'')+(folded?'is-folded':'')+'" data-seat="'+i+'"><div class="seat-name">'+arcadeEsc(p.name||('Jugador '+(i+1)))+(isHero?' · VOS':'')+'</div><div class="seat-stack">'+currencyLabel+fmtPokerNumber(stack)+'</div><div class="seat-meta">'+arcadeEsc(visible)+'</div><div class="seat-meta">'+arcadeEsc(meta)+'</div>'+(active?'<div class="seat-turn">● EN TURNO</div>':'')+'</div>';
+            return '<div class="uno-holdem-seat '+(active?'is-turn ':'')+(folded?'is-folded':'')+'" data-seat="'+i+'"><div class="seat-name">'+arcadeEsc(p.name||('Jugador '+(i+1)))+(isHero?' · VOS':'')+'</div><div class="seat-stack">'+currencyLabel+fmtPokerNumber(stack)+'</div><div class="seat-meta">'+arcadeEsc(visible)+'</div><div class="seat-meta">'+arcadeEsc(meta)+'</div>'+(active?'<div class="seat-turn">● EN TURNO</div>':'')+'</div>';
           }).join('');
-          const stage='<div class="uno-pok-stage"><div id="unoPok3DStage" aria-label="Mesa 3D de UNO POK"><div class="uno-pok-stage-fallback"></div></div><div class="uno-pok-stage-top"><strong>UNO! POK</strong><span>VIP TABLE · '+stageName+'</span></div><div class="uno-pok-pot"><small>'+(data.online?'POZO EN DIAMANTES':'POZO TOTAL')+'</small><b>'+currencyLabel+fmtPokerNumber(data.pot)+'</b></div>'+seats+'<div class="uno-pok-stage-message">'+arcadeEsc(data.message||'Esperando jugada…')+'</div></div>';
-          const hand=(data.heroCards||[]).map(c=>'<div class="uno-pok-mini-card '+arcadeEsc(c.color||c.suit||'wild')+'">'+arcadeEsc(pokerCardShort(c))+'</div>').join('');
-          const panel='<div class="uno-pok-actionbar"><div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-[9px] font-black tracking-[.2em] text-amber-200">TUS CARTAS PRIVADAS</div><div class="uno-pok-mini-hand">'+hand+'</div></div><div class="text-right"><div class="text-[9px] font-black tracking-[.2em] text-emerald-200">TU JUGADA</div><div class="text-sm font-black text-white mt-2">'+arcadeEsc(data.handName||'Esperando acción')+'</div></div></div>'+controlsHtml+'</div>';
+          const stage='<div class="uno-holdem-stage"><div id="unoHoldem3DStage" aria-label="Mesa 3D de UNO HOLD'EM"><div class="uno-holdem-stage-fallback"></div></div><div class="uno-holdem-stage-top"><strong>UNO HOLD'EM POKER 3D</strong><span>VIP TABLE · '+stageName+'</span></div><div class="uno-holdem-pot"><small>'+(data.online?'POZO EN DIAMANTES':'POZO TOTAL')+'</small><b>'+currencyLabel+fmtPokerNumber(data.pot)+'</b></div>'+seats+'<div class="uno-holdem-stage-message">'+arcadeEsc(data.message||'Esperando jugada…')+'</div></div>';
+          const hand=(data.heroCards||[]).map(c=>'<div class="uno-holdem-mini-card '+arcadeEsc(c.color||c.suit||'wild')+'">'+arcadeEsc(pokerCardShort(c))+'</div>').join('');
+          const panel='<div class="uno-holdem-actionbar"><div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-[9px] font-black tracking-[.2em] text-amber-200">TUS CARTAS PRIVADAS</div><div class="uno-holdem-mini-hand">'+hand+'</div></div><div class="text-right"><div class="text-[9px] font-black tracking-[.2em] text-emerald-200">TU JUGADA</div><div class="text-sm font-black text-white mt-2">'+arcadeEsc(data.handName||'Esperando acción')+'</div></div></div>'+controlsHtml+'</div>';
           return stage+panel;
         }
         function pokerCardShort(c) {
-          const v=c?.value??c?.v;
-          if(v==='skip')return '⊘';if(v==='reverse')return '↻';if(v==='draw2')return '+2';if(v==='wild')return 'W';if(v==='wild_draw4')return '+4';
-          return String(v??'?');
+          const v=c?.value??c?.v,s=c?.symbol||({hearts:'♥',diamonds:'♦',clubs:'♣',spades:'♠'}[c?.suit]||'');
+          return String(v??'?')+s;
         }
         function fmtPokerNumber(n){return Number(n||0).toLocaleString('es-AR');}
         function pokerMountStage(data,controls,currency) {
           arcadeRender(pokerStageMarkup(data,controls,currency));
-          document.querySelector('#arcadeGameContent .arcade-felt-board')?.classList.add('uno-pok-vip-board');
+          document.querySelector('#arcadeGameContent .arcade-felt-board')?.classList.add('uno-holdem-vip-board');
           const list=data.players||[],hero=Math.max(0,Number(data.heroIndex)||0),ordered=list.slice(hero).concat(list.slice(0,hero));
-          requestAnimationFrame(()=>{if(window.unoPok3D)window.unoPok3D.render({players:ordered,community:data.community||[],pot:data.pot||0,heroIndex:0,turnIndex:list.length?((Number(data.turnIndex)-hero+list.length)%list.length):-1,over:!!data.over});});
+          requestAnimationFrame(()=>{if(window.unoHoldem3D)window.unoHoldem3D.render({players:ordered,community:data.community||[],pot:data.pot||0,heroIndex:0,turnIndex:list.length?((Number(data.turnIndex)-hero+list.length)%list.length):-1,over:!!data.over});});
         }
         function pokerRender(){
           const g=arcade.game;if(!g)return;const p=g.players[0],call=Math.max(0,g.currentBet-p.bet);
@@ -6056,7 +6055,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         // =========================================================
         const arcadeOnline = { code:null, room:null, unsubscribe:null, selectedCard:null, busy:false };
         const arcadeModeMeta = {
-          poker:{title:'UNO! POK',label:'Texas Hold’em multijugador',emoji:'♠️'},
+          poker:{title:'UNO HOLD'EM POKER 3D',label:'Texas Hold’em multijugador',emoji:'♠️'},
           battle:{title:'UNO! BATALLA',label:'Combate por turnos',emoji:'⚔️'},
           robado:{title:'UNO! ROBADO',label:'Casita Robada con cartas UNO',emoji:'🏠'}
         };
@@ -6098,7 +6097,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
               tx.update(roomRef,{pokerPaidOutUids:[...paid,currentUserId],pokerPaidOutAt:Date.now()});
             });
             if(newBalance!==null){setClubDiamonds(newBalance);showToast('🏆 ¡Cobraste '+payoutPaid+' diamantes del pozo!','success');}
-          }catch(err){console.warn('Pago de pozo UNO POK:',err);}
+          }catch(err){console.warn('Pago de pozo UNO HOLD'EM:',err);}
         }
 
         async function arcadeOnlineCreate(mode){
@@ -6156,7 +6155,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             const room=snap.data();
             if(!room.arcadeRoom||!(room.seats||[]).some(s=>s.id===currentUserId)){showToast('Ya no estás en esta sala.','warn');arcadeOnlineLeave(false);return;}
             arcadeOnline.room=room;arcadeOnlineRender();
-            if(room.arcadeMode==='poker'&&room.status==='finished')settlePokerDiamonds(room).catch(e=>console.warn('Pago UNO POK:',e));
+            if(room.arcadeMode==='poker'&&room.status==='finished')settlePokerDiamonds(room).catch(e=>console.warn('Pago UNO HOLD'EM:',e));
           },err=>{console.error('Arcade listener:',err);showToast('Se perdió la conexión con la sala.','danger');});
         }
         async function arcadeOnlineLeave(goMenu=true){
@@ -6338,7 +6337,7 @@ async function arcadeOnlineBattlePlay(cardId){
           const meta=arcadeModeMeta[mode];if(!meta)return;arcadeOnline.selectedMode=mode;
           document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.remove('hidden');
           document.getElementById('arcadeSetupEmoji').textContent=meta.emoji;document.getElementById('arcadeSetupTitle').textContent=meta.title;
-          document.getElementById('arcadeSetupRules').innerHTML=({poker:'<div class="arcade-rules-panel"><h4>♠ REGLAS DE UNO! POK</h4><ol><li>Cada jugador recibe 2 cartas privadas. En la mesa se revelan 5 cartas comunitarias: 3 en el flop, 1 en el turn y 1 en el river.</li><li>Combiná tus 2 cartas con las comunitarias para formar la mejor mano de póker de 5 cartas.</li><li>En tu turno podés <b>Igualar</b> la apuesta actual, <b>Subir +20</b> fichas o <b>Retirarte</b>.</li><li>Si todos se retiran menos uno, esa persona gana el pozo. Si llegan al final, gana la mejor combinación.</li><li>Empezás con 1000 fichas virtuales. Ciegas iniciales: 10 y 20. No hay dinero real.</li></ol></div>',battle:'<div class="arcade-rules-panel"><h4>⚔️ REGLAS DE UNO! BATALLA</h4><ol><li>Todos comienzan con <b>100 puntos de vida</b> y 7 cartas UNO.</li><li>En tu turno elegí una carta de tu mano para atacar al siguiente rival que siga vivo.</li><li>Las cartas numéricas hacen daño según su valor. Las cartas especiales tienen efectos: <b>Salto</b> causa 16 de daño y <b>Reversa</b> te da 18 puntos de escudo.</li><li>Las cartas verdes normales te curan. La vida nunca supera los 100 puntos; el escudo absorbe daño antes que la vida.</li><li>Si te quedás sin cartas, recibís hasta 4 nuevas. También podés robar una carta y pasar el turno.</li><li>Cuando tu vida llega a 0 quedás eliminado. Gana el último jugador que permanezca en pie.</li></ol></div>',robado:'<div class="arcade-rules-panel"><h4>🏠 REGLAS DE UNO! ROBADO</h4><ol><li>Cada jugador recibe 3 cartas y se colocan 4 cartas boca arriba en el centro.</li><li>Elegí una carta de tu mano. Si coincide en valor con una carta del centro, tocá esa carta para llevarte ambas a tu casita.</li><li>También podés robar la casita de otro jugador: tu carta debe coincidir con la carta que está arriba de su pila. Te llevás toda su casita.</li><li>Si no hay ninguna coincidencia, podés dejar tu carta en el centro para que otro jugador intente capturarla.</li><li>Cuando te quedás sin cartas, recibís hasta 3 nuevas si todavía queda mazo.</li><li>Cuando se termina el mazo y todos vacían su mano, gana quien haya juntado más cartas en su casita.</li></ol></div>'})[mode];
+          document.getElementById('arcadeSetupRules').innerHTML=({poker:'<div class="arcade-rules-panel"><h4>♠ REGLAS DE UNO HOLD'EM POKER 3D</h4><ol><li>Cada jugador recibe 2 cartas privadas. En la mesa se revelan 5 cartas comunitarias: 3 en el flop, 1 en el turn y 1 en el river.</li><li>Combiná tus 2 cartas con las comunitarias para formar la mejor mano de póker de 5 cartas.</li><li>En tu turno podés <b>Igualar</b> la apuesta actual, <b>Subir +20</b> fichas o <b>Retirarte</b>.</li><li>Si todos se retiran menos uno, esa persona gana el pozo. Si llegan al final, gana la mejor combinación.</li><li>Empezás con 1000 fichas virtuales. Ciegas iniciales: 10 y 20. No hay dinero real.</li></ol></div>',battle:'<div class="arcade-rules-panel"><h4>⚔️ REGLAS DE UNO! BATALLA</h4><ol><li>Todos comienzan con <b>100 puntos de vida</b> y 7 cartas UNO.</li><li>En tu turno elegí una carta de tu mano para atacar al siguiente rival que siga vivo.</li><li>Las cartas numéricas hacen daño según su valor. Las cartas especiales tienen efectos: <b>Salto</b> causa 16 de daño y <b>Reversa</b> te da 18 puntos de escudo.</li><li>Las cartas verdes normales te curan. La vida nunca supera los 100 puntos; el escudo absorbe daño antes que la vida.</li><li>Si te quedás sin cartas, recibís hasta 4 nuevas. También podés robar una carta y pasar el turno.</li><li>Cuando tu vida llega a 0 quedás eliminado. Gana el último jugador que permanezca en pie.</li></ol></div>',robado:'<div class="arcade-rules-panel"><h4>🏠 REGLAS DE UNO! ROBADO</h4><ol><li>Cada jugador recibe 3 cartas y se colocan 4 cartas boca arriba en el centro.</li><li>Elegí una carta de tu mano. Si coincide en valor con una carta del centro, tocá esa carta para llevarte ambas a tu casita.</li><li>También podés robar la casita de otro jugador: tu carta debe coincidir con la carta que está arriba de su pila. Te llevás toda su casita.</li><li>Si no hay ninguna coincidencia, podés dejar tu carta en el centro para que otro jugador intente capturarla.</li><li>Cuando te quedás sin cartas, recibís hasta 3 nuevas si todavía queda mazo.</li><li>Cuando se termina el mazo y todos vacían su mano, gana quien haya juntado más cartas en su casita.</li></ol></div>'})[mode];
           document.getElementById('arcadeJoinCode').value='';
           const stakeBox=document.getElementById('arcadePokerStakeBox');if(stakeBox)stakeBox.classList.toggle('hidden',mode!=='poker');
           const wallet=document.getElementById('arcadePokerWallet');if(wallet)wallet.textContent=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0)).toLocaleString('es-AR')+' ◆';
@@ -7277,6 +7276,6 @@ async function arcadeOnlineBattlePlay(cardId){
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="uno-pok-3d.js"></script>
+    <script src="uno-holdem-poker-3d.js"></script>
 </body>
 </html>
