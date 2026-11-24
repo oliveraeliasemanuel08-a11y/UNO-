@@ -5484,6 +5484,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             const room=snap.data();
             if(!room.arcadeRoom||!(room.seats||[]).some(s=>s.id===currentUserId)){showToast('Ya no estás en esta sala.','warn');arcadeOnlineLeave(false);return;}
             arcadeOnline.room=room;arcadeOnlineRender();
+            if(room.arcadeMode==='poker'&&room.status==='finished')settlePokerDiamonds(room).catch(e=>console.warn('Pago UNO POK:',e));
           },err=>{console.error('Arcade listener:',err);showToast('Se perdió la conexión con la sala.','danger');});
         }
         async function arcadeOnlineLeave(goMenu=true){
@@ -5492,13 +5493,20 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.selectedCard=null;
           if(code&&room&&db&&currentUserId){try{const ref=arcadeOnlineRef(code);await runTransaction(db,async tx=>{
             const snap=await tx.get(ref);if(!snap.exists())return;const r=snap.data();
+            if(r.arcadeMode==='poker'&&r.status==='lobby'&&(r.pokerPaidUids||[]).includes(currentUserId)){
+              const profileRef=clubProfileRef(currentUserId),profileSnap=await tx.get(profileRef),profile=profileSnap.exists()?profileSnap.data():{};
+              const refund=Math.max(0,Number(r.pokerStake||0)),balance=Math.max(0,Number(profile.diamonds||0))+refund;
+              const localData={...(profile.localStorage||{}),uno_club_diamonds:String(balance)};
+              tx.set(profileRef,{diamonds:balance,localStorage:localData,updatedAt:Date.now()},{merge:true});
+              r.pokerPaidUids=(r.pokerPaidUids||[]).filter(uid=>uid!==currentUserId);
+            }
             if(r.status==='playing'&&r.arcadeState){
               const g=r.arcadeState,pi=(g.players||[]).findIndex(p=>p.id===currentUserId);
               if(pi>=0){
                 const p=g.players[pi];
                 if(r.arcadeMode==='poker'){
                   p.folded=true;const alive=g.players.map((x,i)=>x.folded?-1:i).filter(i=>i>=0);
-                  if(alive.length===1){g.players[alive[0]].stack+=g.pot;g.pot=0;g.over=true;g.message='Ganó '+g.players[alive[0]].name+' porque el resto se retiró.';r.status='finished';}
+                  if(alive.length===1){g.players[alive[0]].stack+=g.pot;g.winners=[alive[0]];g.pot=0;g.over=true;g.message='Ganó '+g.players[alive[0]].name+' porque el resto se retiró.';r.status='finished';}
                   else if(g.turn===pi)g.turn=alive.find(i=>i>pi)??alive[0];
                 }else if(r.arcadeMode==='battle'){
                   p.alive=false;const alive=g.players.map((x,i)=>x.alive?i:-1).filter(i=>i>=0);
@@ -5513,7 +5521,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             }
             const seats=(r.seats||[]).map(s=>s.id===currentUserId?{id:null,name:'Asiento '+(s.seatIndex+1),avatar:'💺',seatIndex:s.seatIndex}:s);
             const humans=seats.filter(s=>s.id);if(!humans.length){tx.delete(ref);return;}
-            const hostStill=humans.some(s=>s.id===r.hostId);tx.update(ref,{seats,hostId:hostStill?r.hostId:humans[0].id,arcadeState:r.arcadeState||null,status:r.status,updatedAt:Date.now()});
+            const hostStill=humans.some(s=>s.id===r.hostId);tx.update(ref,{seats,hostId:hostStill?r.hostId:humans[0].id,arcadeState:r.arcadeState||null,status:r.status,pokerPaidUids:r.pokerPaidUids||[],updatedAt:Date.now()});
           });}catch(e){console.warn('Arcade leave:',e);}}
           if(goMenu){document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}
         }
@@ -5529,7 +5537,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         function arcadeOnlineRenderLobby(r){
           const host=r.hostId===currentUserId,seats=r.seats||[];
           const players=seats.map(s=>'<div class="arcade-seat flex items-center gap-2"><span class="text-2xl">'+arcadeEsc(s.avatar||'🙂')+'</span><div class="min-w-0 flex-1"><b class="text-sm">'+arcadeEsc(s.name)+'</b><div class="text-[10px] text-zinc-500">'+(s.id?(s.id===r.hostId?'👑 Anfitrión':'Conectado'):'Esperando jugador')+'</div></div><span>'+(s.id?'🟢':'⚪')+'</span></div>').join('');
-          arcadeRender('<div class="text-center rounded-2xl bg-black/30 border border-emerald-400/20 p-4"><div class="text-xs text-zinc-400">COMPARTÍ ESTE CÓDIGO</div><div class="font-uno text-4xl sm:text-5xl tracking-[.2em] text-amber-300 mt-2">'+r.code+'</div><button data-aonline-copy class="arcade-action mt-3">📋 Copiar código</button><div class="text-xs text-zinc-400 mt-2">Los demás jugadores entran desde el menú de '+metaTitle(r.arcadeMode)+'.</div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">'+players+'</div><div class="flex flex-wrap justify-center gap-2 mt-5">'+(host?'<button data-aonline-start class="arcade-action border-emerald-400/40 text-emerald-200" '+(seats.filter(s=>s.id).length<2?'disabled':'')+'>🚀 Iniciar partida</button>':'<span class="text-sm text-zinc-400">⏳ Esperando que el anfitrión inicie...</span>')+'<button data-aonline-leave class="arcade-action">Salir de la sala</button></div><p class="text-center text-[11px] text-zinc-500 mt-3">Se necesitan al menos 2 jugadores. Máximo 4.</p>');
+          arcadeRender('<div class="text-center rounded-2xl bg-black/30 border border-emerald-400/20 p-4"><div class="text-xs text-zinc-400">COMPARTÍ ESTE CÓDIGO</div><div class="font-uno text-4xl sm:text-5xl tracking-[.2em] text-amber-300 mt-2">'+r.code+'</div><button data-aonline-copy class="arcade-action mt-3">📋 Copiar código</button><div class="text-xs text-zinc-400 mt-2">Los demás jugadores entran desde el menú de '+metaTitle(r.arcadeMode)+'.</div>'+(r.arcadeMode==='poker'?'<div class="mt-3 rounded-xl border border-cyan-300/20 bg-cyan-950/30 p-2 text-xs text-cyan-100">💎 Entrada: '+Number(r.pokerStake||0)+' diamantes por jugador · pozo reservado: '+(Number(r.pokerStake||0)*seats.filter(s=>s.id).length)+' ◆</div>':'')+'</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">'+players+'</div><div class="flex flex-wrap justify-center gap-2 mt-5">'+(host?'<button data-aonline-start class="arcade-action border-emerald-400/40 text-emerald-200" '+(seats.filter(s=>s.id).length<2?'disabled':'')+'>🚀 Iniciar partida</button>':'<span class="text-sm text-zinc-400">⏳ Esperando que el anfitrión inicie...</span>')+'<button data-aonline-leave class="arcade-action">Salir de la sala</button></div><p class="text-center text-[11px] text-zinc-500 mt-3">Se necesitan al menos 2 jugadores. Máximo 4.</p>');
         }
         function metaTitle(mode){return arcadeModeMeta[mode]?.title||'este modo';}
         function arcadeOnlineRenderGame(r){
@@ -5543,9 +5551,9 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           const players=r.seats.filter(s=>s.id);if(players.length<2){showToast('Se necesitan al menos 2 jugadores.','warn');return;}
           let game;
           if(r.arcadeMode==='poker'){
-            const deck=pokerDeck();const ps=players.map((s,i)=>({...s,stack:1000,hand:[deck.pop(),deck.pop()],folded:false,bet:0,acted:false}));
-            ps[0].stack-=10;ps[0].bet=10;ps[1].stack-=20;ps[1].bet=20;
-            game={players:ps,deck,community:[],pot:30,currentBet:20,stage:0,turn:players.length>2?2:0,over:false,message:'Preflop: igualá, subí o retirate.'};
+            const deck=pokerDeck(),buyIn=Math.max(5,Number(r.pokerStake||10));const ps=players.map(s=>({...s,stack:buyIn,hand:[deck.pop(),deck.pop()],folded:false,bet:0,acted:false}));
+            const small=Math.min(1,buyIn),big=Math.min(2,buyIn);ps[0].stack-=small;ps[0].bet=small;ps[1].stack-=big;ps[1].bet=big;
+            game={players:ps,deck,community:[],pot:small+big,currentBet:big,stage:0,turn:players.length>2?2:0,over:false,buyIn,winners:[],message:'Preflop: igualá, subí o retirate.'};
           }else if(r.arcadeMode==='battle'){
             const deck=arcadeUnoDeck();const ps=players.map(s=>({...s,hp:100,shield:0,hand:Array.from({length:7},()=>deck.pop()),alive:true}));
             game={players:ps,deck,turn:0,round:1,log:'¡Comienza el combate! Elegí una carta para atacar.'};
@@ -5566,7 +5574,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         function arcadeOnlineFinish(r,g,message){g.over=true;g.message=message;r.status='finished';}
         function arcadeOnlinePokerAdvance(r,g){
           const alive=g.players.map((p,i)=>p.folded?-1:i).filter(i=>i>=0);
-          if(alive.length===1){g.players[alive[0]].stack+=g.pot;g.message='Ganó '+g.players[alive[0]].name+' porque todos se retiraron.';g.pot=0;arcadeOnlineFinish(r,g,g.message);return;}
+          if(alive.length===1){g.players[alive[0]].stack+=g.pot;g.winners=[alive[0]];g.message='Ganó '+g.players[alive[0]].name+' porque todos se retiraron.';g.pot=0;arcadeOnlineFinish(r,g,g.message);return;}
           const active=alive.map(i=>g.players[i]);
           const settled=active.every(p=>p.stack===0||(p.acted&&p.bet===g.currentBet));
           if(!settled)return;
@@ -5577,7 +5585,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           else{
             const scores=alive.map(i=>({i,best:pokerBest([...g.players[i].hand,...g.community])})).sort((a,b)=>pokerCompare(b.best.score,a.best.score));
             const top=scores[0].best.score,winners=scores.filter(x=>pokerCompare(x.best.score,top)===0).map(x=>x.i),share=Math.floor(g.pot/winners.length),rem=g.pot-share*winners.length;
-            winners.forEach((i,k)=>g.players[i].stack+=share+(k===0?rem:0));
+            g.winners=winners.slice();winners.forEach((i,k)=>g.players[i].stack+=share+(k===0?rem:0));
             const names=winners.map(i=>g.players[i].name).join(', ');g.message='🏆 '+names+' ganaron con '+pokerRankNames[top[0]]+'.';g.pot=0;arcadeOnlineFinish(r,g,g.message);return;
           }
           g.turn=alive[0];
@@ -5585,10 +5593,10 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         async function arcadeOnlinePokerAction(action){
           const uid=currentUserId;
           await arcadeOnlineMutate((r,g)=>{
-            const i=g.players.findIndex(p=>p.id===uid);if(i<0||g.over||g.turn!==i)return false;const p=g.players[i],due=g.currentBet-p.bet;
+            const i=g.players.findIndex(p=>p.id===uid);if(i<0||g.over||g.turn!==i)return false;const p=g.players[i],due=g.currentBet-p.bet,raiseBy=Math.max(1,Math.ceil((g.buyIn||100)/10));
             if(action==='fold'){p.folded=true;p.acted=true;}
             else if(action==='call'){if(due>p.stack)return false;p.stack-=due;p.bet+=due;g.pot+=due;p.acted=true;}
-            else if(action==='raise'){const pay=due+20;if(pay>p.stack)return false;p.stack-=pay;p.bet+=pay;g.pot+=pay;g.currentBet=p.bet;p.acted=true;g.players.forEach((x,j)=>{if(j!==i&&!x.folded)x.acted=false;});}
+            else if(action==='raise'){const pay=due+raiseBy;if(pay>p.stack)return false;p.stack-=pay;p.bet+=pay;g.pot+=pay;g.currentBet=p.bet;p.acted=true;g.players.forEach((x,j)=>{if(j!==i&&!x.folded)x.acted=false;});}
             else return false;
             const alive=g.players.map((x,j)=>x.folded?-1:j).filter(j=>j>=0);
             if(alive.length===1){arcadeOnlinePokerAdvance(r,g);return true;}
@@ -5599,9 +5607,9 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         }
         function arcadeOnlineRenderPoker(r,g){
           const me=g.players.find(p=>p.id===currentUserId),can=me&&!g.over&&g.players[g.turn]?.id===currentUserId;
-          const seats=g.players.map(p=>'<div class="arcade-seat '+(p.folded?'opacity-40':'')+'"><b>'+arcadeEsc(p.name)+'</b><div class="text-xs text-amber-200 mt-1">🪙 '+p.stack+'</div><div class="text-[10px] text-zinc-400">'+(p.folded?'RETIRADO':(p.id===currentUserId||g.over?p.hand.map(c=>c.v===14?'A':c.v).join(' · '):'🂠 🂠'))+'</div>'+(g.turn===g.players.indexOf(p)&&!g.over?'<div class="text-[10px] text-emerald-300">SU TURNO</div>':'')+'</div>').join('');
+          const seats=g.players.map(p=>'<div class="arcade-seat '+(p.folded?'opacity-40':'')+'"><b>'+arcadeEsc(p.name)+'</b><div class="text-xs text-cyan-200 mt-1">◆ '+p.stack+'</div><div class="text-[10px] text-zinc-400">'+(p.folded?'RETIRADO':(p.id===currentUserId||g.over?p.hand.map(c=>c.v===14?'A':c.v).join(' · '):'🂠 🂠'))+'</div>'+(g.turn===g.players.indexOf(p)&&!g.over?'<div class="text-[10px] text-emerald-300">SU TURNO</div>':'')+'</div>').join('');
           const comm=g.community.map(pokerCard).join('');
-          arcadeRender('<div class="grid grid-cols-2 md:grid-cols-4 gap-2">'+seats+'</div><div class="mt-4 rounded-2xl bg-emerald-950/50 p-4 text-center"><div class="text-[10px] tracking-widest text-emerald-200">POZO</div><div class="font-uno text-4xl text-amber-300">🪙 '+g.pot+'</div><p class="text-sm mt-2">'+arcadeEsc(g.message)+'</p><div class="flex flex-wrap justify-center gap-2 mt-4 min-h-[90px]">'+(comm||'<span class="text-xs text-zinc-400">Esperando flop…</span>')+'</div></div><div class="mt-4 text-center"><div class="text-xs text-zinc-400 mb-2">TUS CARTAS</div><div class="flex justify-center gap-3">'+(me?me.hand.map(pokerCard).join(''):'')+'</div><p class="text-xs text-zinc-400 mt-2">'+(can?'¡Es tu turno!':'Turno de '+arcadeEsc(g.players[g.turn]?.name||'…'))+'</p><div class="flex justify-center flex-wrap gap-2 mt-3">'+(can?'<button data-aonline-poker="fold" class="arcade-action">Retirarme</button><button data-aonline-poker="call" class="arcade-action text-emerald-200">Igualar '+Math.max(0,g.currentBet-(me?.bet||0))+'</button><button data-aonline-poker="raise" class="arcade-action text-amber-200">Subir +20</button>':'')+(g.over&&r.hostId===currentUserId?'<button data-aonline-rematch class="arcade-action">Volver a jugar</button>':(g.over?'<span class="text-xs text-zinc-400">Esperando revancha del anfitrión…</span>':''))+'</div></div>');
+          arcadeRender('<div class="grid grid-cols-2 md:grid-cols-4 gap-2">'+seats+'</div><div class="mt-4 rounded-2xl bg-emerald-950/50 p-4 text-center"><div class="text-[10px] tracking-widest text-emerald-200">POZO EN DIAMANTES</div><div class="font-uno text-4xl text-cyan-200">◆ '+g.pot+'</div><p class="text-sm mt-2">'+arcadeEsc(g.message)+'</p><div class="flex flex-wrap justify-center gap-2 mt-4 min-h-[90px]">'+(comm||'<span class="text-xs text-zinc-400">Esperando flop…</span>')+'</div></div><div class="mt-4 text-center"><div class="text-xs text-zinc-400 mb-2">TUS CARTAS</div><div class="flex justify-center gap-3">'+(me?me.hand.map(pokerCard).join(''):'')+'</div><p class="text-xs text-zinc-400 mt-2">'+(can?'¡Es tu turno!':'Turno de '+arcadeEsc(g.players[g.turn]?.name||'…'))+'</p><div class="flex justify-center flex-wrap gap-2 mt-3">'+(can?'<button data-aonline-poker="fold" class="arcade-action">Retirarme</button><button data-aonline-poker="call" class="arcade-action text-emerald-200">Igualar '+Math.max(0,g.currentBet-(me?.bet||0))+'</button><button data-aonline-poker="raise" class="arcade-action text-amber-200">Subir +'+Math.max(1,Math.ceil((g.buyIn||100)/10))+'</button>':'')+(g.over?'<div class="text-xs text-cyan-100 mt-2">🏆 Entrada: '+Number(r.pokerStake||0)+' ◆ · pozo de entrada: '+(Number(r.pokerStake||0)*(g.players||[]).length)+' ◆. El premio se acredita a la cuenta Google del ganador.</div><span class="text-xs text-zinc-400 block mt-2">Para otra mano, creá una nueva sala y elegí otra entrada.</span>':'')+'</div></div>');
         }
         async function arcadeOnlineBattlePlay(cardId){
           await arcadeOnlineMutate((r,g)=>{
