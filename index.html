@@ -3940,6 +3940,11 @@
 
             const seat = room.seats[seatIndex];
             if (!seat || !seat.hand) return;
+            if (room.gameMode === 'tactical' && Number(seat.frozenUntil||0) > Date.now()) {
+                showToast('🧊 Estás congelado. Perdés este turno.','warn');
+                room.currentTurnSeat=getNextSeatIndex(room,seatIndex,1);room.turnStartedAt=Date.now();
+                await syncRoomToCloud();scheduleBotTurnIfNeeded();return;
+            }
             const cardIdx = seat.hand.findIndex(c => c.id === cardId);
             if (cardIdx === -1) return;
             let card = seat.hand[cardIdx];
@@ -4433,6 +4438,11 @@
                 showToast("Espera tu turno para robar.", "warn");
                 return;
             }
+            if (room.gameMode === 'tactical' && Number(mySeat.frozenUntil||0) > Date.now()) {
+                showToast('🧊 Estás congelado. Perdés este turno.','warn');
+                room.currentTurnSeat=getNextSeatIndex(room,mySeat.seatIndex,1);room.turnStartedAt=Date.now();
+                await syncRoomToCloud();scheduleBotTurnIfNeeded();return;
+            }
             if (room.pendingLie || room.pendingDraw4 || room.pendingStack || state.drawnPlayableCardId || state.comboChain) return;
 
             const drawn = drawCardsFromDeck(room, 1);
@@ -4883,8 +4893,7 @@
                     ['skip','⏭️ Bloqueo',45],['shield','🛡️ Escudo',35],['peek','👁️ Espionaje',30],
                     ['double','⚡ Turno extra',60],['draw','📦 Suministro',30],
                     ['jam','📡 Interferencia',55],['freeze','🧊 Congelar',70],['reverse','🔄 Reversa',35],
-                    ['purge','🧹 Purga',50],['boost','⚡ Sobrecarga',90],['blind','🌑 Ceguera',65],
-                    ['mirror','🪞 Reflejo',75],['drain','🔋 Drenaje',60]
+                    ['purge','🧹 Purga',50],['boost','⚡ Sobrecarga',90],['drain','🔋 Drenaje',60]
                 ];
                 const cds=mySeat.tacticalCooldowns||{};
                 panel.innerHTML='<div class="flex items-center justify-between mb-2"><div><b class="text-amber-200">⚔️ ARSENAL TÁCTICO</b><p class="text-[11px] text-zinc-400">Habilidades con enfriamiento individual en tiempo real.</p></div><span class="text-[10px] text-amber-200">TURNO '+(isTurn?'TUYO':'RIVAL')+'</span></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2">'+abilities.map(([id,label,seconds])=>{const left=Math.max(0,Math.ceil(((cds[id]||0)-Date.now())/1000));return '<button data-tactical="'+id+'" '+(!isTurn||left>0?'disabled':'')+' class="rounded-xl border border-amber-300/20 bg-zinc-900 px-2 py-2 text-[11px] font-extrabold text-zinc-100 disabled:opacity-40 hover:bg-amber-900/40">'+label+'<span class="block mt-1 text-[10px] text-amber-200">'+(left>0?'⏳ '+left+'s':'LISTO · '+seconds+'s CD')+'</span></button>';}).join('')+'</div>';
@@ -4903,7 +4912,7 @@
         async function useTacticalAbility(id) {
             const room=state.room, seat=room?.seats.find(s=>s.id===currentUserId);
             if(!room||room.gameMode!=='tactical'||!seat||room.currentTurnSeat!==seat.seatIndex||room.pendingStack||room.pendingLie)return;
-            const definitions={steal:25,swap:40,color:20,skip:45,shield:35,peek:30,double:60,draw:30,jam:55,freeze:70,reverse:35,purge:50,boost:90,blind:65,mirror:75,drain:60};
+            const definitions={steal:25,swap:40,color:20,skip:45,shield:35,peek:30,double:60,draw:30,jam:55,freeze:70,reverse:35,purge:50,boost:90,drain:60};
             const now=Date.now();seat.tacticalCooldowns=seat.tacticalCooldowns||{};
             if((seat.tacticalCooldowns[id]||0)>now){showToast('Esta habilidad todavía está recargando.','warn');return;}
             const targetIndex=getNextSeatIndex(room,seat.seatIndex,1),target=room.seats[targetIndex];
@@ -4921,8 +4930,6 @@
             else if(id==='reverse'){room.direction*=-1;vfx.showCinemaCallout('¡DIRECCIÓN INVERTIDA!','from-cyan-400 via-white to-blue-500');}
             else if(id==='purge'){const n=Math.min(2,target.hand.length);for(let i=0;i<n;i++){const at=Math.floor(Math.random()*target.hand.length);target.hand.splice(at,1);}showToast('🧹 '+target.name+' perdió '+n+' cartas al descarte táctico.','success');}
             else if(id==='boost'){seat.tacticalCooldowns.boost=now+definitions.boost*1000;seat.tacticalEnergy=(seat.tacticalEnergy||0)+1;const cards=drawCardsFromDeck(room,1);seat.hand.push(...cards);showToast('⚡ Sobrecarga: +1 carga táctica y 1 carta.','success');}
-            else if(id==='blind'){target.blindedUntil=now+10000;showToast('🌑 '+target.name+' quedó bajo efecto de ceguera durante 10 segundos.','success');}
-            else if(id==='mirror'){seat.tacticalShield=true;seat.tacticalMirrorUntil=now+20000;showToast('🪞 Reflejo activo durante 20 segundos.','success');}
             else if(id==='drain'){seat.tacticalEnergy=Math.min(5,(seat.tacticalEnergy||0)+1);target.tacticalEnergy=Math.max(0,(target.tacticalEnergy||0)-1);showToast('🔋 Drenaje: robaste una carga de energía táctica.','success');}
             seat.tacticalCooldowns[id]=now+definitions[id]*1000;
             room.turnStartedAt=now;
