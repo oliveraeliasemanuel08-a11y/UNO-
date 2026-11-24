@@ -31,12 +31,32 @@
     try{clearSession();await loadFirebase();S.name=($('liar-online-name')?.value||'Jugador').trim().slice(0,16)||'Jugador';const code=($('liar-join-code')?.value||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))throw Error('Escribe un código válido de 6 caracteres.');
       S.roomId=code;S.roomRef=S.sdk.doc(S.db,root()+'/uno_rooms/'+code);const snap=await S.sdk.getDoc(S.roomRef);if(!snap.exists())throw Error('No existe una sala con ese código.');const room=snap.data();
       const alreadyMember=(room.memberUids||[]).includes(S.uid);if(room.gameType!=='liar3d'||(room.status!=='waiting'&&!(alreadyMember&&['playing','finished'].includes(room.status))))throw Error('La partida ya comenzó o la sala no es válida.');if(room.status!=='waiting'&&room.hostId===S.uid)throw Error('El anfitrión debe mantener abierta su pestaña original durante la partida.');
-      if(!alreadyMember){if(room.status!=='waiting')throw Error('No puedes entrar a una partida que ya comenzó.');if((room.memberUids||[]).length>=Math.min(6,room.maxPlayers||6))throw Error('La sala está completa.');await S.sdk.setDoc(S.sdk.doc(S.db,paths().members+'/'+S.uid),profile());}
+      if(!alreadyMember){
+        if(room.status!=='waiting')throw Error('No puedes entrar a una partida que ya comenzó.');
+        if((room.memberUids||[]).length>=Math.min(6,room.maxPlayers||6))throw Error('La sala está completa.');
+        const memberRef=S.sdk.doc(S.db,paths().members+'/'+S.uid);
+        await S.sdk.setDoc(memberRef,profile());
+        try{
+          await S.sdk.runTransaction(S.db,async tx=>{
+            const fresh=await tx.get(S.roomRef);
+            if(!fresh.exists())throw Error('La sala ya no existe.');
+            const current=fresh.data(),uids=current.memberUids||[];
+            if(current.status!=='waiting')throw Error('La partida ya comenzó.');
+            if(uids.includes(S.uid))return;
+            if(uids.length>=Math.min(6,current.maxPlayers||6))throw Error('La sala se llenó justo antes de entrar.');
+            tx.update(S.roomRef,{memberUids:[...uids,S.uid],updatedAt:Date.now()});
+          });
+        }catch(joinError){
+          try{await S.sdk.deleteDoc(memberRef);}catch(cleanError){console.warn('Limpiar intento de ingreso',cleanError);}
+          throw joinError;
+        }
+      }
       S.isHost=room.hostId===S.uid;S.online=true;$('liar-room-code').textContent=code;$('liar-host-start').classList.toggle('hidden',!S.isHost);$('setup-modal').classList.add('hidden');showLobby(true);status('Conectado. Esperando que el anfitrión inicie la partida.');subscribeRoom();if(S.isHost)subscribeMembers();
     }catch(e){console.error('[UNO Mentiroso] unirse',e);status(e.message||'No se pudo entrar a la sala.',true);}
   }
-  function subscribeRoom(){S.unsubs.push(S.sdk.onSnapshot(S.roomRef,snap=>{if(!snap.exists()){status('La sala ya no existe.',true);return;}const room=snap.data();S.lastSnapshot=room;if(room.members)renderMembers(room.members);if((room.status==='playing'||room.status==='finished')&&room.gameState&&!S.isHost){showLobby(false);if(!S.privateSub)subscribePrivateHand();applyGameState(room.gameState);if(room.status==='finished')status('Partida finalizada. ¡Gracias por jugar!');}else if(room.status==='closed'){status('El anfitrión cerró la sala.',true);showLobby(false);}},e=>status(e.message,true)));}
-  function subscribeMembers(){const ref=S.sdk.collection(S.db,paths().members);S.unsubs.push(S.sdk.onSnapshot(ref,async snap=>{const list=snap.docs.map(d=>d.data()).filter(m=>m.uid);S.members=[...new Map(list.map(m=>[m.uid,m])).values()].slice(0,6);renderMembers(S.members);if(S.isHost&&S.lastSnapshot?.status!=='playing'){try{await S.sdk.updateDoc(S.roomRef,{members:S.members,memberUids:S.members.map(m=>m.uid),updatedAt:Date.now()});$('liar-host-start').disabled=S.members.length<2;$('liar-host-start').textContent=S.members.length<2?'NECESITAS 2 JUGADORES':'INICIAR PARTIDA ('+S.members.length+')';}catch(e){console.warn('Actualizando sala',e);}}},e=>status(e.message,true)));}
+  function subscribeRoom(){S.unsubs.push(S.sdk.onSnapshot(S.roomRef,snap=>{if(!snap.exists()){status('La sala ya no existe.',true);return;}const room=snap.data();S.lastSnapshot=room;if(room.members)renderMembers(room.members);if(S.isHost&&room.status==='waiting')S.sdk.getDocs(S.sdk.collection(S.db,paths().members)).then(syncLobbyMembers).catch(e=>console.warn('Actualizar lobby',e));if((room.status==='playing'||room.status==='finished')&&room.gameState&&!S.isHost){showLobby(false);if(!S.privateSub)subscribePrivateHand();applyGameState(room.gameState);if(room.status==='finished')status('Partida finalizada. ¡Gracias por jugar!');}else if(room.status==='closed'){status('El anfitrión cerró la sala.',true);showLobby(false);}},e=>status(e.message,true)));}
+  function syncLobbyMembers(snap){const allowed=new Set(S.lastSnapshot?.memberUids||[]);const list=snap.docs.map(d=>d.data()).filter(m=>m.uid&&allowed.has(m.uid));S.members=[...new Map(list.map(m=>[m.uid,m])).values()].slice(0,6);renderMembers(S.members);if(S.isHost&&S.lastSnapshot?.status==='waiting'){const start=$('liar-host-start');if(start){start.disabled=S.members.length<2;start.textContent=S.members.length<2?'NECESITAS 2 JUGADORES':'INICIAR PARTIDA ('+S.members.length+')';}const current=S.lastSnapshot.members||[];if(JSON.stringify(current)!==JSON.stringify(S.members))S.sdk.updateDoc(S.roomRef,{members:S.members,updatedAt:Date.now()}).catch(e=>console.warn('Publicar miembros',e));}}
+  function subscribeMembers(){const ref=S.sdk.collection(S.db,paths().members);S.unsubs.push(S.sdk.onSnapshot(ref,syncLobbyMembers,e=>status(e.message,true)));}
   function renderMembers(members){const list=$('liar-lobby-players');if(!list)return;list.innerHTML='';members.forEach((m,i)=>{const row=document.createElement('div');row.className='flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2';const av=document.createElement('span');av.className='text-xl';av.textContent=m.avatar||'😎';const nm=document.createElement('span');nm.className='min-w-0 flex-1 truncate text-sm font-bold text-white';nm.textContent=m.name||('Jugador '+(i+1));const tag=document.createElement('span');tag.className='text-[10px] font-black uppercase tracking-wider text-amber-300';tag.textContent=m.uid===S.lastSnapshot?.hostId?'ANFITRIÓN':'CONECTADO';row.append(av,nm,tag);list.appendChild(row);});$('liar-lobby-count').textContent=members.length+'/6 JUGADORES';}
   function startHostGame(){if(!S.isHost||S.members.length<2||S.members.length>6)return;const players=S.members.map(m=>({uid:m.uid,name:m.name,avatar:m.avatar||'😎',isHuman:m.uid===S.uid,style:'balanced',lives:3,hand:[],eliminated:false}));window.Liar3DBridge.startOnlineMatch(players);showLobby(false);subscribeActions();setTimeout(publishState,350);status('Partida online iniciada.');}
   function subscribeActions(){const ref=S.sdk.collection(S.db,paths().actions);S.unsubs.push(S.sdk.onSnapshot(ref,snap=>snap.docChanges().forEach(c=>{if(c.type!=='added'||S.processed.has(c.doc.id))return;S.processed.add(c.doc.id);if(S.isHost)processAction(c.doc.id,c.doc.data());}),e=>status(e.message,true)));}
