@@ -1575,17 +1575,22 @@
             badge.textContent = game.targetCard.value;
             document.getElementById('target-name-text').textContent = game.targetCard.label;
 
-            // Repartir 5 cartas a cada jugador vivo
+            // Reparto equilibrado: el mazo original tiene 28 cartas.
+            // Con 6 jugadores se reparten 4 por persona; con 2–5, 5 por persona.
             const deck = createLiarDeck();
             deck.forEach((card, index) => { card.instanceId = "r" + game.round + "_c" + index; });
+            const activeCount = game.players.filter(p => !p.eliminated).length;
+            const cardsPerPlayer = Math.min(5, Math.floor(deck.length / Math.max(1, activeCount)));
             game.players.forEach(p => {
                 p.hand = [];
                 if (!p.eliminated) {
-                    for (let i = 0; i < 5; i++) {
-                        p.hand.push(deck.pop());
+                    for (let i = 0; i < cardsPerPlayer; i++) {
+                        const card = deck.pop();
+                        if (card) p.hand.push(card);
                     }
                 }
             });
+            if (activeCount === 6) showBanner('🎴 MESA COMPLETA', 'Con 6 jugadores se reparten 4 cartas por persona para respetar el mazo original de 28 cartas.');
 
             // Elegir primer jugador vivo
             while (game.players[game.turnIndex].eliminated) {
@@ -2263,7 +2268,7 @@
                 const local = window.LiarOnline?.getSession?.() || {};
                 const oldLives = game.players.map(p => p.lives);
                 const oldRemotePhase = this.remotePhase;
-                const needsBuild = game.players.length !== gs.players.length || !game.players.length;
+                const needsBuild = game.players.length !== gs.players.length || !game.players.length || game.players.some((p, idx) => p.uid !== gs.players[idx]?.uid);
                 if (needsBuild) {
                     tableCardMeshes.forEach(m => tableObjectsGroup.remove(m)); tableCardMeshes.length = 0; activeAnimations.length = 0;
                     game.players = gs.players.map((p, idx) => ({ id: idx, uid: p.uid, name: p.name, avatar: p.avatar || "😎", isHuman: p.uid === local.uid, style: "balanced", lives: p.lives, hand: [], eliminated: !!p.eliminated }));
@@ -2313,7 +2318,7 @@
                 else { handRigGroup.visible = false; disableHumanControls(); document.getElementById("player-action-bar").classList.add("hidden"); }
                 if (gs.phase === "RESOLVING") { if (oldRemotePhase !== "RESOLVING") { sfx.playLiarAlarm(); setCameraView("center"); if (claimIndex >= 0) triggerCharacterReaction(claimIndex, "sweat", 1.8); triggerCharacterReaction(gs.turnIndex, "accuse", 1.8); } showBanner("🚨 ¡DESAFÍO EN CURSO!", "Revelando las cartas de la última jugada…", true); }
                 if (gs.phase === "ROUND_END") { document.getElementById("round-next-bar").classList.remove("hidden"); const nextBtn = document.getElementById("btn-next-round"); nextBtn.textContent = "INICIAR RONDA " + (game.round + 1) + " ➔"; nextBtn.disabled = game.players[game.turnIndex]?.uid !== local.uid; showBanner("⚖️ DESAFÍO RESUELTO", "Las vidas y el turno se han actualizado."); }
-                if (gs.phase === "GAME_OVER") { const winner = game.players.find(p => !p.eliminated); if (winner) triggerGameOver(winner); document.getElementById("btn-next-round").disabled = true; }
+                if (gs.phase === "GAME_OVER") { const winner = game.players.find(p => !p.eliminated); if (winner && oldRemotePhase !== "GAME_OVER") triggerGameOver(winner); document.getElementById("btn-next-round").disabled = true; }
             }
         };
 
