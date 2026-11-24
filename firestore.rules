@@ -7,19 +7,19 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function liarRoomPath(roomId) {
+    function liarRoomPath(appId, roomId) {
       return /databases/$(database)/documents/artifacts/$(appId)/public/data/uno_rooms/$(roomId);
     }
 
-    function isLiarRoomMember(roomId) {
-      let room = get(liarRoomPath(roomId)).data;
+    function isLiarRoomMember(appId, roomId) {
+      let room = get(liarRoomPath(appId, roomId)).data;
       return isSignedIn()
         && room.gameType == 'liar3d'
         && room.memberUids is list
         && room.memberUids.hasAny([request.auth.uid]);
     }
 
-    function isLiarRoomHost(roomId) {
+    function isLiarRoomHost(appId, roomId) {
       let room = get(liarRoomPath(roomId)).data;
       return isSignedIn()
         && room.gameType == 'liar3d'
@@ -57,9 +57,9 @@ service cloud.firestore {
     match /artifacts/{appId}/public/data/uno_liar_private/{roomId}/hands/{uid} {
       allow read: if isSignedIn()
         && request.auth.uid == uid
-        && isLiarRoomMember(roomId);
+        && isLiarRoomMember(appId, roomId);
 
-      allow create, update: if isLiarRoomHost(roomId)
+      allow create, update: if isLiarRoomHost(appId, roomId)
         && request.resource.data.uid == uid
         && request.resource.data.cards is list
         && request.resource.data.cards.size() <= 28;
