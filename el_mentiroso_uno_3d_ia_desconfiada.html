@@ -2278,7 +2278,7 @@
                 const claimIndex = gs.lastClaim ? gs.players.findIndex(p => p.uid === gs.lastClaim.playerUid) : -1;
                 game.lastClaim = claimIndex >= 0 ? { playerIndex: claimIndex, cards: gs.revealedCards || [], meshes: [], count: gs.lastClaim.count } : null;
                 tableCardMeshes.forEach(m => tableObjectsGroup.remove(m)); tableCardMeshes.length = 0; activeAnimations.length = 0;
-                const revealed = (gs.phase === "RESOLVING" || gs.phase === "ROUND_END") && Array.isArray(gs.revealedCards) ? gs.revealedCards : [];
+                const revealed = (gs.phase === "RESOLVING" || gs.phase === "ROUND_END" || gs.phase === "GAME_OVER") && Array.isArray(gs.revealedCards) ? gs.revealedCards : [];
                 const hiddenCount = Math.max(0, (gs.pileCount || 0) - revealed.length);
                 for (let i = 0; i < hiddenCount; i++) { const mesh = createCard3D(target, false, new THREE.Vector3(((i % 7) - 3) * 0.16, 0.18 + i * 0.006, 0.1 + (i % 3) * 0.05)); mesh.rotation.y = (i % 5) * 0.08; }
                 revealed.forEach((card, i) => { const type = CARD_TYPES.find(c => c.id === card.id) || WILD_TYPE; createCard3D(type, true, new THREE.Vector3((i - (revealed.length - 1) / 2) * 0.85, 0.48, 0.2)); });
