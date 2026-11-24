@@ -1595,7 +1595,7 @@
             <div class="py-4 border-b border-white/10">
                 <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5">
                     <div class="flex flex-wrap items-center justify-between gap-3"><div><span class="block text-xs font-extrabold text-fuchsia-300">🎲 Modo de juego</span><span id="gameModeHint" class="block text-[11px] text-zinc-400">UNO CAOS solo está disponible online.</span></div>
-                    <div class="flex flex-wrap gap-2"><button id="gameModeClassicBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🃏 Clásico</button><button id="gameModeChaosBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">💥 Caos</button><button id="gameModeSurvivalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">❤️ Supervivencia</button><button id="gameModeTurboBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚡ Turbo</button></div></div>
+                    <div class="flex flex-wrap gap-2"><button id="gameModeClassicBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🃏 Clásico</button><button id="gameModeChaosBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">💥 Caos</button><button id="gameModeSurvivalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">❤️ Supervivencia</button><button id="gameModeTurboBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚡ Turbo</button><button id="gameModeLiarBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🎭 Mentiroso</button><button id="gameModeTacticalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚔️ Táctico</button></div></div>
                     <p id="chaosModeInfo" class="hidden mt-3 text-[11px] text-fuchsia-200 bg-fuchsia-950/40 border border-fuchsia-400/20 rounded-xl p-2.5">Cartas especiales, +99 ultra rara y mazo que se repone automáticamente sin límite.</p><p id="specialModeInfo" class="hidden mt-2 text-[11px] text-emerald-200 bg-emerald-950/40 border border-emerald-400/20 rounded-xl p-2.5"></p><div class="mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-300/20 bg-amber-950/20 p-3"><div><b class="block text-xs text-amber-200">🏆 Modo Competitivo Online</b><span class="text-[11px] text-zinc-400">Ranking individual: +30 al ganar, +12 segundo, +2 tercero y -12 restantes.</span></div><button id="competitiveModeBtn" type="button" class="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-extrabold text-zinc-300">Activar competitivo</button></div>
                 </div>
             </div>
@@ -3281,7 +3281,7 @@
             playerName: localStorage.getItem('uno_player_name') || `Jugador_${Math.floor(100 + Math.random() * 899)}`,
             playerAvatar: savedAvatarCfg,
             roomCode: null, hostId: null, isOnline: false, unsubscribeRoom: null, room: null,
-            pendingWildCardId: null, drawnPlayableCardId: null, pendingMysteryCardId: null,
+            pendingWildCardId: null, drawnPlayableCardId: null, pendingMysteryCardId: null, liarArmed:false,
             comboChain: null, lastTurnId: null, lastRenderedDiscardId: null,
             deviceMode: localStorage.getItem('uno_device_mode') || ''
         };
@@ -3661,6 +3661,7 @@
                 straightRule: false,
                 straightColorMode: 'same',
                 gameMode: 'classic',
+                pendingLie: null,
                 competitiveMode: !!competitiveMode,
                 competitiveRating: competitiveMode ? getCompetitiveRating() : null,
                 competitiveRankName: competitiveMode ? getCompetitiveRank().name : null,
@@ -3875,8 +3876,10 @@
             room.matchId='match_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
             const deck = room.gameMode === 'chaos' && state.isOnline ? createChaosDeckBatch(360) : shuffleArray(createOfficial108Deck());
             room.pendingStack = null;
+            room.pendingLie = null;
             room.comboChain = null;
             room.survivalRound = 1;
+            room.seats.forEach(s => { s.tacticalCooldowns = {}; s.tacticalShield = false; });
             room.seats.forEach(s => {
                 s.hand = [];
                 s.saidUno = false;
@@ -3922,6 +3925,7 @@
         async function playCardFromHand(seatIndex, cardId, chosenColor = null, mimicChoice = null) {
             const room = state.room;
             if (!room || room.status !== 'playing') return;
+            if (room.pendingLie) return;
             if (room.currentTurnSeat !== seatIndex) return;
             if (room.pendingDraw4) return;
 
@@ -3949,7 +3953,7 @@
                 seat.hand[cardIdx] = card;
             }
 
-            if (!canPlayCard(card, room, state.comboChain)) {
+            if (!canPlayCard(card, room, state.comboChain) && !(room.gameMode === 'liar' && state.liarArmed && card.type === 'number')) {
                 showToast("Esa carta no coincide en color, valor o cadena.", "warn");
                 return;
             }
@@ -3962,6 +3966,25 @@
             }
 
             const finalColor = card.color === 'wild' ? (chosenColor || 'red') : card.color;
+
+            // UNO! MENTIROSO: el jugador puede declarar una carta numérica distinta.
+            // La carta real queda guardada hasta que el siguiente jugador acepte o desafíe.
+            if (room.gameMode === 'liar' && state.liarArmed && card.type === 'number' && !room.pendingStack) {
+                const top = room.discardPile[room.discardPile.length - 1];
+                const declaredValue = top && top.type === 'number' ? top.value : '7';
+                const declaredCard = { ...card, id:'lie_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), color:room.activeColor, value:String(declaredValue), type:'number', points:Number(declaredValue)||7, bluff:true };
+                const previousColor = room.activeColor;
+                seat.hand.splice(cardIdx, 1);
+                room.discardPile.push(declaredCard);
+                room.pendingLie = { fromSeatIndex:seatIndex, targetSeatIndex:getNextSeatIndex(room,seatIndex,1), actualCard:card, declaredCard, previousColor, createdAt:Date.now() };
+                room.currentTurnSeat = room.pendingLie.targetSeatIndex;
+                room.turnStartedAt = Date.now();
+                state.liarArmed = false;
+                showToast('🎭 ¡Farol declarado! El siguiente jugador puede aceptar o desafiar.', 'warn');
+                await syncRoomToCloud();
+                scheduleBotTurnIfNeeded();
+                return;
+            }
 
             if (room.pendingStack) {
                 const stack = room.pendingStack;
@@ -4173,6 +4196,7 @@
                 room.currentTurnSeat = getNextSeatIndex(room, seatIndex, 1);
             }
 
+            if (room.gameMode === 'tactical' && room.tacticalExtraTurnSeat === seatIndex) { room.currentTurnSeat = seatIndex; room.tacticalExtraTurnSeat = null; }
             room.turnStartedAt = Date.now();
             await syncRoomToCloud();
             scheduleBotTurnIfNeeded();
@@ -4315,11 +4339,39 @@
             scheduleBotTurnIfNeeded();
         }
 
+        async function resolveLiarDecision(challenge) {
+            const room = state.room, pending = room?.pendingLie;
+            if (!room || !pending || room.currentTurnSeat !== pending.targetSeatIndex) return;
+            const challenger = room.seats[pending.targetSeatIndex], liar = room.seats[pending.fromSeatIndex];
+            if (!challenger || !liar || (challenger.id !== currentUserId && !challenger.isBot)) return;
+            room.pendingLie = null;
+            if (challenge) {
+                const at = room.discardPile.findIndex(c => c.id === pending.declaredCard.id);
+                if (at >= 0) room.discardPile.splice(at, 1);
+                liar.hand.push(pending.actualCard);
+                const penalty = drawCardsFromDeck(room, 4);
+                liar.hand.push(...penalty); liar.saidUno = false;
+                room.activeColor = pending.previousColor;
+                room.currentTurnSeat = getNextSeatIndex(room, challenger.seatIndex, 1);
+                showToast('🚨 ¡MENTIRA DESCUBIERTA! '+liar.name+' roba 4 cartas.', 'success');
+                vfx.showCinemaCallout('¡FAROL DESCUBIERTO!', 'from-rose-500 via-white to-amber-400');
+            } else {
+                showToast('🤝 Declaración aceptada. La carta cuenta como jugada.', 'success');
+                if (liar.hand.length === 0) { await handlePlayerFinishedHand(liar.seatIndex); return; }
+                await applyCardEffectAndAdvanceTurn(liar.seatIndex, pending.declaredCard, false, pending.declaredCard.color, pending.previousColor);
+                return;
+            }
+            room.turnStartedAt = Date.now();
+            await syncRoomToCloud();
+            scheduleBotTurnIfNeeded();
+        }
+
         async function resolveStackPenalty() {
             const room = state.room;
             if (!room || !room.pendingStack) return;
             const stack = room.pendingStack;
             const target = room.seats[stack.targetSeatIndex];
+            if (target?.tacticalShield) { target.tacticalShield = false; room.pendingStack = null; room.currentTurnSeat = getNextSeatIndex(room,target.seatIndex,1); room.turnStartedAt=Date.now(); showToast('🛡️ ¡Escudo táctico bloqueó la penalización!', 'success'); await syncRoomToCloud(); scheduleBotTurnIfNeeded(); return; }
             if (!target || (target.id !== currentUserId && !target.isBot)) return;
             room.pendingStack = null;
             const cards = drawCardsFromDeck(room, stack.amount);
@@ -4341,7 +4393,7 @@
                 showToast("Espera tu turno para robar.", "warn");
                 return;
             }
-            if (room.pendingDraw4 || room.pendingStack || state.drawnPlayableCardId || state.comboChain) return;
+            if (room.pendingLie || room.pendingDraw4 || room.pendingStack || state.drawnPlayableCardId || state.comboChain) return;
 
             const drawn = drawCardsFromDeck(room, 1);
             if (drawn.length === 0) return;
@@ -4454,6 +4506,10 @@
                 if (!r || r.status !== 'playing') return;
                 const bot = r.seats[r.currentTurnSeat];
                 if (!bot || !bot.isBot) return;
+                if (r.pendingLie && r.pendingLie.targetSeatIndex === bot.seatIndex) {
+                    await resolveLiarDecision(Math.random() < 0.5);
+                    return;
+                }
 
                 // Los bots también pueden defenderse acumulando +2 o +4.
                 if (r.pendingStack && r.pendingStack.targetSeatIndex === bot.seatIndex) {
@@ -4638,8 +4694,8 @@
             const competitiveBtn = document.getElementById('competitiveModeBtn');
             if (competitiveBtn) { const eligible = state.isOnline && !room.teamMode; competitiveBtn.disabled = !isHost || !eligible; competitiveBtn.textContent = room.competitiveMode ? '🏆 Competitivo ACTIVADO' : 'Activar competitivo'; competitiveBtn.className = 'rounded-xl border px-3 py-2 text-xs font-extrabold ' + (room.competitiveMode ? 'border-amber-300 bg-amber-400 text-zinc-950' : 'border-zinc-700 bg-zinc-900 text-zinc-300') + (!isHost || !eligible ? ' opacity-40 cursor-not-allowed' : ' cursor-pointer'); competitiveBtn.title = !state.isOnline ? 'Disponible solo online' : (room.teamMode ? 'El competitivo es individual' : 'Activar o desactivar ranking'); }
             // Modo CAOS solo online y seleccionable por el anfitrión.
-            const modeButtons = { classic:'gameModeClassicBtn', chaos:'gameModeChaosBtn', survival:'gameModeSurvivalBtn', turbo:'gameModeTurboBtn' };
-            const modeColors = { classic:'bg-emerald-600 border-emerald-400', chaos:'bg-fuchsia-600 border-fuchsia-300', survival:'bg-rose-600 border-rose-300', turbo:'bg-cyan-600 border-cyan-300' };
+            const modeButtons = { classic:'gameModeClassicBtn', chaos:'gameModeChaosBtn', survival:'gameModeSurvivalBtn', turbo:'gameModeTurboBtn', liar:'gameModeLiarBtn', tactical:'gameModeTacticalBtn' };
+            const modeColors = { classic:'bg-emerald-600 border-emerald-400', chaos:'bg-fuchsia-600 border-fuchsia-300', survival:'bg-rose-600 border-rose-300', turbo:'bg-cyan-600 border-cyan-300', liar:'bg-violet-600 border-violet-300', tactical:'bg-amber-500 border-amber-300' };
             Object.entries(modeButtons).forEach(([mode,id]) => {
                 const btn = document.getElementById(id);
                 if (!btn) return;
@@ -4651,7 +4707,7 @@
             if (chaosInfo) chaosInfo.classList.toggle('hidden', room.gameMode !== 'chaos');
             const specialInfo = document.getElementById('specialModeInfo');
             if (specialInfo) {
-                const descriptions = { survival:'❤️ 3 vidas por jugador. Cada ronda, quien se queda sin cartas primero sobrevive; los demás pierden 1 vida. Con 0 vidas quedas eliminado. ¡Gana el último superviviente!', turbo:'⚡ Turnos de 8 segundos. Si se acaba el tiempo, robas automáticamente y pasa el turno.', classic:'', chaos:'' };
+                const descriptions = { survival:'❤️ 3 vidas por jugador. Cada ronda, quien se queda sin cartas primero sobrevive; los demás pierden 1 vida. Con 0 vidas quedas eliminado. ¡Gana el último superviviente!', turbo:'⚡ Turnos de 8 segundos. Si se acaba el tiempo, robas automáticamente y pasa el turno.', liar:'🎭 Jugá UNO normal. Podés activar FAROL al jugar una carta numérica: declarás otra carta y el siguiente jugador decide aceptar o desafiar. Si te descubre, robás 4.', tactical:'⚔️ UNO normal con habilidades especiales. Cada poder tiene su propio enfriamiento en segundos y se recarga en tiempo real.', classic:'', chaos:'' };
                 specialInfo.textContent = descriptions[room.gameMode] || '';
                 specialInfo.classList.toggle('hidden', !descriptions[room.gameMode]);
             }
@@ -4757,11 +4813,74 @@
             });
         }
 
+        let modePowerPanelTimer = null;
+        function renderModePowerPanel(room,mySeat) {
+            if (!room || !mySeat) return;
+            let panel = document.getElementById('unoModePowerPanel');
+            const hand = document.getElementById('localHandContainer');
+            if (!panel && hand) {
+                panel = document.createElement('div'); panel.id='unoModePowerPanel';
+                panel.className='mb-3 rounded-2xl border border-white/10 bg-zinc-950/80 p-3 shadow-xl';
+                hand.insertAdjacentElement('beforebegin',panel);
+            }
+            if (!panel) return;
+            if (!['liar','tactical'].includes(room.gameMode)) { panel.classList.add('hidden'); return; }
+            panel.classList.remove('hidden');
+            const isTurn = room.currentTurnSeat === mySeat.seatIndex && !mySeat.finishRank;
+            const pending = room.pendingLie;
+            if (room.gameMode === 'liar') {
+                if (pending && pending.targetSeatIndex === mySeat.seatIndex) {
+                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 ¡DECLARACIÓN SOSPECHOSA!</b><p class="text-xs text-zinc-300 mt-1">¿Aceptás la carta declarada o desafiás el farol?</p></div><div class="flex gap-2"><button data-lie-action="accept" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black">ACEPTAR</button><button data-lie-action="challenge" class="rounded-xl bg-rose-600 px-4 py-2 text-xs font-black">DESAFIAR</button></div></div>';
+                } else {
+                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 UNO! MENTIROSO</b><p class="text-xs text-zinc-400 mt-1">Jugá normal o activá un farol al bajar una carta numérica. El siguiente puede desafiarte.</p></div><button data-lie-action="arm" '+(!isTurn?'disabled':'')+' class="rounded-xl border border-violet-300/40 bg-violet-600/20 px-4 py-2 text-xs font-black text-violet-100 '+(state.liarArmed?'ring-2 ring-violet-300 bg-violet-600':'')+'">'+(state.liarArmed?'🎭 FAROL ACTIVADO':'🎭 ACTIVAR FAROL')+'</button></div>';
+                }
+            } else {
+                const abilities=[
+                    ['steal','🧲 Robo táctico','25'],['swap','🔀 Intercambio','40'],['color','🎨 Control de color','20'],
+                    ['skip','⏭️ Bloqueo','45'],['shield','🛡️ Escudo','35'],['peek','👁️ Espionaje','30'],
+                    ['double','⚡ Turno extra','60'],['draw','📦 Suministro','30']
+                ];
+                const cds=mySeat.tacticalCooldowns||{};
+                panel.innerHTML='<div class="flex items-center justify-between mb-2"><div><b class="text-amber-200">⚔️ ARSENAL TÁCTICO</b><p class="text-[11px] text-zinc-400">Habilidades con enfriamiento individual en tiempo real.</p></div><span class="text-[10px] text-amber-200">TURNO '+(isTurn?'TUYO':'RIVAL')+'</span></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2">'+abilities.map(([id,label,seconds])=>{const left=Math.max(0,Math.ceil(((cds[id]||0)-Date.now())/1000));return '<button data-tactical="'+id+'" '+(!isTurn||left>0?'disabled':'')+' class="rounded-xl border border-amber-300/20 bg-zinc-900 px-2 py-2 text-[11px] font-extrabold text-zinc-100 disabled:opacity-40 hover:bg-amber-900/40">'+label+'<span class="block mt-1 text-[10px] text-amber-200">'+(left>0?'⏳ '+left+'s':'LISTO · '+seconds+'s CD')+'</span></button>';}).join('')+'</div>';
+            }
+            panel.onclick=async e=>{
+                const lie=e.target.closest('[data-lie-action]')?.dataset.lieAction;
+                if(lie==='arm'){if(!isTurn)return;state.liarArmed=!state.liarArmed;renderGameTable();return;}
+                if(lie==='accept'){await resolveLiarDecision(false);return;}
+                if(lie==='challenge'){await resolveLiarDecision(true);return;}
+                const id=e.target.closest('[data-tactical]')?.dataset.tactical;
+                if(id) await useTacticalAbility(id);
+            };
+            if (!modePowerPanelTimer) modePowerPanelTimer=setInterval(()=>{const r=state.room;if(r?.gameMode==='tactical'&&r.status==='playing'){const me=r.seats.find(x=>x.id===currentUserId);if(me)renderModePowerPanel(r,me);}},500);
+        }
+
+        async function useTacticalAbility(id) {
+            const room=state.room, seat=room?.seats.find(s=>s.id===currentUserId);
+            if(!room||room.gameMode!=='tactical'||!seat||room.currentTurnSeat!==seat.seatIndex||room.pendingStack||room.pendingLie)return;
+            const definitions={steal:25,swap:40,color:20,skip:45,shield:35,peek:30,double:60,draw:30};
+            const now=Date.now();seat.tacticalCooldowns=seat.tacticalCooldowns||{};
+            if((seat.tacticalCooldowns[id]||0)>now){showToast('Esta habilidad todavía está recargando.','warn');return;}
+            const targetIndex=getNextSeatIndex(room,seat.seatIndex,1),target=room.seats[targetIndex];
+            if(!target||target.finishRank)return;
+            if(id==='steal'){if(!target.hand.length)return;const n=Math.floor(Math.random()*target.hand.length);seat.hand.push(target.hand.splice(n,1)[0]);target.saidUno=false;vfx.showCinemaCallout('¡ROBO TÁCTICO!','from-amber-400 via-white to-orange-500');}
+            else if(id==='swap'){if(!target.hand.length||!seat.hand.length)return;const a=Math.floor(Math.random()*seat.hand.length),b=Math.floor(Math.random()*target.hand.length);[seat.hand[a],target.hand[b]]=[target.hand[b],seat.hand[a]];vfx.showCinemaCallout('¡INTERCAMBIO!','from-violet-500 via-white to-cyan-400');}
+            else if(id==='color'){const colors=['red','yellow','green','blue'];const current=room.activeColor;room.activeColor=colors[(colors.indexOf(current)+1+Math.floor(Math.random()*3))%4];vfx.showCinemaCallout('¡COLOR ALTERADO!','from-sky-400 via-white to-blue-500');}
+            else if(id==='skip'){room.currentTurnSeat=getNextSeatIndex(room,targetIndex,1);room.turnStartedAt=now;vfx.showCinemaCallout('¡RIVAL BLOQUEADO!','from-rose-500 via-white to-orange-400');}
+            else if(id==='shield'){seat.tacticalShield=true;vfx.showCinemaCallout('¡ESCUDO ACTIVADO!','from-cyan-400 via-white to-blue-500');}
+            else if(id==='peek'){const c=target.hand[Math.floor(Math.random()*target.hand.length)];showToast(c?'👁️ Espionaje: el rival tiene '+(c.color||'comodín')+' '+c.value+'.':'El rival no tiene cartas.','success');}
+            else if(id==='double'){room.tacticalExtraTurnSeat=seat.seatIndex;vfx.showCinemaCallout('¡TURNO EXTRA PREPARADO!','from-amber-300 via-white to-yellow-500');}
+            else if(id==='draw'){const cards=drawCardsFromDeck(room,2);seat.hand.push(...cards);seat.saidUno=false;showToast('📦 Suministro: recibiste 2 cartas.','success');}
+            seat.tacticalCooldowns[id]=now+definitions[id]*1000;
+            room.turnStartedAt=now;
+            await syncRoomToCloud();
+        }
+
         function renderGameTable() {
             const room = state.room;
             if (!room) return;
 
             const mySeat = room.seats.find(s => s.id === currentUserId) || room.seats[0];
+            renderModePowerPanel(room,mySeat);
             const isMyTurn = mySeat && room.currentTurnSeat === mySeat.seatIndex && !mySeat.finishRank;
             const currentTurnSeatObj = room.seats[room.currentTurnSeat];
 
@@ -4777,7 +4896,7 @@
             const modeText = room.teamMode
                 ? `${room.teamCount} Equipos`
                 : `Podio (${room.podium?.length || 0}/${Math.max(1, room.seats.filter(s => s.id).length - 1)})`;
-            document.getElementById('hudModePill').textContent = (({classic:'🃏 UNO CLÁSICO • ',chaos:'💥 UNO CAOS • ',survival:'❤️ SUPERVIVENCIA • ',turbo:'⚡ UNO TURBO • '})[room.gameMode] || '🃏 UNO CLÁSICO • ') + modeText;
+            document.getElementById('hudModePill').textContent = (({classic:'🃏 UNO CLÁSICO • ',chaos:'💥 UNO CAOS • ',survival:'❤️ SUPERVIVENCIA • ',turbo:'⚡ UNO TURBO • ',liar:'🎭 UNO MENTIROSO • ',tactical:'⚔️ UNO TÁCTICO • '})[room.gameMode] || '🃏 UNO CLÁSICO • ') + modeText;
 
             const banner = document.getElementById('turnStatusBanner');
             if (mySeat && mySeat.finishRank) {
@@ -6161,16 +6280,22 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             if (!room || room.hostId !== currentUserId) return;
             if (mode === 'chaos' && !state.isOnline) { showToast('UNO CAOS solo está disponible online.', 'warn'); return; }
             room.gameMode = mode;
+            room.pendingLie = null;
+            state.liarArmed = false;
             room.pendingStack = null;
             if (mode === 'turbo') room.turnDuration = 8;
             else if (room.turnDuration === 8) room.turnDuration = 20;
             await syncRoomToCloud();
-            showToast(mode === 'survival' ? '❤️ Supervivencia: 3 vidas por jugador. Cada ronda perdida resta una vida.' : mode === 'turbo' ? '⚡ Turbo activado: turnos de 8 segundos.' : mode === 'chaos' ? '💥 UNO Caos activado.' : '🃏 UNO clásico activado.', 'success');
+            showToast(mode === 'survival' ? '❤️ Supervivencia: 3 vidas por jugador. Cada ronda perdida resta una vida.' : mode === 'turbo' ? '⚡ Turbo activado: turnos de 8 segundos.' : mode === 'chaos' ? '💥 UNO Caos activado.' : mode === 'liar' ? '🎭 UNO Mentiroso activado.' : mode === 'tactical' ? '⚔️ UNO Táctico activado: habilidades con enfriamientos por segundo.' : '🃏 UNO clásico activado.', 'success');
         }
         document.getElementById('gameModeClassicBtn').onclick = () => setRoomGameMode('classic');
         document.getElementById('gameModeChaosBtn').onclick = () => setRoomGameMode('chaos');
         document.getElementById('gameModeSurvivalBtn').onclick = () => setRoomGameMode('survival');
         document.getElementById('gameModeTurboBtn').onclick = () => setRoomGameMode('turbo');
+        document.getElementById('gameModeLiarBtn').onclick = () => setRoomGameMode('liar');
+        document.getElementById('gameModeTacticalBtn').onclick = () => setRoomGameMode('tactical');
+        document.getElementById('gameModeLiarBtn').onclick = () => setRoomGameMode('liar');
+        document.getElementById('gameModeTacticalBtn').onclick = () => setRoomGameMode('tactical');
 
         // Botones de Espejito y Escalerita en el Lobby
         document.getElementById('mirrorYesBtn').onclick = async () => {
