@@ -997,4 +997,1300 @@
         const currentLookAt = new THREE.Vector3(0, 0.2, 0.3);
         let camOrbitOffset = { x: 0, y: 0 };
         let camZoomFactor = 1.0;
-        let isDraggingCam = false;
+        let isDraggingCam = false;        let prevMouse = { x: 0, y: 0 };
+
+        // Geometría de la mesa ovalada grande (8.8 x 5.6)
+        const TABLE_RX = 8.6;
+        const TABLE_RZ = 5.4;
+
+        function computeSeatTransforms(numPlayers) {
+            const seats = [];
+            // El asiento 0 siempre está abajo al centro (ángulo +PI/2 en XZ)
+            for (let i = 0; i < numPlayers; i++) {
+                const angle = Math.PI / 2 + (i * Math.PI * 2) / numPlayers;
+                const cosA = Math.cos(angle);
+                const sinA = Math.sin(angle);
+
+                // Posición de las cartas del jugador sobre el borde del tapete
+                const cardRx = TABLE_RX - 1.35;
+                const cardRz = TABLE_RZ - 1.15;
+                const pos = new THREE.Vector3(cosA * cardRx, 0.16, sinA * cardRz);
+
+                // Posición de la pila de fichas de apuesta (un poco más hacia el centro)
+                const betRx = TABLE_RX - 2.65;
+                const betRz = TABLE_RZ - 2.25;
+                const betPos = new THREE.Vector3(cosA * betRx, 0.15, sinA * betRz);
+
+                // Posición del cartel HUD flotante (por fuera del borde de cuero)
+                const labelRx = TABLE_RX + 0.85;
+                const labelRz = TABLE_RZ + 0.75;
+                const labelPos = new THREE.Vector3(cosA * labelRx, 1.15, sinA * labelRz);
+
+                // Rotación mirando hacia el centro de la mesa
+                const rotY = Math.atan2(cosA, sinA) + Math.PI;
+
+                seats.push({ angle, pos, betPos, labelPos, rotY });
+            }
+            return seats;
+        }
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x05070e);
+            scene.fog = new THREE.FogExp2(0x05070e, 0.024);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 120);
+            camera.position.copy(cameraTargetPos);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.18;
+            container.appendChild(renderer.domElement);
+
+            // Luces VIP
+            const ambientLight = new THREE.AmbientLight(0x9bb2ff, 0.62);
+            scene.add(ambientLight);
+
+            const spotLight = new THREE.SpotLight(0xfff6e5, 1.9);
+            spotLight.position.set(0, 16, 2.5);
+            spotLight.angle = Math.PI / 2.6;
+            spotLight.penumbra = 0.55;
+            spotLight.decay = 1.1;
+            spotLight.distance = 40;
+            spotLight.castShadow = true;
+            spotLight.shadow.mapSize.width = 2048;
+            spotLight.shadow.mapSize.height = 2048;
+            spotLight.shadow.bias = -0.0005;
+            scene.add(spotLight);
+
+            const neonRed = new THREE.PointLight(0xff2a55, 0.95, 22);
+            neonRed.position.set(-10, 4, -6);
+            scene.add(neonRed);
+
+            const neonBlue = new THREE.PointLight(0x00b0ff, 0.95, 22);
+            neonBlue.position.set(10, 4, 6);
+            scene.add(neonBlue);
+
+            buildCasinoTable();
+
+            cardsGroup = new THREE.Group();
+            scene.add(cardsGroup);
+
+            chipsGroup = new THREE.Group();
+            scene.add(chipsGroup);
+
+            ringsGroup = new THREE.Group();
+            scene.add(ringsGroup);
+
+            createDeckStack();
+
+            // Eventos de cámara orbital y zoom
+            window.addEventListener('resize', onWindowResize);
+            const dom = renderer.domElement;
+            dom.addEventListener('mousedown', e => { isDraggingCam = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+            window.addEventListener('mouseup', () => { isDraggingCam = false; });
+            window.addEventListener('mousemove', e => {
+                if (!isDraggingCam) return;
+                const dx = (e.clientX - prevMouse.x) * 0.005;
+                const dy = (e.clientY - prevMouse.y) * 0.005;
+                camOrbitOffset.x = Math.max(-0.75, Math.min(0.75, camOrbitOffset.x - dx));
+                camOrbitOffset.y = Math.max(-0.3, Math.min(0.4, camOrbitOffset.y + dy));
+                prevMouse = { x: e.clientX, y: e.clientY };
+            });
+
+            dom.addEventListener('wheel', e => {
+                camZoomFactor = Math.max(0.72, Math.min(1.45, camZoomFactor + e.deltaY * 0.0008));
+            }, { passive: true });
+
+            dom.addEventListener('touchstart', e => {
+                if (e.touches.length === 1) {
+                    isDraggingCam = true;
+                    prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            }, { passive: true });
+            window.addEventListener('touchend', () => { isDraggingCam = false; });
+            window.addEventListener('touchmove', e => {
+                if (!isDraggingCam || e.touches.length !== 1) return;
+                const dx = (e.touches[0].clientX - prevMouse.x) * 0.005;
+                const dy = (e.touches[0].clientY - prevMouse.y) * 0.005;
+                camOrbitOffset.x = Math.max(-0.75, Math.min(0.75, camOrbitOffset.x - dx));
+                camOrbitOffset.y = Math.max(-0.3, Math.min(0.4, camOrbitOffset.y + dy));
+                prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }, { passive: true });
+        }
+
+        function buildCasinoTable() {
+            tableGroup = new THREE.Group();
+
+            // Suelo oscuro
+            const floorGeo = new THREE.PlaneGeometry(80, 80);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x04060b, roughness: 0.4, metalness: 0.6 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -2.4;
+            floor.receiveShadow = true;
+            tableGroup.add(floor);
+
+            // Textura del tapete VIP
+            const feltCanvas = document.createElement('canvas');
+            feltCanvas.width = 1024;
+            feltCanvas.height = 1024;
+            const fctx = feltCanvas.getContext('2d');
+
+            const fGrad = fctx.createRadialGradient(512, 512, 60, 512, 512, 512);
+            fGrad.addColorStop(0, '#115c39');
+            fGrad.addColorStop(0.68, '#093b24');
+            fGrad.addColorStop(1, '#042113');
+            fctx.fillStyle = fGrad;
+            fctx.fillRect(0, 0, 1024, 1024);
+
+            fctx.fillStyle = 'rgba(255,255,255,0.025)';
+            for (let i = 0; i < 14000; i++) {
+                fctx.fillRect(Math.random() * 1024, Math.random() * 1024, 2, 2);
+            }
+
+            // Línea dorada y ranuras centrales para las 5 cartas comunitarias
+            fctx.strokeStyle = 'rgba(255, 204, 0, 0.28)';
+            fctx.lineWidth = 6;
+            roundRect(fctx, 110, 190, 804, 644, 260);
+            fctx.stroke();
+
+            fctx.font = '900 42px Orbitron, sans-serif';
+            fctx.textAlign = 'center';
+            fctx.fillStyle = 'rgba(255, 255, 255, 0.09)';
+            fctx.fillText("UNO HOLD'EM • 8 SEATS VIP", 512, 330);
+
+            const feltTex = new THREE.CanvasTexture(feltCanvas);
+            feltTex.anisotropy = 8;
+
+            const scaleX = TABLE_RX / 5.5;
+            const scaleZ = TABLE_RZ / 5.5;
+
+            const feltGeo = new THREE.CylinderGeometry(5.5, 5.5, 0.26, 72);
+            const feltMat = new THREE.MeshStandardMaterial({ map: feltTex, roughness: 0.85, metalness: 0.05 });
+            const feltMesh = new THREE.Mesh(feltGeo, feltMat);
+            feltMesh.scale.set(scaleX, 1, scaleZ);
+            feltMesh.receiveShadow = true;
+            tableGroup.add(feltMesh);
+
+            // Borde acolchado de cuero oscuro
+            const railGeo = new THREE.TorusGeometry(5.56, 0.38, 24, 80);
+            const railMat = new THREE.MeshStandardMaterial({ color: 0x151923, roughness: 0.35, metalness: 0.25 });
+            const railMesh = new THREE.Mesh(railGeo, railMat);
+            railMesh.rotation.x = Math.PI / 2;
+            railMesh.scale.set(scaleX, scaleZ, 1);
+            railMesh.position.y = 0.14;
+            railMesh.castShadow = true;
+            railMesh.receiveShadow = true;
+            tableGroup.add(railMesh);
+
+            // Tira LED Neón interna
+            const neonGeo = new THREE.TorusGeometry(5.22, 0.038, 12, 80);
+            const neonMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+            const neonMesh = new THREE.Mesh(neonGeo, neonMat);
+            neonMesh.rotation.x = Math.PI / 2;
+            neonMesh.scale.set(scaleX, scaleZ, 1);
+            neonMesh.position.y = 0.14;
+            tableGroup.add(neonMesh);
+
+            // Pedestal doble de lujo
+            [-2.8, 2.8].forEach(px => {
+                const pedGeo = new THREE.CylinderGeometry(1.1, 1.7, 2.4, 28);
+                const pedMat = new THREE.MeshStandardMaterial({ color: 0x0c0f17, roughness: 0.3, metalness: 0.7 });
+                const ped = new THREE.Mesh(pedGeo, pedMat);
+                ped.position.set(px, -1.25, 0);
+                tableGroup.add(ped);
+            });
+
+            scene.add(tableGroup);
+        }
+
+        function createDeckStack() {
+            const backTex = getCardBackTexture();
+            const geo = new THREE.BoxGeometry(0.82, 0.26, 1.22);
+            const sideMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.5 });
+            const topMat = new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.3 });
+            deckMesh = new THREE.Mesh(geo, [sideMat, sideMat, topMat, sideMat, sideMat, sideMat]);
+            deckMesh.position.set(-3.4, 0.26, -0.85);
+            deckMesh.rotation.y = 0.32;
+            deckMesh.castShadow = true;
+            scene.add(deckMesh);
+        }
+
+        function buildSeatRings(seatTransforms) {
+            while (ringsGroup.children.length > 0) {
+                ringsGroup.remove(ringsGroup.children[0]);
+            }
+            Object.keys(seatRingMeshes).forEach(k => delete seatRingMeshes[k]);
+
+            seatTransforms.forEach((st, idx) => {
+                const ringGeo = new THREE.RingGeometry(0.75, 0.92, 32);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: 0xffcc00,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.0
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = -Math.PI / 2;
+                ring.position.set(st.pos.x, 0.145, st.pos.z);
+                ringsGroup.add(ring);
+                seatRingMeshes[idx] = ring;
+            });
+        }
+
+        function createCard3D(cardData, faceUp = false) {
+            const w = 0.82, h = 0.016, d = 1.20;
+            const geo = new THREE.BoxGeometry(w, h, d);
+            const edgeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+            const frontMat = new THREE.MeshStandardMaterial({
+                map: getCardFrontTexture(cardData),
+                roughness: 0.28,
+                metalness: 0.05
+            });
+            const backMat = new THREE.MeshStandardMaterial({
+                map: getCardBackTexture(),
+                roughness: 0.32,
+                metalness: 0.05
+            });
+
+            const mesh = new THREE.Mesh(geo, [edgeMat, edgeMat, frontMat, backMat, edgeMat, edgeMat]);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            mesh.position.copy(deckMesh.position);
+            mesh.position.y += 0.15;
+            mesh.rotation.set(0, deckMesh.rotation.y, Math.PI);
+
+            mesh.userData = { cardData, faceUp };
+            cardsGroup.add(mesh);
+            cardMeshes.push(mesh);
+            return mesh;
+        }
+
+        function animateCardTo(mesh, targetPos, targetRot, faceUp, delay = 0) {
+            const finalRotZ = faceUp ? 0 : Math.PI;
+            activeAnimations.push({
+                type: 'card',
+                mesh,
+                startPos: mesh.position.clone(),
+                endPos: targetPos.clone(),
+                startRot: new THREE.Vector3(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z),
+                endRot: new THREE.Vector3(targetRot.x, targetRot.y, finalRotZ),
+                progress: 0,
+                duration: 0.44,
+                delay,
+                playedSound: false
+            });
+            mesh.userData.faceUp = faceUp;
+        }
+
+        function flipCard3D(mesh, faceUp, delay = 0) {
+            if (mesh.userData.faceUp === faceUp) return;
+            animateCardTo(
+                mesh,
+                mesh.position,
+                new THREE.Vector3(mesh.rotation.x, mesh.rotation.y, 0),
+                faceUp,
+                delay
+            );
+        }
+
+        // Renderiza pilas de fichas 3D con denominación impresa en su cara superior
+        function updateSeatBetChips3D(seatIndex, betAmount) {
+            if (!seatChipMeshes[seatIndex]) seatChipMeshes[seatIndex] = [];
+            seatChipMeshes[seatIndex].forEach(c => chipsGroup.remove(c));
+            seatChipMeshes[seatIndex] = [];
+
+            if (betAmount <= 0) return;
+
+            const denomList = decomposeAmountToChips(betAmount);
+            const seatInfo = gameState.seatTransforms[seatIndex];
+            const origin = seatInfo.pos.clone();
+            const targetBase = seatInfo.betPos.clone();
+
+            denomList.forEach((denomObj, idx) => {
+                const colIdx = Math.floor(idx / 6);
+                const rowIdx = idx % 6;
+
+                const geo = new THREE.CylinderGeometry(0.28, 0.28, 0.065, 24);
+                const sideMat = new THREE.MeshStandardMaterial({ color: denomObj.bg, roughness: 0.35 });
+                const topMat = new THREE.MeshStandardMaterial({
+                    map: getChipTopTexture(denomObj),
+                    roughness: 0.25,
+                    metalness: 0.1
+                });
+                const chip = new THREE.Mesh(geo, [sideMat, topMat, sideMat]);
+                chip.castShadow = true;
+                chip.receiveShadow = true;
+
+                chip.position.copy(origin);
+                chip.position.y = 0.22;
+                // Orientar el número hacia la cámara
+                chip.rotation.y = 0;
+
+                const dest = new THREE.Vector3(
+                    targetBase.x + (colIdx - 0.5) * 0.52,
+                    0.17 + rowIdx * 0.066,
+                    targetBase.z + (colIdx % 2) * 0.22
+                );
+
+                chipsGroup.add(chip);
+                seatChipMeshes[seatIndex].push(chip);
+
+                activeAnimations.push({
+                    type: 'chip',
+                    mesh: chip,
+                    startPos: chip.position.clone(),
+                    endPos: dest,
+                    progress: 0,
+                    duration: 0.34,
+                    delay: idx * 0.025
+                });
+            });
+        }
+
+        // Mueve todas las fichas de apuesta al pozo central cuando termina una calle
+        function consolidateBetsToPot3D() {
+            potChipMeshes.forEach(c => chipsGroup.remove(c));
+            potChipMeshes.length = 0;
+
+            Object.keys(seatChipMeshes).forEach(k => {
+                seatChipMeshes[k].forEach(c => chipsGroup.remove(c));
+                seatChipMeshes[k] = [];
+            });
+
+            if (gameState.pot <= 0) return;
+            const denomList = decomposeAmountToChips(gameState.pot);
+
+            denomList.forEach((denomObj, idx) => {
+                const colIdx = Math.floor(idx / 6);
+                const rowIdx = idx % 6;
+
+                const geo = new THREE.CylinderGeometry(0.29, 0.29, 0.065, 24);
+                const sideMat = new THREE.MeshStandardMaterial({ color: denomObj.bg, roughness: 0.35 });
+                const topMat = new THREE.MeshStandardMaterial({
+                    map: getChipTopTexture(denomObj),
+                    roughness: 0.25
+                });
+                const chip = new THREE.Mesh(geo, [sideMat, topMat, sideMat]);
+                chip.castShadow = true;
+
+                const offsetX = (colIdx - 1) * 0.62;
+                const offsetZ = (colIdx % 2 === 0 ? -0.25 : 0.25) - 1.15;
+                chip.position.set(offsetX, 0.17 + rowIdx * 0.066, offsetZ);
+
+                chipsGroup.add(chip);
+                potChipMeshes.push(chip);
+            });
+        }
+
+        function clearTableObjects() {
+            cardMeshes.forEach(m => cardsGroup.remove(m));
+            cardMeshes.length = 0;
+
+            potChipMeshes.forEach(c => chipsGroup.remove(c));
+            potChipMeshes.length = 0;
+
+            Object.keys(seatChipMeshes).forEach(k => {
+                seatChipMeshes[k].forEach(c => chipsGroup.remove(c));
+                seatChipMeshes[k] = [];
+            });
+
+            activeAnimations.length = 0;
+        }
+
+        function setCameraView(mode) {
+            document.querySelectorAll('.cam-btn').forEach(b => {
+                b.classList.remove('bg-indigo-600', 'text-white');
+                b.classList.add('text-slate-300');
+            });
+            const activeBtn = document.getElementById(`cam-${mode}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-indigo-600', 'text-white');
+                activeBtn.classList.remove('text-slate-300');
+            }
+
+            camOrbitOffset = { x: 0, y: 0 };
+            camZoomFactor = 1.0;
+            if (mode === 'overview') {
+                cameraTargetPos.set(0, 9.4, 11.2);
+                cameraTargetLook.set(0, 0.2, 0.3);
+            } else if (mode === 'hand') {
+                cameraTargetPos.set(0, 4.9, 8.2);
+                cameraTargetLook.set(0, 0.2, 2.6);
+            } else if (mode === 'top') {
+                cameraTargetPos.set(0, 15.2, 1.2);
+                cameraTargetLook.set(0, 0, 0);
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        /**
+         * ============================================================================
+         * 5. CONFIGURACIÓN DE MESA (2 A 8 JUGADORES) Y MOTOR DE JUEGO
+         * ============================================================================
+         */
+        let setupConfig = {
+            totalPlayers: 6,
+            humanCount: 1,
+            startingChips: 2500
+        };
+
+        const BOT_PROFILES = [
+            { name: 'El Mago del +4', avatar: '🧙‍♂️', style: 'aggressive', color: 'from-purple-600 to-pink-500' },
+            { name: 'Reina Roja', avatar: '👑', style: 'balanced', color: 'from-red-600 to-amber-500' },
+            { name: 'CyberBot', avatar: '🤖', style: 'tight', color: 'from-cyan-500 to-blue-600' },
+            { name: 'Don Comodín', avatar: '🃏', style: 'aggressive', color: 'from-emerald-500 to-teal-600' },
+            { name: 'Lady Reversa', avatar: '🦊', style: 'balanced', color: 'from-orange-500 to-rose-600' },
+            { name: 'Sr. Bloqueo', avatar: '🕶️', style: 'tight', color: 'from-indigo-500 to-violet-700' },
+            { name: 'Capitán UNO', avatar: '🚀', style: 'aggressive', color: 'from-yellow-500 to-red-600' }
+        ];
+
+        function selectTotalPlayers(num) {
+            setupConfig.totalPlayers = num;
+            document.querySelectorAll('.setup-total-btn').forEach(btn => {
+                const isSelected = parseInt(btn.dataset.val, 10) === num;
+                btn.className = isSelected
+                    ? 'setup-total-btn py-2.5 rounded-xl font-display font-black text-sm bg-amber-500 text-slate-950 border border-amber-300 shadow-lg transition'
+                    : 'setup-total-btn py-2.5 rounded-xl font-display font-black text-sm bg-white/10 hover:bg-white/20 text-slate-200 border border-white/15 transition';
+            });
+
+            const slider = document.getElementById('setup-humans-slider');
+            slider.max = num;
+            if (parseInt(slider.value, 10) > num) slider.value = num;
+            updateSetupSummary();
+        }
+
+        function updateSetupSummary() {
+            const total = setupConfig.totalPlayers;
+            const humans = parseInt(document.getElementById('setup-humans-slider').value, 10);
+            setupConfig.humanCount = humans;
+            const bots = total - humans;
+
+            document.getElementById('setup-total-label').textContent = `${total} Jugadores`;
+            document.getElementById('setup-humans-label').textContent =
+                bots === 0
+                    ? `${humans} Humanos (Pasa y Juega)`
+                    : `${humans} Humano${humans > 1 ? 's' : ''} + ${bots} Bot${bots > 1 ? 's' : ''} IA`;
+        }
+
+        function openSetupModal() {
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+
+        function confirmSetupAndStart() {
+            setupConfig.startingChips = parseInt(document.getElementById('setup-starting-chips').value, 10);
+            document.getElementById('setup-modal').classList.add('hidden');
+            initGameSession();
+            startNewHand();
+        }
+
+        const gameState = {
+            deck: [],
+            communityCards: [],
+            communityMeshes: [],
+            pot: 0,
+            currentBet: 0,
+            dealerIndex: -1,
+            turnIndex: 0,
+            phase: 'IDLE',
+            players: [],
+            seatTransforms: [],
+            pendingRaiseTotal: 40,
+            privacyUnlockedForPlayer: -1
+        };
+
+        const SMALL_BLIND = 10;
+        const BIG_BLIND = 20;
+
+        function initGameSession() {
+            const total = setupConfig.totalPlayers;
+            const humans = setupConfig.humanCount;
+            const startChips = setupConfig.startingChips;
+
+            gameState.players = [];
+            gameState.seatTransforms = computeSeatTransforms(total);
+            buildSeatRings(gameState.seatTransforms);
+
+            let botCursor = 0;
+            for (let i = 0; i < total; i++) {
+                const isHuman = i < humans;
+                if (isHuman) {
+                    gameState.players.push({
+                        id: i,
+                        name: humans === 1 ? 'Tú' : `Jugador ${i + 1}`,
+                        avatar: `P${i + 1}`,
+                        gradient: 'from-emerald-500 to-teal-600',
+                        isHuman: true,
+                        chips: startChips,
+                        bet: 0,
+                        cards: [],
+                        meshes: [],
+                        folded: false,
+                        allIn: false,
+                        acted: false,
+                        roleTag: ''
+                    });
+                } else {
+                    const prof = BOT_PROFILES[botCursor % BOT_PROFILES.length];
+                    botCursor++;
+                    gameState.players.push({
+                        id: i,
+                        name: prof.name,
+                        avatar: prof.avatar,
+                        gradient: prof.color,
+                        isHuman: false,
+                        style: prof.style,
+                        chips: startChips,
+                        bet: 0,
+                        cards: [],
+                        meshes: [],
+                        folded: false,
+                        allIn: false,
+                        acted: false,
+                        roleTag: ''
+                    });
+                }
+            }
+
+            gameState.dealerIndex = -1;
+            buildSeatsHUDElements();
+        }
+
+        function buildSeatsHUDElements() {
+            const container = document.getElementById('seats-hud-container');
+            container.innerHTML = '';
+
+            gameState.players.forEach(p => {
+                // Para modo de 1 solo humano, el asiento 0 ya tiene su panel gigante abajo,
+                // pero mostramos su burbuja de apuesta sobre la mesa. Para multi-humano o bots, mostramos su tarjeta completa.
+                const isSingleHumanBottom = (setupConfig.humanCount === 1 && p.id === 0);
+
+                const wrapper = document.createElement('div');
+                wrapper.id = `seat-hud-${p.id}`;
+                wrapper.className = 'absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-150 flex flex-col items-center';
+
+                wrapper.innerHTML = `
+                    <div id="seat-bubble-${p.id}" class="hidden mb-1 px-2.5 py-0.5 rounded-full bg-white text-slate-950 font-extrabold text-[11px] shadow-lg whitespace-nowrap"></div>
+                    <div id="seat-bet-pill-${p.id}" class="hidden mb-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-display font-black text-[11px] shadow-md border border-slate-950">
+                        $0
+                    </div>
+                    ${isSingleHumanBottom ? '' : `
+                    <div id="seat-box-${p.id}" class="glass-pill rounded-2xl px-2.5 py-1.5 flex items-center gap-2 border border-white/20 shadow-xl">
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-tr ${p.gradient} flex items-center justify-center text-xs font-black shadow shrink-0">
+                            ${p.avatar}
+                        </div>
+                        <div class="leading-tight">
+                            <div class="flex items-center gap-1">
+                                <span class="font-extrabold text-[11px] text-white max-w-[88px] truncate">${p.name}</span>
+                                <span id="seat-role-${p.id}" class="hidden px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-display font-black text-[9px]">D</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span id="seat-chips-${p.id}" class="font-display font-black text-xs text-emerald-400">$${p.chips}</span>
+                                <span id="seat-status-${p.id}" class="text-[10px] font-bold text-slate-300">Listo</span>
+                            </div>
+                        </div>
+                    </div>
+                    `}
+                `;
+                container.appendChild(wrapper);
+            });
+        }
+
+        function startNewHand() {
+            const total = gameState.players.length;
+            gameState.players.forEach(p => {
+                if (p.chips <= 0) p.chips = setupConfig.startingChips;
+                p.bet = 0;
+                p.cards = [];
+                p.meshes = [];
+                p.folded = false;
+                p.allIn = false;
+                p.acted = false;
+                p.roleTag = '';
+            });
+
+            clearTableObjects();
+            gameState.deck = createUnoDeck();
+            gameState.communityCards = [];
+            gameState.communityMeshes = [];
+            gameState.pot = 0;
+            gameState.currentBet = BIG_BLIND;
+            gameState.dealerIndex = (gameState.dealerIndex + 1) % total;
+            gameState.phase = 'PREFLOP';
+            gameState.privacyUnlockedForPlayer = -1;
+
+            document.getElementById('next-hand-container').classList.add('hidden');
+            document.getElementById('action-controls').classList.remove('hidden');
+
+            // Asignar roles Dealer (D), Small Blind (SB) y Big Blind (BB)
+            const sbIndex = total === 2 ? gameState.dealerIndex : (gameState.dealerIndex + 1) % total;
+            const bbIndex = total === 2 ? (gameState.dealerIndex + 1) % total : (gameState.dealerIndex + 2) % total;
+
+            gameState.players[gameState.dealerIndex].roleTag = 'D';
+            if (sbIndex !== gameState.dealerIndex) gameState.players[sbIndex].roleTag = 'SB';
+            gameState.players[bbIndex].roleTag = 'BB';
+
+            postBlind(sbIndex, SMALL_BLIND, 'SB');
+            postBlind(bbIndex, BIG_BLIND, 'BB');
+
+            // Repartir 2 cartas UNO a cada uno de los hasta 8 jugadores
+            let dealDelay = 0.04;
+            const singleHumanMode = (setupConfig.humanCount === 1);
+
+            for (let round = 0; round < 2; round++) {
+                for (let i = 0; i < total; i++) {
+                    const seat = (gameState.dealerIndex + 1 + i) % total;
+                    const card = gameState.deck.pop();
+                    const player = gameState.players[seat];
+                    player.cards.push(card);
+
+                    // En modo 1 humano, sus cartas nacen boca arriba; en Pasa y Juega nacen boca abajo hasta su turno
+                    const startFaceUp = singleHumanMode && player.isHuman;
+                    const mesh = createCard3D(card, startFaceUp);
+                    player.meshes.push(mesh);
+
+                    const targetPos = getPlayerCardPosition(seat, round);
+                    const seatRotY = gameState.seatTransforms[seat].rotY;
+                    const targetRot = new THREE.Vector3(
+                        startFaceUp ? -0.25 : 0,
+                        seatRotY + (round === 0 ? 0.08 : -0.08),
+                        0
+                    );
+                    animateCardTo(mesh, targetPos, targetRot, startFaceUp, dealDelay);
+                    dealDelay += 0.065;
+                }
+            }
+
+            gameState.turnIndex = (bbIndex + 1) % total;
+            resetRaiseAmount();
+            updateHUD();
+
+            setTimeout(() => {
+                processTurn();
+            }, Math.min(1400, 450 + total * 120));
+        }
+
+        function getPlayerCardPosition(seat, cardIdx) {
+            const st = gameState.seatTransforms[seat];
+            const base = st.pos.clone();
+            // Vector perpendicular a la dirección radial para separar carta izquierda y derecha
+            const tangentX = -Math.sin(st.angle);
+            const tangentZ = Math.cos(st.angle);
+            const offset = cardIdx === 0 ? -0.42 : 0.42;
+
+            return new THREE.Vector3(
+                base.x + tangentX * offset,
+                0.22 + cardIdx * 0.008,
+                base.z + tangentZ * offset
+            );
+        }
+
+        function postBlind(seatIndex, amount, label) {
+            const p = gameState.players[seatIndex];
+            const actual = Math.min(p.chips, amount);
+            p.chips -= actual;
+            p.bet += actual;
+            gameState.pot += actual;
+            if (p.chips === 0) p.allIn = true;
+            sfx.playChipClink();
+            updateSeatBetChips3D(seatIndex, p.bet);
+            showSeatBubble(seatIndex, `${label} $${actual}`);
+        }
+
+        function highlightActiveSeatRing(activeIdx) {
+            Object.entries(seatRingMeshes).forEach(([idx, ring]) => {
+                const isTurn = Number(idx) === activeIdx && gameState.phase !== 'SHOWDOWN';
+                ring.material.opacity = isTurn ? 0.85 : 0.0;
+                const box = document.getElementById(`seat-box-${idx}`);
+                if (box) {
+                    if (isTurn) {
+                        box.classList.add('ring-2', 'ring-amber-400', 'scale-105');
+                    } else {
+                        box.classList.remove('ring-2', 'ring-amber-400', 'scale-105');
+                    }
+                }
+            });
+        }
+
+        function processTurn() {
+            if (gameState.phase === 'SHOWDOWN' || gameState.phase === 'IDLE') return;
+
+            const activePlayers = gameState.players.filter(p => !p.folded);
+            if (activePlayers.length === 1) {
+                endHandByFold(activePlayers[0]);
+                return;
+            }
+
+            const playersCanAct = activePlayers.filter(p => !p.allIn);
+            const allMatched = playersCanAct.every(p => p.acted && p.bet === gameState.currentBet);
+
+            if (allMatched || playersCanAct.length === 0) {
+                advancePhase();
+                return;
+            }
+
+            const total = gameState.players.length;
+            const currentPlayer = gameState.players[gameState.turnIndex];
+            if (currentPlayer.folded || currentPlayer.allIn) {
+                gameState.turnIndex = (gameState.turnIndex + 1) % total;
+                processTurn();
+                return;
+            }
+
+            highlightActiveSeatRing(currentPlayer.id);
+            resetRaiseAmount();
+            updateHUD();
+
+            if (currentPlayer.isHuman) {
+                // Si hay múltiples humanos en Pasa y Juega, mostrar cortina de privacidad
+                if (setupConfig.humanCount > 1 && gameState.privacyUnlockedForPlayer !== currentPlayer.id) {
+                    enablePlayerControls(false);
+                    // Ocultar cartas de todos los humanos en 3D hasta que confirme
+                    gameState.players.forEach(pl => {
+                        if (pl.isHuman) pl.meshes.forEach(m => flipCard3D(m, false, 0));
+                    });
+                    document.getElementById('privacy-player-name').textContent = `Turno de ${currentPlayer.name}`;
+                    document.getElementById('privacy-curtain').classList.remove('hidden');
+                } else {
+                    currentPlayer.meshes.forEach(m => flipCard3D(m, true, 0));
+                    enablePlayerControls(true);
+                }
+            } else {
+                enablePlayerControls(false);
+                updateSeatStatusUI(currentPlayer.id, 'Pensando...', 'text-amber-400 animate-pulse');
+                setTimeout(() => executeBotAI(currentPlayer), 750 + Math.random() * 450);
+            }
+        }
+
+        function revealHumanTurn() {
+            const currentPlayer = gameState.players[gameState.turnIndex];
+            gameState.privacyUnlockedForPlayer = currentPlayer.id;
+            document.getElementById('privacy-curtain').classList.add('hidden');
+            currentPlayer.meshes.forEach(m => flipCard3D(m, true, 0));
+            updateHUD();
+            enablePlayerControls(true);
+        }
+
+        function executeBotAI(bot) {
+            if (gameState.phase === 'SHOWDOWN') return;
+
+            const toCall = gameState.currentBet - bot.bet;
+            const combined = [...bot.cards, ...gameState.communityCards];
+            const evalRes = evaluateBestHand(combined);
+            const hasWild = combined.some(c => c.color === 'wild');
+
+            let strength = (evalRes.category / 9) * 0.78 + (hasWild ? 0.22 : 0);
+            if (gameState.phase === 'PREFLOP') {
+                const highCard = Math.max(...bot.cards.map(c => c.rank));
+                strength = (highCard / 14) * 0.45 + (evalRes.category >= 1 ? 0.35 : 0) + (hasWild ? 0.25 : 0);
+            }
+
+            if (bot.style === 'aggressive') strength += 0.12;
+            if (bot.style === 'tight') strength -= 0.08;
+            strength += (Math.random() * 0.16 - 0.08);
+
+            if (toCall === 0) {
+                if (strength > 0.62 && bot.chips > BIG_BLIND * 2 && Math.random() < 0.55) {
+                    const step = Math.random() < 0.5 ? 50 : 100;
+                    const raiseAmt = Math.min(bot.chips, step);
+                    applyBet(bot, raiseAmt, `¡Subo +$${raiseAmt}! 🔥`);
+                } else {
+                    bot.acted = true;
+                    showSeatBubble(bot.id, 'Paso ✋');
+                    updateSeatStatusUI(bot.id, 'Pasó', 'text-sky-300');
+                }
+            } else {
+                if (strength < 0.24 && toCall >= BIG_BLIND && Math.random() < 0.72) {
+                    bot.folded = true;
+                    bot.acted = true;
+                    sfx.playFold();
+                    showSeatBubble(bot.id, 'Me retiro ❌');
+                    updateSeatStatusUI(bot.id, 'Retirado', 'text-rose-400');
+                    bot.meshes.forEach(m => m.visible = false);
+                } else if (strength > 0.76 && bot.chips > toCall + 50 && Math.random() < 0.4) {
+                    const extra = Math.min(bot.chips - toCall, 100);
+                    applyBet(bot, toCall + extra, `¡Re-subo! 😎`);
+                } else {
+                    const actualCall = Math.min(bot.chips, toCall);
+                    bot.chips -= actualCall;
+                    bot.bet += actualCall;
+                    gameState.pot += actualCall;
+                    bot.acted = true;
+                    if (bot.chips === 0) bot.allIn = true;
+                    sfx.playChipClink();
+                    updateSeatBetChips3D(bot.id, bot.bet);
+                    showSeatBubble(bot.id, bot.allIn ? '¡ALL-IN! 🚀' : `Igualo $${actualCall}`);
+                    updateSeatStatusUI(bot.id, bot.allIn ? 'ALL-IN' : `Apostó $${bot.bet}`, 'text-emerald-300');
+                }
+            }
+
+            updateHUD();
+            gameState.turnIndex = (gameState.turnIndex + 1) % gameState.players.length;
+            processTurn();
+        }
+
+        function applyBet(player, addAmount, bubbleText) {
+            const actual = Math.min(player.chips, addAmount);
+            player.chips -= actual;
+            player.bet += actual;
+            gameState.pot += actual;
+            if (player.bet > gameState.currentBet) {
+                gameState.currentBet = player.bet;
+                gameState.players.forEach(p => {
+                    if (p.id !== player.id && !p.folded && !p.allIn) p.acted = false;
+                });
+            }
+            player.acted = true;
+            if (player.chips === 0) player.allIn = true;
+
+            sfx.playChipClink();
+            updateSeatBetChips3D(player.id, player.bet);
+
+            if (!player.isHuman) {
+                showSeatBubble(player.id, bubbleText);
+                updateSeatStatusUI(player.id, `Apostó $${player.bet}`, 'text-amber-300');
+            } else {
+                showSeatBubble(player.id, `Subió a $${player.bet}`);
+            }
+        }
+
+        // --- CONTROLES DE SUBIDA CON FICHAS VISUALES ---
+        function getMinLegalTotalBet(player) {
+            const maxPossible = player.chips + player.bet;
+            const target = Math.max(BIG_BLIND, gameState.currentBet + BIG_BLIND);
+            return Math.min(maxPossible, target);
+        }
+
+        function resetRaiseAmount() {
+            const active = gameState.players[gameState.turnIndex] || gameState.players[0];
+            gameState.pendingRaiseTotal = getMinLegalTotalBet(active);
+            updateRaiseUI();
+        }
+
+        function addChipToRaise(chipValue) {
+            const active = gameState.players[gameState.turnIndex];
+            if (!active || !active.isHuman) return;
+            const maxPossible = active.chips + active.bet;
+            gameState.pendingRaiseTotal = Math.min(maxPossible, gameState.pendingRaiseTotal + chipValue);
+            sfx.playChipClink();
+            updateRaiseUI();
+        }
+
+        function setQuickRaise(mode) {
+            const active = gameState.players[gameState.turnIndex];
+            if (!active || !active.isHuman) return;
+            const maxPossible = active.chips + active.bet;
+            const minLegal = getMinLegalTotalBet(active);
+            const add = mode === 'half' ? Math.floor(gameState.pot / 2) : gameState.pot;
+            const rounded = Math.max(minLegal, Math.round((gameState.currentBet + add) / 10) * 10);
+            gameState.pendingRaiseTotal = Math.min(maxPossible, rounded);
+            sfx.playChipClink();
+            updateRaiseUI();
+        }
+
+        function updateRaiseUI() {
+            document.getElementById('raise-amount-label').textContent = `$${gameState.pendingRaiseTotal}`;
+            document.getElementById('btn-raise').textContent = `Subir a $${gameState.pendingRaiseTotal}`;
+        }
+
+        function playerAction(type) {
+            const current = gameState.players[gameState.turnIndex];
+            if (!current || !current.isHuman || current.folded) return;
+
+            enablePlayerControls(false);
+            const toCall = gameState.currentBet - current.bet;
+
+            if (type === 'fold') {
+                current.folded = true;
+                current.acted = true;
+                sfx.playFold();
+                current.meshes.forEach(m => m.visible = false);
+                showSeatBubble(current.id, 'Retirado ❌');
+            } else if (type === 'call') {
+                if (toCall === 0) {
+                    current.acted = true;
+                    showSeatBubble(current.id, 'Paso ✋');
+                } else {
+                    const actual = Math.min(current.chips, toCall);
+                    current.chips -= actual;
+                    current.bet += actual;
+                    gameState.pot += actual;
+                    current.acted = true;
+                    if (current.chips === 0) current.allIn = true;
+                    sfx.playChipClink();
+                    updateSeatBetChips3D(current.id, current.bet);
+                    showSeatBubble(current.id, `Igualó $${actual}`);
+                }
+            } else if (type === 'raise') {
+                const needed = Math.max(toCall, gameState.pendingRaiseTotal - current.bet);
+                applyBet(current, needed, '');
+            } else if (type === 'allin') {
+                applyBet(current, current.chips, '');
+            }
+
+            // En modo Pasa y Juega, volver a tapar sus cartas tras actuar
+            if (setupConfig.humanCount > 1) {
+                current.meshes.forEach(m => flipCard3D(m, false, 0.1));
+                gameState.privacyUnlockedForPlayer = -1;
+            }
+
+            updateHUD();
+            gameState.turnIndex = (gameState.turnIndex + 1) % gameState.players.length;
+            processTurn();
+        }
+
+        function advancePhase() {
+            // Consolidar todas las fichas apostadas en la mesa hacia el Pozo Central 3D
+            consolidateBetsToPot3D();
+
+            gameState.players.forEach(p => {
+                p.bet = 0;
+                p.acted = false;
+            });
+            gameState.currentBet = 0;
+            gameState.privacyUnlockedForPlayer = -1;
+
+            if (gameState.phase === 'PREFLOP') {
+                gameState.phase = 'FLOP';
+                dealCommunityCards(3);
+            } else if (gameState.phase === 'FLOP') {
+                gameState.phase = 'TURN';
+                dealCommunityCards(1);
+            } else if (gameState.phase === 'TURN') {
+                gameState.phase = 'RIVER';
+                dealCommunityCards(1);
+            } else if (gameState.phase === 'RIVER') {
+                doShowdown();
+                return;
+            }
+
+            gameState.turnIndex = (gameState.dealerIndex + 1) % gameState.players.length;
+            updateHUD();
+
+            setTimeout(() => {
+                processTurn();
+            }, 800);
+        }
+
+        function dealCommunityCards(count) {
+            const startIdx = gameState.communityCards.length;
+            let hasWild = false;
+            for (let i = 0; i < count; i++) {
+                const card = gameState.deck.pop();
+                if (card.color === 'wild') hasWild = true;
+                gameState.communityCards.push(card);
+
+                const slotIndex = startIdx + i;
+                const xPos = (slotIndex - 2) * 1.02;
+                const mesh = createCard3D(card, true);
+                gameState.communityMeshes.push(mesh);
+                animateCardTo(
+                    mesh,
+                    new THREE.Vector3(xPos, 0.16, 0.42),
+                    new THREE.Vector3(0, 0, 0),
+                    true,
+                    i * 0.15
+                );
+            }
+            if (hasWild) setTimeout(() => sfx.playWildAlert(), 320);
+        }
+
+        function endHandByFold(winner) {
+            consolidateBetsToPot3D();
+            gameState.phase = 'SHOWDOWN';
+            highlightActiveSeatRing(-1);
+            winner.chips += gameState.pot;
+            sfx.playWinFanfare();
+            showCenterToast(`🏆 ¡${winner.name} gana $${gameState.pot}!`, 'Todos los demás jugadores se retiraron');
+            finishRoundUI();
+        }
+
+        function doShowdown() {
+            gameState.phase = 'SHOWDOWN';
+            highlightActiveSeatRing(-1);
+            enablePlayerControls(false);
+
+            const contenders = gameState.players.filter(p => !p.folded);
+            let bestScore = -1;
+            let winners = [];
+
+            contenders.forEach((p, idx) => {
+                p.meshes.forEach((m, mIdx) => {
+                    flipCard3D(m, true, idx * 0.15 + mIdx * 0.08);
+                });
+                const fullHand = [...p.cards, ...gameState.communityCards];
+                const evalResult = evaluateBestHand(fullHand);
+                p.finalEval = evalResult;
+
+                updateSeatStatusUI(p.id, evalResult.name, 'text-amber-300 font-extrabold');
+
+                if (evalResult.score > bestScore) {
+                    bestScore = evalResult.score;
+                    winners = [p];
+                } else if (evalResult.score === bestScore) {
+                    winners.push(p);
+                }
+            });
+
+            const prize = Math.floor(gameState.pot / winners.length);
+            winners.forEach(w => w.chips += prize);
+
+            sfx.playWinFanfare();
+            const winnerNames = winners.map(w => w.name).join(' y ');
+            const winningHandName = winners[0].finalEval.name;
+
+            showCenterToast(
+                `🏆 ¡${winnerNames} gana${winners.length > 1 ? 'n' : ''} $${gameState.pot}!`,
+                `Jugada ganadora: ${winningHandName}`
+            );
+
+            finishRoundUI();
+        }
+
+        function finishRoundUI() {
+            updateHUD();
+            document.getElementById('action-controls').classList.add('hidden');
+            document.getElementById('next-hand-container').classList.remove('hidden');
+        }
+
+        /**
+         * ============================================================================
+         * 6. ACTUALIZACIÓN DE HUD Y PROYECCIÓN DE ASIENTOS 3D
+         * ============================================================================
+         */
+        function updateHUD() {
+            document.getElementById('phase-badge').textContent = gameState.phase;
+            document.getElementById('pot-display').textContent = `$${gameState.pot}`;
+
+            const potBadge = document.getElementById('pot-3d-badge');
+            if (gameState.pot > 0) {
+                potBadge.classList.remove('hidden');
+                potBadge.textContent = `POZO: $${gameState.pot}`;
+            } else {
+                potBadge.classList.add('hidden');
+            }
+
+            // Actualizar etiquetas de todos los asientos (2 a 8)
+            gameState.players.forEach(p => {
+                const chipsEl = document.getElementById(`seat-chips-${p.id}`);
+                if (chipsEl) chipsEl.textContent = `$${p.chips}`;
+
+                const roleEl = document.getElementById(`seat-role-${p.id}`);
+                if (roleEl) {
+                    if (p.roleTag) {
+                        roleEl.textContent = p.roleTag;
+                        roleEl.classList.remove('hidden');
+                    } else {
+                        roleEl.classList.add('hidden');
+                    }
+                }
+
+                const betPill = document.getElementById(`seat-bet-pill-${p.id}`);
+                if (betPill) {
+                    if (p.bet > 0) {
+                        betPill.textContent = `Apuesta: $${p.bet}`;
+                        betPill.classList.remove('hidden');
+                    } else {
+                        betPill.classList.add('hidden');
+                    }
+                }
+            });
+
+            // Determinar qué jugador humano mostrar en el panel inferior
+            let displayPlayer = gameState.players[0];
+            if (setupConfig.humanCount > 1) {
+                const current = gameState.players[gameState.turnIndex];
+                if (current && current.isHuman) displayPlayer = current;
+            }
+
+            document.getElementById('active-player-avatar').textContent = displayPlayer.avatar;
+            document.getElementById('active-player-name').textContent = displayPlayer.name;
+            document.getElementById('player-chips').textContent = `$${displayPlayer.chips}`;
+            document.getElementById('player-current-bet-tag').textContent =
+                displayPlayer.bet > 0 ? `(Apostado: $${displayPlayer.bet})` : '';
+
+            const dealerBadge = document.getElementById('active-dealer-badge');
+            if (displayPlayer.roleTag) {
+                dealerBadge.textContent = displayPlayer.roleTag;
+                dealerBadge.classList.remove('hidden');
+            } else {
+                dealerBadge.classList.add('hidden');
+            }
+
+            // Mini-cartas 2D en el HUD inferior (ocultas si la cortina de privacidad está activa)
+            const miniContainer = document.getElementById('player-mini-cards');
+            miniContainer.innerHTML = '';
+            const hideCards = setupConfig.humanCount > 1 && gameState.privacyUnlockedForPlayer !== displayPlayer.id && gameState.phase !== 'SHOWDOWN';
+
+            displayPlayer.cards.forEach(c => {
+                const badge = document.createElement('div');
+                if (hideCards) {
+                    badge.className = 'w-8 h-11 rounded-lg border-2 border-amber-400 bg-slate-900 text-amber-400 flex items-center justify-center font-black text-xs shadow';
+                    badge.textContent = 'UNO';
+                } else {
+                    const bgMap = {
+                        red: 'bg-red-600 border-red-300',
+                        blue: 'bg-blue-600 border-blue-300',
+                        green: 'bg-emerald-600 border-emerald-300',
+                        yellow: 'bg-amber-400 text-slate-950 border-yellow-100',
+                        wild: 'bg-gradient-to-br from-red-500 via-yellow-400 to-blue-500 text-slate-950 border-white'
+                    };
+                    badge.className = `w-8 h-11 rounded-lg border-2 ${bgMap[c.color]} flex items-center justify-center font-black text-sm shadow-md`;
+                    badge.textContent = getCardDisplaySymbol(c.value);
+                }
+                miniContainer.appendChild(badge);
+            });
+
+            if (displayPlayer.folded) {
+                document.getElementById('hand-eval-text').textContent = 'Retirado de esta mano';
+            } else if (hideCards) {
+                document.getElementById('hand-eval-text').textContent = 'Cartas ocultas (Pasa y Juega)';
+            } else {
+                const evalNow = evaluateBestHand([...displayPlayer.cards, ...gameState.communityCards]);
+                document.getElementById('hand-eval-text').textContent = evalNow.name;
+            }
+
+            const toCall = Math.max(0, gameState.currentBet - displayPlayer.bet);
+            const callBtn = document.getElementById('btn-call');
+            callBtn.textContent = toCall === 0 ? 'Pasar (Check)' : `Igualar $${Math.min(displayPlayer.chips, toCall)}`;
+        }
+
+        function enablePlayerControls(enabled) {
+            const current = gameState.players[gameState.turnIndex];
+            const canAct = enabled && current && current.isHuman && !current.folded && !current.allIn && current.chips > 0;
+            ['btn-fold', 'btn-call', 'btn-raise', 'btn-allin'].forEach(id => {
+                document.getElementById(id).disabled = !canAct;
+            });
+            document.querySelectorAll('.chip-add-btn').forEach(b => b.disabled = !canAct);
+            const panel = document.getElementById('action-controls');
+            panel.style.opacity = canAct ? '1' : '0.5';
+        }
+
+        function showSeatBubble(seatId, text) {
+            const bubble = document.getElementById(`seat-bubble-${seatId}`);
+            if (!bubble) return;
+            bubble.textContent = text;
+            bubble.classList.remove('hidden', 'speech-bubble');
+            void bubble.offsetWidth;
+            bubble.classList.add('speech-bubble');
+        }
+
+        function updateSeatStatusUI(seatId, text, colorClass) {
+            const el = document.getElementById(`seat-status-${seatId}`);
+            if (!el) return;
+            el.textContent = text;
+            el.className = `text-[10px] font-bold ${colorClass}`;
+        }
+
+        let toastTimer = null;
+        function showCenterToast(title, sub) {
+            const toast = document.getElementById('center-toast');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-sub').textContent = sub;
+            toast.classList.remove('opacity-0', 'scale-95');
+            toast.classList.add('opacity-100', 'scale-100');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'scale-100');
+                toast.classList.add('opacity-0', 'scale-95');
+            }, 4800);
+        }
+
+        function toggleRulesModal(show) {
+            document.getElementById('rules-modal').classList.toggle('hidden', !show);
+        }
+
+        function updateProjectedHUDPositions() {
+            // Proyectar badge del Pozo Central
+            const potWorld = new THREE.Vector3(0, 0.9, -1.15);
+            potWorld.project(camera);
+            const potBadge = document.getElementById('pot-3d-badge');
+            if (potBadge && !potBadge.classList.contains('hidden')) {
+                potBadge.style.left = `${(potWorld.x * 0.5 + 0.5) * window.innerWidth}px`;
+                potBadge.style.top = `${(-potWorld.y * 0.5 + 0.5) * window.innerHeight}px`;
+            }
+
+            // Proyectar tarjetas y apuestas de los 2 a 8 asientos
+            gameState.seatTransforms.forEach((st, idx) => {
+                const tag = document.getElementById(`seat-hud-${idx}`);
+                if (!tag) return;
+                const worldPos = st.labelPos.clone();
+                worldPos.project(camera);
+
+                const x = (worldPos.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-worldPos.y * 0.5 + 0.5) * window.innerHeight;
+                tag.style.left = `${x}px`;
+                tag.style.top = `${y}px`;
+            });
+        }
+
+        /**
+         * ============================================================================
+         * 7. BUCLE PRINCIPAL DE ANIMACIÓN Y RENDERIZADO 3D
+         * ============================================================================
+         */
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = Math.min(clock.getDelta(), 0.05);
+
+            for (let i = activeAnimations.length - 1; i >= 0; i--) {
+                const anim = activeAnimations[i];
+                if (anim.delay > 0) {
+                    anim.delay -= dt;
+                    continue;
+                }
+                if (anim.type === 'card' && !anim.playedSound) {
+                    sfx.playCardSlide();
+                    anim.playedSound = true;
+                }
+
+                anim.progress += dt / anim.duration;
+                const t = Math.min(1, anim.progress);
+                const ease = 1 - Math.pow(1 - t, 3);
+
+                anim.mesh.position.lerpVectors(anim.startPos, anim.endPos, ease);
+                anim.mesh.position.y += Math.sin(t * Math.PI) * (anim.type === 'card' ? 0.85 : 0.55);
+
+                if (anim.type === 'card') {
+                    anim.mesh.rotation.x = THREE.MathUtils.lerp(anim.startRot.x, anim.endRot.x, ease);
+                    anim.mesh.rotation.y = THREE.MathUtils.lerp(anim.startRot.y, anim.endRot.y, ease);
+                    anim.mesh.rotation.z = THREE.MathUtils.lerp(anim.startRot.z, anim.endRot.z, ease);
+                }
+
+                if (t >= 1) activeAnimations.splice(i, 1);
+            }
+
+            const desiredCam = cameraTargetPos.clone().multiplyScalar(camZoomFactor);
+            desiredCam.x += Math.sin(camOrbitOffset.x) * 8.5;
+            desiredCam.y += camOrbitOffset.y * 5.0;
+            camera.position.lerp(desiredCam, 0.08);
+            currentLookAt.lerp(cameraTargetLook, 0.1);
+            camera.lookAt(currentLookAt);
+
+            updateProjectedHUDPositions();
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            initThreeJS();
+            animate();
+            selectTotalPlayers(6);
+        };
+    </script>
+</body>
+</html>
