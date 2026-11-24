@@ -5157,8 +5157,6 @@ function updatePlusWalletUI(){const v=getUnoPlus().toLocaleString('es-AR');['uno
           for(let n=1;n<=unlocked;n++){if(!claimed.has(n)){premium+=clubSeasonReward(n,'plus').amount;claimed.add(n)}}
           data.claimedPlus=[...claimed];saveClubSeason(data);if(premium)addUnoPlus(premium);renderClubSeasonHub();updateClubWalletUI();showToast('✨ UNO Pass Plus activado: recibiste '+premium+' Plus retroactivos por tus niveles desbloqueados.','success')
         }
-        function getClubSeason(){try{return Object.assign({xp:0,claimed:[],history:[]},JSON.parse(localStorage.getItem('uno_club_season_v1')||'{}'))}catch(e){return {xp:0,claimed:[],history:[]}}}
-        function saveClubSeason(data){localStorage.setItem('uno_club_season_v1',JSON.stringify(data))}
         function recordClubSeasonMatch(room,entry){
           const data=getClubSeason(),rank=Math.max(1,Number(entry?.rank||4)),gain=18+(rank===1?10:rank<=3?4:0);
           data.xp=Math.min(CLUB_SEASON_MAX_LEVEL*CLUB_SEASON_XP_PER_LEVEL,Math.max(0,Number(data.xp)||0)+gain);
