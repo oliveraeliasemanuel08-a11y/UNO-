@@ -708,6 +708,13 @@
         body.mobile-mode .spin-cw, body.mobile-mode .spin-ccw { animation-duration: 32s; }
         body.mobile-mode .animate-screen-shake { animation-duration: .22s; }
         @media (max-width: 767px) {
+  #profileScreen .grid, #storeModal .grid { min-width: 0; }
+  #profileScreen button, #storeModal button { min-height: 42px; }
+  #profileAvatarStudio .trait-cycle { min-width: 38px; min-height: 38px; }
+  #unoPlusCosmetics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #storeModal .flex.gap-2.mb-4 { flex-wrap: wrap; }
+  #storeModal #storeCategoryFilter { flex: 1 1 100%; min-height: 42px; }
+
             body.mobile-mode #gameScreen > header { flex-wrap: nowrap; }
             body.mobile-mode #turnStatusBanner { font-size: 10px; padding: 4px 7px; max-width: 34vw; }
             body.mobile-mode #hudModePill { font-size: 9px; padding: 4px 6px; }
@@ -1020,50 +1027,8 @@
               </div>
             </section>
 
-            <section id="profileScreen" class="hidden fixed inset-0 z-[85] overflow-y-auto bg-[#070b16] p-3 sm:p-6"><div class="mx-auto max-w-6xl"><header class="sticky top-0 z-10 -mx-3 mb-4 flex items-center justify-between gap-3 border-b border-white/10 bg-[#070b16]/95 px-3 py-3 backdrop-blur sm:-mx-6 sm:px-6"><div><div class="text-[10px] font-black tracking-[.24em] text-cyan-300">UNO! CLUB · CENTRO PERSONAL</div><h2 class="font-uno text-2xl text-white sm:text-3xl">Mi perfil</h2><p class="text-[10px] text-zinc-400">Tu progreso, colección, misiones y temporada.</p></div><button id="btnCloseProfile" type="button" class="shrink-0 rounded-xl border border-white/10 bg-zinc-800 px-4 py-3 text-sm font-bold text-white">← Volver</button></header><div class="space-y-3">            <section id="clubProgressHub" class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
-              <article class="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-950/40 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-sky-300">📊 TU PERFIL</div><h3 class="font-uno text-xl">Trayectoria del Club</h3></div><span class="text-2xl">🧑‍🚀</span></div><div class="grid grid-cols-3 gap-2 mt-3"><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatMatches" class="block text-xl text-white">0</b><span class="text-[9px] text-zinc-400">Partidas</span></div><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatWins" class="block text-xl text-emerald-300">0</b><span class="text-[9px] text-zinc-400">Victorias</span></div><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatWinRate" class="block text-xl text-amber-200">0%</b><span class="text-[9px] text-zinc-400">Efectividad</span></div></div><p id="clubStatBest" class="mt-2 text-[10px] text-zinc-400">Tu historia recién empieza. ¡A jugar!</p></article>
-              <article class="rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-950/35 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-emerald-300">🎯 DESAFÍOS</div><h3 class="font-uno text-xl">Misiones activas</h3></div><span class="text-2xl">⚡</span></div><div id="clubMissionsList" class="mt-3 space-y-2"></div><p class="mt-2 text-[9px] text-zinc-500">Las misiones se actualizan con tus resultados registrados en este navegador.</p></article>
-              <article class="rounded-2xl border border-yellow-400/20 bg-gradient-to-br from-yellow-950/30 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-yellow-300">🏅 COLECCIÓN</div><h3 class="font-uno text-xl">Logros y trofeos</h3></div><span class="text-2xl">🏆</span></div><div id="clubAchievementsList" class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2"></div></article>
-              <article class="rounded-2xl border border-fuchsia-400/20 bg-gradient-to-br from-fuchsia-950/30 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-fuchsia-300">🎒 INVENTARIO</div><h3 class="font-uno text-xl">Tus objetos</h3></div><span class="text-2xl">✨</span></div><div class="mt-2 flex items-center justify-between text-xs text-zinc-300"><span>Cosméticos desbloqueados</span><b id="clubOwnedCount" class="text-fuchsia-200">0</b></div><div id="clubCollectionPreview" class="mt-3 flex flex-wrap gap-2"></div><button id="clubOpenCollection" type="button" class="mt-3 rounded-lg border border-fuchsia-300/20 bg-fuchsia-950/40 px-3 py-2 text-[10px] font-bold text-fuchsia-200">Ver colección en tienda →</button></article>
-            </section>
-
-
-            <!-- CLUB PASS: progresión de temporada, evento semanal e historial -->
-            <section id="clubSeasonHub" class="mt-4 grid grid-cols-1 xl:grid-cols-3 gap-3">
-              <article class="xl:col-span-2 relative overflow-hidden rounded-2xl border border-cyan-300/25 bg-gradient-to-br from-indigo-950 via-slate-950 to-cyan-950 p-4 sm:p-5">
-                <div class="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-cyan-400/10 blur-3xl"></div>
-                <div class="relative flex flex-wrap items-start justify-between gap-3">
-                  <div><div class="text-[10px] font-black tracking-[.22em] text-cyan-300">🚀 TEMPORADA CLUB · EDICIÓN 01</div><h3 class="font-uno text-2xl sm:text-3xl text-white">UNO Pass Classic <span class="text-cyan-200">/ Plus</span></h3><p class="mt-1 text-[11px] text-slate-300">Classic es gratis. Plus desbloquea recompensas premium 💎 en cada nivel.</p></div>
-                  <div class="rounded-xl border border-cyan-200/20 bg-black/30 px-3 py-2 text-right"><span class="block text-[9px] tracking-widest text-cyan-200">TU NIVEL</span><b id="clubSeasonLevel" class="font-uno text-3xl text-white">1</b></div>
-                </div>
-                <div class="relative mt-4">
-                  <div class="flex justify-between text-[10px] text-slate-300"><span id="clubSeasonXpText">0 / 300 XP</span><span id="clubSeasonTotalXp">0 XP acumulados</span></div>
-                  <div class="mt-1.5 h-3 overflow-hidden rounded-full border border-white/10 bg-black/50"><div id="clubSeasonXpBar" class="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-400 to-fuchsia-400 transition-all" style="width:0%"></div></div>
-                </div>
-                <div class="relative mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-cyan-300/20 bg-black/30 p-3"><div><b class="text-xs text-cyan-100">💎 UNO Pass Plus</b><p class="text-[10px] text-zinc-400">15.000 UNOcoins Plus · recompensas premium retroactivas en tus niveles desbloqueados</p></div><button id="unoPassUpgradeBtn" type="button" class="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-3 py-2 text-[10px] font-black text-slate-950">💎 ¿Querés mejorar el pase?</button></div><div id="clubSeasonRewards" class="relative mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
-                <p id="clubSeasonStatus" class="relative mt-3 text-[10px] text-slate-300">Cada partida suma experiencia. Las victorias dan XP adicional.</p>
-              </article>
-              <article class="rounded-2xl border border-amber-300/20 bg-gradient-to-br from-amber-950/40 to-zinc-950 p-4">
-                <div class="text-[10px] font-black tracking-[.18em] text-amber-300">⚡ EVENTO SEMANAL</div>
-                <h3 class="mt-1 font-uno text-xl text-white">Racha de campeones</h3>
-                <p class="mt-1 text-[10px] text-zinc-400">Conseguí 3 victorias esta semana y reclamá una recompensa extra.</p>
-                <div class="mt-3 flex items-center justify-between"><b id="clubWeeklyEventProgress" class="text-sm text-amber-100">0 / 3 victorias</b><span class="text-xs font-black text-amber-300">🪙 250</span></div>
-                <div class="mt-2 h-2 overflow-hidden rounded-full bg-black/50"><div id="clubWeeklyEventBar" class="h-full rounded-full bg-amber-400" style="width:0%"></div></div>
-                <button id="clubWeeklyEventClaim" type="button" class="mt-3 w-full rounded-xl bg-amber-400 px-3 py-2.5 text-xs font-black text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40">Reclamar recompensa</button>
-                <p id="clubWeeklyEventStatus" class="mt-2 text-[9px] text-zinc-500">El progreso se reinicia cada semana.</p>
-              </article>
-            </section>
-            <section class="mt-3 rounded-2xl border border-white/10 bg-zinc-950/70 p-4">
-              <div class="flex flex-wrap items-center justify-between gap-2"><div><div class="text-[10px] font-black tracking-[.18em] text-violet-300">📜 TU ACTIVIDAD</div><h3 class="font-uno text-xl text-white">Historial reciente</h3></div><span class="text-[9px] text-zinc-500">Últimas 8 partidas registradas en este navegador</span></div>
-              <div id="clubMatchHistory" class="mt-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2"><p class="text-xs text-zinc-500">Todavía no hay partidas registradas.</p></div>
-            </section>
-
-</div></div></section>
-            <!-- Cuerpo en 2 Columnas: Estudio de Avatar a la izquierda / Modos de Juego a la derecha -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-6 items-stretch">
-
-                <!-- COLUMNA IZQUIERDA: ESTUDIO DE AVATAR HIPER-PERSONALIZABLE -->
-                <div class="lg:col-span-5 bg-zinc-900/80 border border-white/10 rounded-3xl p-4 sm:p-5 flex flex-col justify-between">
+            <section id="profileScreen" class="hidden fixed inset-0 z-[85] overflow-y-auto bg-[#070b16] p-3 sm:p-6"><div class="mx-auto max-w-6xl"><header class="sticky top-0 z-10 -mx-3 mb-4 flex items-center justify-between gap-3 border-b border-white/10 bg-[#070b16]/95 px-3 py-3 backdrop-blur sm:-mx-6 sm:px-6"><div><div class="text-[10px] font-black tracking-[.24em] text-cyan-300">UNO! CLUB · CENTRO PERSONAL</div><h2 class="font-uno text-2xl text-white sm:text-3xl">Mi perfil</h2><p class="text-[10px] text-zinc-400">Tu progreso, colección, misiones y temporada.</p></div><button id="btnCloseProfile" type="button" class="shrink-0 rounded-xl border border-white/10 bg-zinc-800 px-4 py-3 text-sm font-bold text-white">← Volver</button></header>
+<div class="mb-4 rounded-2xl border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-950/40 to-cyan-950/40 p-3"><div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-sm text-white">🎨 Personalización del avatar</b><p class="text-[10px] text-zinc-400">Cambiá tu pelo, ropa, accesorios y estilo.</p></div><button id="btnOpenAvatarStudio" type="button" class="rounded-xl bg-fuchsia-500 px-4 py-3 text-xs font-black text-white">🎨 Personalizar avatar</button></div><div id="profileAvatarStudio" class="hidden mt-3"><div class="lg:col-span-5 bg-zinc-900/80 border border-white/10 rounded-3xl p-4 sm:p-5 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-xs font-extrabold uppercase tracking-wider text-amber-300">🎨 Estudio de Avatar</span>
@@ -1144,9 +1109,52 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div></div></div>
+<div class="space-y-3">            <section id="clubProgressHub" class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
+              <article class="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-950/40 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-sky-300">📊 TU PERFIL</div><h3 class="font-uno text-xl">Trayectoria del Club</h3></div><span class="text-2xl">🧑‍🚀</span></div><div class="grid grid-cols-3 gap-2 mt-3"><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatMatches" class="block text-xl text-white">0</b><span class="text-[9px] text-zinc-400">Partidas</span></div><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatWins" class="block text-xl text-emerald-300">0</b><span class="text-[9px] text-zinc-400">Victorias</span></div><div class="rounded-xl bg-black/30 p-2 text-center"><b id="clubStatWinRate" class="block text-xl text-amber-200">0%</b><span class="text-[9px] text-zinc-400">Efectividad</span></div></div><p id="clubStatBest" class="mt-2 text-[10px] text-zinc-400">Tu historia recién empieza. ¡A jugar!</p></article>
+              <article class="rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-950/35 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-emerald-300">🎯 DESAFÍOS</div><h3 class="font-uno text-xl">Misiones activas</h3></div><span class="text-2xl">⚡</span></div><div id="clubMissionsList" class="mt-3 space-y-2"></div><p class="mt-2 text-[9px] text-zinc-500">Las misiones se actualizan con tus resultados registrados en este navegador.</p></article>
+              <article class="rounded-2xl border border-yellow-400/20 bg-gradient-to-br from-yellow-950/30 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-yellow-300">🏅 COLECCIÓN</div><h3 class="font-uno text-xl">Logros y trofeos</h3></div><span class="text-2xl">🏆</span></div><div id="clubAchievementsList" class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2"></div></article>
+              <article class="rounded-2xl border border-fuchsia-400/20 bg-gradient-to-br from-fuchsia-950/30 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-fuchsia-300">🎒 INVENTARIO</div><h3 class="font-uno text-xl">Tus objetos</h3></div><span class="text-2xl">✨</span></div><div class="mt-2 flex items-center justify-between text-xs text-zinc-300"><span>Cosméticos desbloqueados</span><b id="clubOwnedCount" class="text-fuchsia-200">0</b></div><div id="clubCollectionPreview" class="mt-3 flex flex-wrap gap-2"></div><button id="clubOpenCollection" type="button" class="mt-3 rounded-lg border border-fuchsia-300/20 bg-fuchsia-950/40 px-3 py-2 text-[10px] font-bold text-fuchsia-200">Ver colección en tienda →</button></article>
+            </section>
 
-                <!-- COLUMNA DERECHA: MODOS DE JUEGO Y ACCESO RÁPIDO -->
+
+            <!-- CLUB PASS: progresión de temporada, evento semanal e historial -->
+            <section id="clubSeasonHub" class="mt-4 grid grid-cols-1 xl:grid-cols-3 gap-3">
+              <article class="xl:col-span-2 relative overflow-hidden rounded-2xl border border-cyan-300/25 bg-gradient-to-br from-indigo-950 via-slate-950 to-cyan-950 p-4 sm:p-5">
+                <div class="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-cyan-400/10 blur-3xl"></div>
+                <div class="relative flex flex-wrap items-start justify-between gap-3">
+                  <div><div class="text-[10px] font-black tracking-[.22em] text-cyan-300">🚀 TEMPORADA CLUB · EDICIÓN 01</div><h3 class="font-uno text-2xl sm:text-3xl text-white">UNO Pass Classic <span class="text-cyan-200">/ Plus</span></h3><p class="mt-1 text-[11px] text-slate-300">Classic es gratis. Plus desbloquea recompensas premium 💎 en cada nivel.</p></div>
+                  <div class="rounded-xl border border-cyan-200/20 bg-black/30 px-3 py-2 text-right"><span class="block text-[9px] tracking-widest text-cyan-200">TU NIVEL</span><b id="clubSeasonLevel" class="font-uno text-3xl text-white">1</b></div>
+                </div>
+                <div class="relative mt-4">
+                  <div class="flex justify-between text-[10px] text-slate-300"><span id="clubSeasonXpText">0 / 300 XP</span><span id="clubSeasonTotalXp">0 XP acumulados</span></div>
+                  <div class="mt-1.5 h-3 overflow-hidden rounded-full border border-white/10 bg-black/50"><div id="clubSeasonXpBar" class="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-400 to-fuchsia-400 transition-all" style="width:0%"></div></div>
+                </div>
+                <div class="relative mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-cyan-300/20 bg-black/30 p-3"><div><b class="text-xs text-cyan-100">💎 UNO Pass Plus</b><p class="text-[10px] text-zinc-400">15.000 UNOcoins Plus · recompensas premium retroactivas en tus niveles desbloqueados</p></div><button id="unoPassUpgradeBtn" type="button" class="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-3 py-2 text-[10px] font-black text-slate-950">💎 ¿Querés mejorar el pase?</button></div><div id="clubSeasonRewards" class="relative mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
+                <p id="clubSeasonStatus" class="relative mt-3 text-[10px] text-slate-300">Cada partida suma experiencia. Las victorias dan XP adicional.</p>
+              </article>
+              <article class="rounded-2xl border border-amber-300/20 bg-gradient-to-br from-amber-950/40 to-zinc-950 p-4">
+                <div class="text-[10px] font-black tracking-[.18em] text-amber-300">⚡ EVENTO SEMANAL</div>
+                <h3 class="mt-1 font-uno text-xl text-white">Racha de campeones</h3>
+                <p class="mt-1 text-[10px] text-zinc-400">Conseguí 3 victorias esta semana y reclamá una recompensa extra.</p>
+                <div class="mt-3 flex items-center justify-between"><b id="clubWeeklyEventProgress" class="text-sm text-amber-100">0 / 3 victorias</b><span class="text-xs font-black text-amber-300">🪙 250</span></div>
+                <div class="mt-2 h-2 overflow-hidden rounded-full bg-black/50"><div id="clubWeeklyEventBar" class="h-full rounded-full bg-amber-400" style="width:0%"></div></div>
+                <button id="clubWeeklyEventClaim" type="button" class="mt-3 w-full rounded-xl bg-amber-400 px-3 py-2.5 text-xs font-black text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40">Reclamar recompensa</button>
+                <p id="clubWeeklyEventStatus" class="mt-2 text-[9px] text-zinc-500">El progreso se reinicia cada semana.</p>
+              </article>
+            </section>
+            <section class="mt-3 rounded-2xl border border-white/10 bg-zinc-950/70 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-2"><div><div class="text-[10px] font-black tracking-[.18em] text-violet-300">📜 TU ACTIVIDAD</div><h3 class="font-uno text-xl text-white">Historial reciente</h3></div><span class="text-[9px] text-zinc-500">Últimas 8 partidas registradas en este navegador</span></div>
+              <div id="clubMatchHistory" class="mt-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2"><p class="text-xs text-zinc-500">Todavía no hay partidas registradas.</p></div>
+            </section>
+
+</div></div></section>
+            <!-- Cuerpo en 2 Columnas: Estudio de Avatar a la izquierda / Modos de Juego a la derecha -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-6 items-stretch">
+
+                <!-- COLUMNA IZQUIERDA: ESTUDIO DE AVATAR HIPER-PERSONALIZABLE -->
+                <!-- Estudio de avatar trasladado al Perfil -->
+<!-- COLUMNA DERECHA: MODOS DE JUEGO Y ACCESO RÁPIDO -->
                 <div class="lg:col-span-7 flex flex-col justify-between gap-4">
                     <div class="space-y-3.5">
                         <span class="block text-xs font-extrabold uppercase tracking-wider text-zinc-400">Selecciona Modalidad</span>
@@ -4881,7 +4889,7 @@
         function updatePlusWalletUI(){const v=getUnoPlus().toLocaleString('es-AR');['unoPlusBalance','clubPlusBalance'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=v})}
         function exchangeUnoPlus(amount,cost){const coins=Math.max(0,Number(localStorage.getItem('uno_club_points')||0));if(coins<cost){showToast('Te faltan '+(cost-coins).toLocaleString('es-AR')+' UNOcoins.','warn');return}localStorage.setItem('uno_club_points',String(coins-cost));addUnoPlus(amount);updateClubWalletUI();showToast('💎 Recibiste '+amount.toLocaleString('es-AR')+' UNOcoins Plus.','success');renderClubStore()}
         function buyUnoPlusCosmetic(id){const item=UNO_PLUS_ITEMS.find(x=>x.id===id),owned=ownedClubItems();if(!item||owned.includes(id))return;const bal=getUnoPlus();if(bal<item.price){showToast('Te faltan '+(item.price-bal)+' UNOcoins Plus.','warn');return}setUnoPlus(bal-item.price);owned.push(id);localStorage.setItem('uno_club_owned',JSON.stringify(owned));equipClubItem(id)}
-        function buyUnoPassPlus(){if(localStorage.getItem('uno_pass_plus')==='1')return;const cost=15000;if(getUnoPlus()<cost){showToast('Necesitás 15.000 UNOcoins Plus para mejorar el pase.','warn');return}setUnoPlus(getUnoPlus()-cost);localStorage.setItem('uno_pass_plus','1');const data=getClubSeason(),unlocked=Math.min(CLUB_SEASON_MAX_LEVEL,Math.floor(Math.max(0,Number(data.xp)||0)/CLUB_SEASON_XP_PER_LEVEL)),claimed=new Set(Array.isArray(data.claimed)?data.claimed:[]);let classic=0,premium=0;for(let n=1;n<=unlocked;n++){if(!claimed.has(n)){classic+=100+n*25+(n%5===0?250:0);premium+=75+(n%5===0?100:0);claimed.add(n)}}data.claimed=[...claimed];saveClubSeason(data);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+classic));addUnoPlus(premium);renderClubSeasonHub();updateClubWalletUI();showToast('✨ UNO Pass Plus activado: recibiste las recompensas de ambos pases de tus niveles desbloqueados.','success')}
+        function buyUnoPassPlus(){if(localStorage.getItem('uno_pass_plus')==='1')return;const cost=15000;if(getUnoPlus()<cost){showToast('Necesitás 15.000 UNOcoins Plus para mejorar el pase.','warn');return}setUnoPlus(getUnoPlus()-cost);localStorage.setItem('uno_pass_plus','1');const data=getClubSeason(),unlocked=Math.min(CLUB_SEASON_MAX_LEVEL,Math.floor(Math.max(0,Number(data.xp)||0)/CLUB_SEASON_XP_PER_LEVEL)),claimed=new Set(Array.isArray(data.claimed)?data.claimed:[]);let classic=0,premium=0;for(let n=1;n<=unlocked;n++){if(!claimed.has(n))classic+=100+n*25+(n%5===0?250:0);premium+=75+(n%5===0?100:0);claimed.add(n)}data.claimed=[...claimed];saveClubSeason(data);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+classic));addUnoPlus(premium);renderClubSeasonHub();updateClubWalletUI();showToast('✨ UNO Pass Plus activado: recibiste las recompensas de ambos pases de tus niveles desbloqueados.','success')}
         function claimUnoPassPlusReward(n){const data=getClubSeason(),xp=Math.max(0,Number(data.xp)||0),claimed=new Set(Array.isArray(data.claimed)?data.claimed:[]);if(localStorage.getItem('uno_pass_plus')!=='1'||n<1||n>CLUB_SEASON_MAX_LEVEL||xp<n*CLUB_SEASON_XP_PER_LEVEL||claimed.has(n))return;claimed.add(n);data.claimed=[...claimed];saveClubSeason(data);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+100+n*25+(n%5===0?250:0)));addUnoPlus(75+(n%5===0?100:0));renderClubSeasonHub();updateClubWalletUI();showToast('🎁 Recompensas Classic + Plus reclamadas.','success')}
         function getClubSeason(){try{return Object.assign({xp:0,claimed:[],history:[]},JSON.parse(localStorage.getItem('uno_club_season_v1')||'{}'))}catch(e){return {xp:0,claimed:[],history:[]}}}
         function saveClubSeason(data){localStorage.setItem('uno_club_season_v1',JSON.stringify(data))}
@@ -5569,6 +5577,7 @@
          document.getElementById('btnOpenPlayerLookup')?.addEventListener('click',()=>{document.getElementById('playerLookupModal')?.classList.remove('hidden');document.getElementById('playerLookupInput')?.focus();});
          document.getElementById('btnOpenProfile')?.addEventListener('click',()=>document.getElementById('profileScreen')?.classList.remove('hidden'));
          document.getElementById('btnCloseProfile')?.addEventListener('click',()=>document.getElementById('profileScreen')?.classList.add('hidden'));
+        document.getElementById('btnOpenAvatarStudio')?.addEventListener('click',()=>{const p=document.getElementById('profileAvatarStudio');if(p){p.classList.toggle('hidden');if(!p.classList.contains('hidden'))updateAvatarStudioUI()}});
          document.getElementById('btnOpenInbox')?.addEventListener('click',()=>openClubInbox());
          document.getElementById('btnCloseInbox')?.addEventListener('click',()=>{document.getElementById('clubInboxScreen')?.classList.add('hidden');closeDmListeners()});
          document.getElementById('btnInboxFindPlayer')?.addEventListener('click',()=>{document.getElementById('playerLookupModal')?.classList.remove('hidden');document.getElementById('playerLookupInput')?.focus()});
