@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO! CLUB v2.5.0 — Mesa Oficial Online & Equipos</title>
+    <title>UNO! CLUB v2.6.0 — Mega Club Update</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -1020,6 +1020,37 @@
               <article class="rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-950/35 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-emerald-300">🎯 DESAFÍOS</div><h3 class="font-uno text-xl">Misiones activas</h3></div><span class="text-2xl">⚡</span></div><div id="clubMissionsList" class="mt-3 space-y-2"></div><p class="mt-2 text-[9px] text-zinc-500">Las misiones se actualizan con tus resultados registrados en este navegador.</p></article>
               <article class="rounded-2xl border border-yellow-400/20 bg-gradient-to-br from-yellow-950/30 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-yellow-300">🏅 COLECCIÓN</div><h3 class="font-uno text-xl">Logros y trofeos</h3></div><span class="text-2xl">🏆</span></div><div id="clubAchievementsList" class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2"></div></article>
               <article class="rounded-2xl border border-fuchsia-400/20 bg-gradient-to-br from-fuchsia-950/30 to-zinc-950 p-4"><div class="flex items-center justify-between"><div><div class="text-[10px] tracking-[.2em] font-black text-fuchsia-300">🎒 INVENTARIO</div><h3 class="font-uno text-xl">Tus objetos</h3></div><span class="text-2xl">✨</span></div><div class="mt-2 flex items-center justify-between text-xs text-zinc-300"><span>Cosméticos desbloqueados</span><b id="clubOwnedCount" class="text-fuchsia-200">0</b></div><div id="clubCollectionPreview" class="mt-3 flex flex-wrap gap-2"></div><button id="clubOpenCollection" type="button" class="mt-3 rounded-lg border border-fuchsia-300/20 bg-fuchsia-950/40 px-3 py-2 text-[10px] font-bold text-fuchsia-200">Ver colección en tienda →</button></article>
+            </section>
+
+
+            <!-- CLUB PASS: progresión de temporada, evento semanal e historial -->
+            <section id="clubSeasonHub" class="mt-4 grid grid-cols-1 xl:grid-cols-3 gap-3">
+              <article class="xl:col-span-2 relative overflow-hidden rounded-2xl border border-cyan-300/25 bg-gradient-to-br from-indigo-950 via-slate-950 to-cyan-950 p-4 sm:p-5">
+                <div class="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-cyan-400/10 blur-3xl"></div>
+                <div class="relative flex flex-wrap items-start justify-between gap-3">
+                  <div><div class="text-[10px] font-black tracking-[.22em] text-cyan-300">🚀 TEMPORADA CLUB · EDICIÓN 01</div><h3 class="font-uno text-2xl sm:text-3xl text-white">Club Pass</h3><p class="mt-1 text-[11px] text-slate-300">Jugá partidas, ganá XP y desbloqueá recompensas. Pase gratuito para todos.</p></div>
+                  <div class="rounded-xl border border-cyan-200/20 bg-black/30 px-3 py-2 text-right"><span class="block text-[9px] tracking-widest text-cyan-200">TU NIVEL</span><b id="clubSeasonLevel" class="font-uno text-3xl text-white">1</b></div>
+                </div>
+                <div class="relative mt-4">
+                  <div class="flex justify-between text-[10px] text-slate-300"><span id="clubSeasonXpText">0 / 300 XP</span><span id="clubSeasonTotalXp">0 XP acumulados</span></div>
+                  <div class="mt-1.5 h-3 overflow-hidden rounded-full border border-white/10 bg-black/50"><div id="clubSeasonXpBar" class="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-400 to-fuchsia-400 transition-all" style="width:0%"></div></div>
+                </div>
+                <div id="clubSeasonRewards" class="relative mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
+                <p id="clubSeasonStatus" class="relative mt-3 text-[10px] text-slate-300">Cada partida suma experiencia. Las victorias dan XP adicional.</p>
+              </article>
+              <article class="rounded-2xl border border-amber-300/20 bg-gradient-to-br from-amber-950/40 to-zinc-950 p-4">
+                <div class="text-[10px] font-black tracking-[.18em] text-amber-300">⚡ EVENTO SEMANAL</div>
+                <h3 class="mt-1 font-uno text-xl text-white">Racha de campeones</h3>
+                <p class="mt-1 text-[10px] text-zinc-400">Conseguí 3 victorias esta semana y reclamá una recompensa extra.</p>
+                <div class="mt-3 flex items-center justify-between"><b id="clubWeeklyEventProgress" class="text-sm text-amber-100">0 / 3 victorias</b><span class="text-xs font-black text-amber-300">🪙 250</span></div>
+                <div class="mt-2 h-2 overflow-hidden rounded-full bg-black/50"><div id="clubWeeklyEventBar" class="h-full rounded-full bg-amber-400" style="width:0%"></div></div>
+                <button id="clubWeeklyEventClaim" type="button" class="mt-3 w-full rounded-xl bg-amber-400 px-3 py-2.5 text-xs font-black text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40">Reclamar recompensa</button>
+                <p id="clubWeeklyEventStatus" class="mt-2 text-[9px] text-zinc-500">El progreso se reinicia cada semana.</p>
+              </article>
+            </section>
+            <section class="mt-3 rounded-2xl border border-white/10 bg-zinc-950/70 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-2"><div><div class="text-[10px] font-black tracking-[.18em] text-violet-300">📜 TU ACTIVIDAD</div><h3 class="font-uno text-xl text-white">Historial reciente</h3></div><span class="text-[9px] text-zinc-500">Últimas 8 partidas registradas en este navegador</span></div>
+              <div id="clubMatchHistory" class="mt-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2"><p class="text-xs text-zinc-500">Todavía no hay partidas registradas.</p></div>
             </section>
 
             <!-- Cuerpo en 2 Columnas: Estudio de Avatar a la izquierda / Modos de Juego a la derecha -->
@@ -4807,7 +4838,7 @@
         ];
         function getClubStats(){try{return Object.assign({matches:0,wins:0,podiums:0,bestRating:1000,lastMatchDay:'',dailyMatches:0,weeklyWins:0,weekKey:''},JSON.parse(localStorage.getItem('uno_club_stats')||'{}'))}catch(e){return {matches:0,wins:0,podiums:0,bestRating:1000,lastMatchDay:'',dailyMatches:0,weeklyWins:0,weekKey:''}}}
         function clubWeekKey(d=new Date()){const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
-        function recordClubMatch(room,entry){const x=getClubStats(),today=clubLocalDate(),week=clubWeekKey();x.matches++;if(entry.rank===1)x.wins++;if(entry.rank<=3)x.podiums++;if(x.lastMatchDay!==today){x.dailyMatches=0;x.lastMatchDay=today}x.dailyMatches++;if(x.weekKey!==week){x.weekKey=week;x.weeklyWins=0}if(entry.rank===1)x.weeklyWins++;x.bestRating=Math.max(Number(x.bestRating||1000),getCompetitiveRating());localStorage.setItem('uno_club_stats',JSON.stringify(x));}
+        function recordClubMatch(room,entry){const x=getClubStats(),today=clubLocalDate(),week=clubWeekKey();x.matches++;if(entry.rank===1)x.wins++;if(entry.rank<=3)x.podiums++;if(x.lastMatchDay!==today){x.dailyMatches=0;x.lastMatchDay=today}x.dailyMatches++;if(x.weekKey!==week){x.weekKey=week;x.weeklyWins=0}if(entry.rank===1)x.weeklyWins++;x.bestRating=Math.max(Number(x.bestRating||1000),getCompetitiveRating());localStorage.setItem('uno_club_stats',JSON.stringify(x));recordClubSeasonMatch(room,entry);}
         function renderClubProgressHub(){
           const x=getClubStats(),owned=ownedClubItems(),matches=Number(x.matches||0),wins=Number(x.wins||0),rate=matches?Math.round(wins/matches*100):0;
           const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('clubStatMatches',matches);set('clubStatWins',wins);set('clubStatWinRate',rate+'%');set('clubStatBest','Mejor rating registrado: '+Number(x.bestRating||getCompetitiveRating()).toLocaleString('es-AR')+' · Podios: '+Number(x.podiums||0));
@@ -4816,6 +4847,49 @@
           const ml=document.getElementById('clubMissionsList');if(ml)ml.innerHTML=missions.map(m=>{const done=!!claimed[m.key];return '<div class="rounded-xl bg-black/30 p-2.5"><div class="flex justify-between gap-2"><b class="text-[11px] text-white">'+m.name+'</b><span class="text-[10px] '+(done?'text-emerald-300':'text-amber-200')+'">'+(done?'✓ RECLAMADA':'🪙 '+m.reward)+'</span></div><div class="flex justify-between text-[9px] text-zinc-400 mt-1"><span>'+m.desc+'</span><span>'+Math.min(m.value,m.goal)+'/'+m.goal+'</span></div><div class="h-1.5 rounded-full bg-zinc-800 mt-1.5 overflow-hidden"><div class="h-full bg-emerald-400" style="width:'+Math.min(100,m.value/m.goal*100)+'%"></div></div></div>'}).join('');
           const achieved=CLUB_ACHIEVEMENTS.filter(a=>a.test({...x,cosmetics:owned.length})),al=document.getElementById('clubAchievementsList');if(al)al.innerHTML=CLUB_ACHIEVEMENTS.map(a=>{const done=achieved.some(z=>z.id===a.id);return '<div title="'+a.desc+'" class="rounded-xl border p-2 text-center '+(done?'border-yellow-300/40 bg-yellow-950/40':'border-white/10 bg-black/30 opacity-50')+'"><div class="text-xl">'+(done?a.emoji:'🔒')+'</div><b class="block text-[9px] '+(done?'text-yellow-200':'text-zinc-400')+'">'+a.name+'</b><span class="text-[8px] text-zinc-500">'+a.desc+'</span></div>'}).join('');
           set('clubOwnedCount',owned.length+' objetos');const preview=document.getElementById('clubCollectionPreview');if(preview){const items=owned.map(id=>CLUB_STORE_ITEMS.find(i=>i.id===id)).filter(Boolean);preview.innerHTML=items.slice(-8).map(i=>'<span title="'+i.name+'" class="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-lg">'+i.emoji+'</span>').join('')||'<span class="text-[10px] text-zinc-500">Todavía no tenés objetos. ¡Visitá la tienda!</span>'}
+        }
+
+
+        // PROGRESIÓN CLUB PASS. Los datos son locales a este navegador.
+        const CLUB_SEASON_MAX_LEVEL=30, CLUB_SEASON_XP_PER_LEVEL=300;
+        function getClubSeason(){try{return Object.assign({xp:0,claimed:[],history:[]},JSON.parse(localStorage.getItem('uno_club_season_v1')||'{}'))}catch(e){return {xp:0,claimed:[],history:[]}}}
+        function saveClubSeason(data){localStorage.setItem('uno_club_season_v1',JSON.stringify(data))}
+        function recordClubSeasonMatch(room,entry){
+          const data=getClubSeason(),rank=Math.max(1,Number(entry?.rank||4)),gain=100+(rank===1?50:rank<=3?25:0);
+          data.xp=Math.min(CLUB_SEASON_MAX_LEVEL*CLUB_SEASON_XP_PER_LEVEL,Math.max(0,Number(data.xp)||0)+gain);
+          const rawMode=String(room?.gameMode||room?.mode||'').toLowerCase();
+          const mode=room?.competitiveMode?'Competitivo':room?.teamMode?'Equipos':rawMode.includes('chaos')||rawMode.includes('caos')?'Caos':rawMode.includes('survival')?'Supervivencia':rawMode.includes('turbo')?'Turbo':'UNO clásico';
+          data.history=Array.isArray(data.history)?data.history:[];
+          data.history.unshift({date:new Date().toISOString(),rank,mode,xp:gain});
+          data.history=data.history.slice(0,8);saveClubSeason(data);
+          renderClubSeasonHub();
+        }
+        function renderClubSeasonHub(){
+          const data=getClubSeason(),xp=Math.max(0,Number(data.xp)||0),level=Math.min(CLUB_SEASON_MAX_LEVEL,Math.floor(xp/CLUB_SEASON_XP_PER_LEVEL)+1),inside=level===CLUB_SEASON_MAX_LEVEL?CLUB_SEASON_XP_PER_LEVEL:xp%CLUB_SEASON_XP_PER_LEVEL,claimed=new Set(Array.isArray(data.claimed)?data.claimed:[]);
+          const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
+          set('clubSeasonLevel',level);set('clubSeasonXpText',level===CLUB_SEASON_MAX_LEVEL?'TEMPORADA COMPLETADA':inside+' / '+CLUB_SEASON_XP_PER_LEVEL+' XP');set('clubSeasonTotalXp',xp.toLocaleString('es-AR')+' XP acumulados');
+          const bar=document.getElementById('clubSeasonXpBar');if(bar)bar.style.width=(level===CLUB_SEASON_MAX_LEVEL?100:inside/CLUB_SEASON_XP_PER_LEVEL*100)+'%';
+          const rewards=document.getElementById('clubSeasonRewards');
+          if(rewards){const start=Math.max(1,Math.min(CLUB_SEASON_MAX_LEVEL-4,level-2));const end=Math.min(CLUB_SEASON_MAX_LEVEL,start+4);let html='';for(let n=start;n<=end;n++){const need=n*CLUB_SEASON_XP_PER_LEVEL,ready=xp>=need,done=claimed.has(n),coins=50+n*5;html+='<div class="rounded-xl border p-2 '+(done?'border-emerald-400/30 bg-emerald-950/30':ready?'border-amber-300/50 bg-amber-950/30':'border-white/10 bg-black/25 opacity-70')+'"><div class="flex items-center justify-between"><b class="text-[10px] text-white">NIVEL '+n+'</b><span class="text-sm">'+(done?'✅':ready?'🎁':'🔒')+'</span></div><div class="mt-1 text-[11px] font-black text-amber-200">🪙 '+coins+'</div><button type="button" data-season-claim="'+n+'" class="mt-2 w-full rounded-lg px-1 py-1.5 text-[9px] font-black '+(ready&&!done?'bg-amber-400 text-zinc-950':'bg-zinc-800 text-zinc-500')+'" '+(ready&&!done?'':'disabled')+'>'+(done?'RECLAMADO':ready?'RECLAMAR':'BLOQUEADO')+'</button></div>'}rewards.innerHTML=html;rewards.querySelectorAll('[data-season-claim]').forEach(btn=>btn.addEventListener('click',()=>claimClubSeasonReward(Number(btn.dataset.seasonClaim))))}
+          set('clubSeasonStatus',level===CLUB_SEASON_MAX_LEVEL?'¡Llegaste al nivel máximo de la temporada!': 'Te faltan '+(CLUB_SEASON_XP_PER_LEVEL-inside)+' XP para el próximo nivel.');
+          const stats=getClubStats(),wins=Number(stats.weeklyWins||0),week=clubWeekKey(),eventKey='weekly_champions_'+week,wasClaimed=localStorage.getItem('uno_club_event_claim_'+eventKey)==='1',progress=Math.min(3,wins);
+          set('clubWeeklyEventProgress',progress+' / 3 victorias');const eventBar=document.getElementById('clubWeeklyEventBar');if(eventBar)eventBar.style.width=(progress/3*100)+'%';
+          const eventBtn=document.getElementById('clubWeeklyEventClaim');if(eventBtn){eventBtn.disabled=progress<3||wasClaimed;eventBtn.textContent=wasClaimed?'✓ RECOMPENSA RECLAMADA':progress>=3?'🪙 RECLAMAR 250 MONEDAS':'SEGUÍ JUGANDO';eventBtn.onclick=claimClubWeeklyEvent}
+          set('clubWeeklyEventStatus',wasClaimed?'¡Desafío semanal completado!':progress>=3?'¡Objetivo cumplido! Ya podés reclamar.':'Conseguí '+(3-progress)+' victoria(s) más.');
+          const history=document.getElementById('clubMatchHistory');if(history){const rows=Array.isArray(data.history)?data.history:[];history.innerHTML=rows.length?rows.map(h=>{const date=new Date(h.date);const dateText=isNaN(date.getTime())?'Partida reciente':date.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'})+' · '+date.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});return '<div class="rounded-xl border border-white/10 bg-black/30 p-3"><div class="flex items-center justify-between gap-2"><b class="text-xs text-white">'+(h.rank===1?'🥇 Victoria':h.rank<=3?'🏅 Podio':'🎮 Partida')+'</b><span class="text-[9px] text-cyan-200">+'+Number(h.xp||0)+' XP</span></div><div class="mt-1 text-[10px] text-zinc-300">'+h.mode+'</div><div class="mt-1 text-[9px] text-zinc-500">'+dateText+'</div></div>'}).join(''):'<p class="text-xs text-zinc-500">Cuando termines una partida, aparecerá acá tu actividad reciente.</p>'}
+        }
+        function claimClubSeasonReward(level){
+          const data=getClubSeason(),n=Math.floor(Number(level)||0),xp=Math.max(0,Number(data.xp)||0),claimed=new Set(Array.isArray(data.claimed)?data.claimed:[]);
+          if(n<1||n>CLUB_SEASON_MAX_LEVEL||xp<n*CLUB_SEASON_XP_PER_LEVEL||claimed.has(n))return;
+          const reward=50+n*5;claimed.add(n);data.claimed=[...claimed];saveClubSeason(data);
+          localStorage.setItem('uno_club_points',String(Math.max(0,Number(localStorage.getItem('uno_club_points')||0))+reward));
+          updateClubWalletUI();renderClubSeasonHub();showToast('🎁 Nivel '+n+': recibiste '+reward+' UNOcoins.','success');
+        }
+        function claimClubWeeklyEvent(){
+          const week=clubWeekKey(),key='weekly_champions_'+week,stats=getClubStats();
+          if(Number(stats.weeklyWins||0)<3||localStorage.getItem('uno_club_event_claim_'+key)==='1')return;
+          localStorage.setItem('uno_club_event_claim_'+key,'1');localStorage.setItem('uno_club_points',String(Math.max(0,Number(localStorage.getItem('uno_club_points')||0))+250));
+          updateClubWalletUI();renderClubSeasonHub();showToast('🏆 ¡Evento semanal completado! +250 UNOcoins.','success');
         }
 
         function ownedClubItems(){try{return JSON.parse(localStorage.getItem('uno_club_owned')||'[]')}catch(e){return []}}
@@ -5461,7 +5535,7 @@
          document.getElementById('btnCopyCompetitiveId')?.addEventListener('click',()=>{const id=String(currentUserId||'');if(!id)return;navigator.clipboard?.writeText(id).then(()=>showToast('ID copiado.','success')).catch(()=>showToast('No se pudo copiar el ID.','warn'));});document.getElementById('btnCloseLeaderboard')?.addEventListener('click',()=>document.getElementById('leaderboardModal').classList.add('hidden'));document.getElementById('btnRefreshLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
         document.getElementById('btnClaimDailyReward')?.addEventListener('click',claimDailyReward);
         document.getElementById('clubOpenCollection')?.addEventListener('click',()=>document.getElementById('btnOpenStore')?.click());
-        renderCompetitiveRank();renderDailyReward();
+        renderCompetitiveRank();renderDailyReward();renderClubSeasonHub();
         document.getElementById('btnCloseSettings').onclick=()=>document.getElementById('settingsModal').classList.add('hidden');document.getElementById('btnCloseStore').onclick=()=>document.getElementById('storeModal').classList.add('hidden');
         document.getElementById('btnQuickSolo').onclick = () => createNewRoom(false);
         document.getElementById('btnCreateOnline').onclick = () => createNewRoom(true);
