@@ -1449,7 +1449,7 @@
 <div class="grid lg:grid-cols-[1.1fr_.9fr] gap-4"><section class="rounded-3xl border border-amber-300/30 bg-gradient-to-br from-zinc-950 via-amber-950/40 to-black p-4 sm:p-6 shadow-2xl">
 <div class="flex items-center justify-between gap-3"><div><div class="text-[10px] tracking-[.24em] text-amber-300 font-black">TU DIVISIÓN ACTUAL</div><h3 id="competitiveMenuRankName" class="font-uno text-3xl text-amber-100 mt-1">Bronce I</h3><p id="competitiveMenuRankRating" class="text-xs text-zinc-300 mt-1">0 puntos de rating</p></div><div id="competitiveMenuRankEmblem"></div></div>
 <div class="mt-4 h-3 overflow-hidden rounded-full bg-black/60 border border-white/10"><div id="competitiveMenuRankProgress" class="h-full rounded-full bg-gradient-to-r from-amber-600 via-yellow-300 to-white transition-all duration-500" style="width:0%"></div></div><div class="mt-2 flex items-center justify-between gap-2 text-[10px] text-zinc-400"><span id="competitiveMenuRankNext">Siguiente rango</span><span id="competitiveMenuRankDelta">Ganá partidas para subir</span></div><div id="competitiveMenuRankLadder" class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
-<div class="mt-5 rounded-2xl border border-amber-300/20 bg-black/30 p-4"><div class="text-[10px] tracking-[.2em] text-amber-300 font-black">EMPAREJAMIENTO AUTOMÁTICO</div><h3 class="font-uno text-2xl text-white">Encontrá tu próxima mesa</h3><p class="text-xs text-zinc-400 mt-1">Elegí el formato. Buscamos rivales de tu nivel durante 25 segundos.</p><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3" id="competitiveFormatPicker"><button type="button" data-comp-format="2" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">⚔️ 1v1 <small class="block text-[9px]">2 jugadores</small></button><button type="button" data-comp-format="4" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 2v2 <small class="block text-[9px]">4 jugadores</small></button><button type="button" data-comp-format="6" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 3v3 <small class="block text-[9px]">6 jugadores</small></button><button type="button" data-comp-format="8" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 4v4 <small class="block text-[9px]">8 jugadores</small></button></div><button id="btnSearchCompetitiveMatch" class="btn-shimmer relative overflow-hidden w-full mt-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 px-5 py-4 text-base font-black text-zinc-950 shadow-xl">🔍 BUSCAR PARTIDA</button><p class="text-[10px] text-zinc-500 mt-2 text-center">Emparejamiento automático por formato y rango. Si no hay rivales, completa con IA adaptadas.</p><div class="grid sm:grid-cols-2 gap-2 mt-4"><button id="btnCreateCompetitivePublic" type="button" class="rounded-xl border border-emerald-300/30 bg-emerald-500/15 px-4 py-3 text-xs font-black text-emerald-100 hover:bg-emerald-500/25">🌐 CREAR SALA PÚBLICA</button><button id="btnCreateCompetitivePrivate" type="button" class="rounded-xl border border-sky-300/30 bg-sky-500/15 px-4 py-3 text-xs font-black text-sky-100 hover:bg-sky-500/25">🔒 CREAR SALA PRIVADA</button></div><p class="text-[10px] text-zinc-500 mt-2 text-center">La sala privada genera un código para compartir. La pública aparece en el listado de salas competitivas.</p><div class="mt-4 rounded-2xl border border-emerald-300/20 bg-black/25 p-3"><div class="flex items-center justify-between gap-2"><h4 class="text-xs font-black text-emerald-200">🌐 SALAS COMPETITIVAS PÚBLICAS</h4><span id="competitivePublicRoomsCount" class="text-[10px] text-zinc-500">En vivo</span></div><div id="competitivePublicRoomsList" class="mt-2 space-y-2 max-h-44 overflow-y-auto"><p class="text-[11px] text-zinc-500 text-center py-3">Cargando salas...</p></div></div></div>
+<div class="mt-5 rounded-2xl border border-amber-300/20 bg-black/30 p-4"><div class="text-[10px] tracking-[.2em] text-amber-300 font-black">EMPAREJAMIENTO AUTOMÁTICO</div><h3 class="font-uno text-2xl text-white">Encontrá tu próxima mesa</h3><p class="text-xs text-zinc-400 mt-1">Elegí el formato. Buscamos rivales de tu nivel durante 25 segundos.</p><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3" id="competitiveFormatPicker"><button type="button" data-comp-format="1v1" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">⚔️ 1v1 <small class="block text-[9px]">Duelo · 2 jugadores</small></button><button type="button" data-comp-format="2v1" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">🔥 2v1 <small class="block text-[9px]">2 contra 1 · 3 jugadores</small></button><button type="button" data-comp-format="2v2" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 2v2 <small class="block text-[9px]">2 contra 2 · 4 jugadores</small></button><button type="button" data-comp-format="3v1" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">💀 3v1 <small class="block text-[9px]">3 contra 1 · 4 jugadores</small></button><button type="button" data-comp-format="3v3" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👥 3v3 <small class="block text-[9px]">3 contra 3 · 6 jugadores</small></button><button type="button" data-comp-format="4v1" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">👑 4v1 <small class="block text-[9px]">4 contra 1 · 5 jugadores</small></button><button type="button" data-comp-format="4v4" class="competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black">🏆 4v4 <small class="block text-[9px]">4 contra 4 · 8 jugadores</small></button></div><button id="btnSearchCompetitiveMatch" class="btn-shimmer relative overflow-hidden w-full mt-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 px-5 py-4 text-base font-black text-zinc-950 shadow-xl">🔍 BUSCAR PARTIDA</button><p class="text-[10px] text-zinc-500 mt-2 text-center">Emparejamiento automático por formato y rango. Si no hay rivales, completa con IA adaptadas.</p><div class="grid sm:grid-cols-2 gap-2 mt-4"><button id="btnCreateCompetitivePublic" type="button" class="rounded-xl border border-emerald-300/30 bg-emerald-500/15 px-4 py-3 text-xs font-black text-emerald-100 hover:bg-emerald-500/25">🌐 CREAR SALA PÚBLICA</button><button id="btnCreateCompetitivePrivate" type="button" class="rounded-xl border border-sky-300/30 bg-sky-500/15 px-4 py-3 text-xs font-black text-sky-100 hover:bg-sky-500/25">🔒 CREAR SALA PRIVADA</button></div><p class="text-[10px] text-zinc-500 mt-2 text-center">La sala privada genera un código para compartir. La pública aparece en el listado de salas competitivas.</p><div class="mt-4 rounded-2xl border border-emerald-300/20 bg-black/25 p-3"><div class="flex items-center justify-between gap-2"><h4 class="text-xs font-black text-emerald-200">🌐 SALAS COMPETITIVAS PÚBLICAS</h4><span id="competitivePublicRoomsCount" class="text-[10px] text-zinc-500">En vivo</span></div><div id="competitivePublicRoomsList" class="mt-2 space-y-2 max-h-44 overflow-y-auto"><p class="text-[11px] text-zinc-500 text-center py-3">Cargando salas...</p></div></div></div>
 </section><aside class="space-y-4"><section class="rounded-3xl border border-sky-300/20 bg-gradient-to-br from-sky-950/40 to-zinc-950 p-4"><div class="text-[10px] tracking-[.2em] text-sky-300 font-black">🪪 TU IDENTIFICADOR</div><code id="competitiveMenuPlayerId" class="block break-all rounded-xl bg-black/40 border border-white/10 p-3 mt-3 text-xs text-sky-100">Conectando...</code><button id="btnCopyCompetitiveId" class="mt-2 rounded-lg border border-sky-300/25 bg-sky-950/50 px-3 py-2 text-[10px] font-bold text-sky-100">📋 Copiar mi ID</button></section>
 <section class="rounded-3xl border border-white/10 bg-zinc-950/80 p-4"><h3 class="font-uno text-xl text-white">Leaderboard global</h3><p class="text-xs text-zinc-400 mt-1">Compará rating, rango, victorias y partidas.</p><button id="btnCompetitiveLeaderboard" class="mt-3 w-full rounded-xl border border-amber-300/25 bg-amber-950/40 px-4 py-3 text-xs font-black text-amber-100">🏆 VER LEADERBOARD</button></section>
 <section class="rounded-3xl border border-violet-300/20 bg-violet-950/20 p-4"><div class="text-[10px] tracking-[.2em] text-violet-200 font-black">🤖 IA ADAPTATIVA</div><p class="text-xs text-zinc-300 mt-2">Bronce: IA básica. Plata y Oro: control de colores y cartas de acción. Platino y Diamante: lectura de rivales. Maestro, Gran Maestro y Leyenda: IA estratégica que conserva comodines y prioriza bloquear al jugador más peligroso.</p></section></aside></div></div></section>
@@ -2159,7 +2159,12 @@
         let clubProfileApplyingCloud = false;
         const competitiveProfiles = new Map();
         let competitiveQueueUnsub=null,competitiveSearchInterval=null,competitiveSearchStartedAt=0,competitiveAutoStartLock=false;
-        let selectedCompetitiveSeats=Number(localStorage.getItem('uno_competitive_format')||2);
+        const COMPETITIVE_FORMATS={'1v1':{seats:2,teams:[0,1]},'2v1':{seats:3,teams:[0,1,1]},'2v2':{seats:4,teams:[0,1,0,1]},'3v1':{seats:4,teams:[0,1,1,1]},'3v3':{seats:6,teams:[0,1,0,1,0,1]},'4v1':{seats:5,teams:[0,1,1,1,1]},'4v4':{seats:8,teams:[0,1,0,1,0,1,0,1]}};
+        let selectedCompetitiveFormat=localStorage.getItem('uno_competitive_format_v2')||({2:'1v1',4:'2v2',6:'3v3',8:'4v4'}[Number(localStorage.getItem('uno_competitive_format')||2)]||'1v1');
+        if(!COMPETITIVE_FORMATS[selectedCompetitiveFormat])selectedCompetitiveFormat='1v1';
+        const getCompetitiveFormatConfig=(format=selectedCompetitiveFormat)=>COMPETITIVE_FORMATS[format]||COMPETITIVE_FORMATS['1v1'];
+        const getCompetitiveTeam=(seatIndex,totalSeats,format=selectedCompetitiveFormat)=>getCompetitiveFormatConfig(format).teams[seatIndex]??(seatIndex%2);
+        const getCompetitiveFormatLabel=(totalSeats,format=null)=>format||({2:'1v1',3:'2v1',4:'2v2',5:'4v1',6:'3v3',8:'4v4'}[Number(totalSeats)]||'Competitivo');
 
 
         function updatePlayerIdDisplay(){
@@ -2168,7 +2173,7 @@
           if(a)a.textContent='ID: '+id;if(b)b.textContent=id;
         }
         function openCompetitiveMenu(){document.getElementById('competitiveMenuScreen')?.classList.remove('hidden');renderCompetitiveRank();updatePlayerIdDisplay();renderCompetitiveFormatPicker();}
-        function renderCompetitiveFormatPicker(){document.querySelectorAll('[data-comp-format]').forEach(b=>{const on=Number(b.dataset.compFormat)===selectedCompetitiveSeats;b.className='competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black '+(on?'border-amber-300 bg-amber-400/20 text-amber-100':'border-white/10 bg-black/30 text-zinc-300')});}
+        function renderCompetitiveFormatPicker(){document.querySelectorAll('[data-comp-format]').forEach(b=>{const on=b.dataset.compFormat===selectedCompetitiveFormat;b.className='competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black '+(on?'border-amber-300 bg-amber-400/20 text-amber-100':'border-white/10 bg-black/30 text-zinc-300')});}
         function closeCompetitiveSearch(){
           if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}
           if(competitiveQueueUnsub){competitiveQueueUnsub();competitiveQueueUnsub=null;}
@@ -2185,7 +2190,7 @@
         async function fillCompetitiveBotsAndStart(){
           const room=state.room;if(!room||!room.competitiveMode||room.status!=='lobby'||room.hostId!==currentUserId)return;
           const rank=getCompetitiveRank(),tier=UNO_COMPETITIVE_RANKS.indexOf(rank);room.competitiveAiTier=tier;room.competitiveRankName=rank.name;
-          room.seats.forEach((seat,index)=>{if(!seat.id){const p=BOT_PROFILES[index%BOT_PROFILES.length];room.seats[index]={...seat,id:'comp_ai_'+currentUserId+'_'+index+'_'+Date.now(),name:p.name+' · IA '+rank.name,avatar:p.avatar,isBot:true,competitiveAI:true,competitiveAiTier:tier,competitiveDifficulty:rank.name,team:room.teamMode?(index%2):null,hand:[],saidUno:false,finishRank:null};}});
+          room.seats.forEach((seat,index)=>{if(!seat.id){const p=BOT_PROFILES[index%BOT_PROFILES.length];room.seats[index]={...seat,id:'comp_ai_'+currentUserId+'_'+index+'_'+Date.now(),name:p.name+' · IA '+rank.name,avatar:p.avatar,isBot:true,competitiveAI:true,competitiveAiTier:tier,competitiveDifficulty:rank.name,team:room.teamMode?getCompetitiveTeam(index,room.maxSeats,room.competitiveFormat):null,hand:[],saidUno:false,finishRank:null};}});
           closeCompetitiveSearch();await dealAndStartGame();
         }
         async function createCompetitiveRoom(isPublic){
@@ -2217,7 +2222,7 @@
           if(!competitive.length){list.innerHTML='<p class="text-[11px] text-zinc-500 text-center py-3">Todavía no hay salas competitivas públicas. ¡Creá la primera!</p>';return;}
           list.innerHTML=competitive.map(r=>{
             const host=(r.seats||[]).find(x=>x&&x.id===r.hostId)||(r.seats||[]).find(x=>x&&x.id);
-            const format=r.competitiveFormat||((Number(r.maxSeats||2)===2)?'1v1':(Number(r.maxSeats||4)/2)+'v'+(Number(r.maxSeats||4)/2));
+            const format=r.competitiveFormat||getCompetitiveFormatLabel(r.maxSeats||2);
             return '<div class="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-zinc-950/80 p-2"><div class="min-w-0"><div class="text-xs font-bold text-white truncate">Sala de '+escapeLeaderboardText(host?.name||'Anfitrión')+' · '+format+'</div><div class="text-[10px] text-zinc-400">'+(r.seats||[]).filter(x=>x&&x.id).length+'/'+(r.maxSeats||2)+' jugadores · '+escapeLeaderboardText(r.competitiveRankName||'Competitivo')+'</div></div><div class="shrink-0 rounded-lg border border-amber-300/30 bg-amber-950/40 px-3 py-1.5 text-center"><span class="block text-[8px] uppercase text-amber-200/70">Código</span><b class="font-mono text-xs tracking-widest text-amber-200">'+escapeLeaderboardText(r.code||'')+'</b></div></div>';
           }).join('');
         }
@@ -2247,7 +2252,7 @@
                 if(host.localeCompare(String(currentUserId))>=0)return;
                 if(Date.now()-Number(r.updatedAt||Date.now())>90000)return;
                 const seats=r.seats||[],occupied=seats.filter(x=>x&&x.id&&!x.isBot).length;
-                if(r.competitiveQueue===true&&occupied>0&&occupied<Number(r.maxSeats||2)&&Number(r.maxSeats||2)===Number(own.maxSeats||2)&&!!r.teamMode===!!own.teamMode&&Math.abs(Number(r.competitiveRating??0)-getCompetitiveRating())<=band.radius){
+                if(r.competitiveQueue===true&&occupied>0&&occupied<Number(r.maxSeats||2)&&Number(r.maxSeats||2)===Number(own.maxSeats||2)&&String(r.competitiveFormat||'')===String(own.competitiveFormat||'')&&!!r.teamMode===!!own.teamMode&&Math.abs(Number(r.competitiveRating??0)-getCompetitiveRating())<=band.radius){
                   candidates.push({...r,code:d.id,realPlayers:occupied});
                 }
               });
@@ -3576,16 +3581,18 @@
             }
 
             const code = onlineAvailable ? generateRoomCode() : 'LOCAL';
-            const defaultSeats = competitiveMode ? [2,4,6,8].includes(Number(selectedCompetitiveSeats))?Number(selectedCompetitiveSeats):2 : 4;
+            const competitiveConfig=getCompetitiveFormatConfig();
+            const defaultSeats = competitiveMode ? competitiveConfig.seats : 4;
             const competitiveTeams = !!competitiveMode && defaultSeats>2;
             const seats = buildInitialSeats(defaultSeats, competitiveTeams, 2, []);
+            if(competitiveTeams)seats.forEach((seat,index)=>{seat.team=getCompetitiveTeam(index,defaultSeats,selectedCompetitiveFormat)});
             seats[0] = {
                 seatIndex: 0,
                 id: currentUserId,
                 name: state.playerName,
                 avatar: state.playerAvatar,
                 isBot: false,
-                team: competitiveTeams ? 0 : null,
+                team: competitiveTeams ? getCompetitiveTeam(0,defaultSeats,selectedCompetitiveFormat) : null,
                 hand: [],
                 saidUno: false,
                 finishRank: null
@@ -3618,7 +3625,7 @@
                 competitiveRating: competitiveMode ? getCompetitiveRating() : null,
                 competitiveRankName: competitiveMode ? getCompetitiveRank().name : null,
                 competitiveAiTier: competitiveMode ? UNO_COMPETITIVE_RANKS.indexOf(getCompetitiveRank()) : null,
-                competitiveFormat: competitiveMode ? (defaultSeats===2?'1v1':(defaultSeats/2)+'v'+(defaultSeats/2)) : null,
+                competitiveFormat: competitiveMode ? selectedCompetitiveFormat : null,
                 pendingStack: null,
                 comboChain: null,
                 seats,
@@ -6051,7 +6058,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
          document.getElementById('btnSearchCompetitiveMatch')?.addEventListener('click',startCompetitiveSearch);
          document.getElementById('btnCreateCompetitivePublic')?.addEventListener('click',()=>createCompetitiveRoom(true));
          document.getElementById('btnCreateCompetitivePrivate')?.addEventListener('click',()=>createCompetitiveRoom(false));
-        document.querySelectorAll('[data-comp-format]').forEach(b=>b.addEventListener('click',()=>{selectedCompetitiveSeats=Number(b.dataset.compFormat)||2;localStorage.setItem('uno_competitive_format',String(selectedCompetitiveSeats));renderCompetitiveFormatPicker();}));
+        document.querySelectorAll('[data-comp-format]').forEach(b=>b.addEventListener('click',()=>{selectedCompetitiveFormat=b.dataset.compFormat;if(!COMPETITIVE_FORMATS[selectedCompetitiveFormat])selectedCompetitiveFormat='1v1';localStorage.setItem('uno_competitive_format_v2',selectedCompetitiveFormat);localStorage.setItem('uno_competitive_format',String(getCompetitiveFormatConfig().seats));renderCompetitiveFormatPicker();}));
         document.getElementById('btnCloseCompetitiveResult')?.addEventListener('click',()=>document.getElementById('competitiveResultModal')?.classList.add('hidden'));
          document.getElementById('btnCancelCompetitiveSearch')?.addEventListener('click',()=>{closeCompetitiveSearch();if(state.room?.competitiveMode&&state.room.status==='lobby')leaveRoomToHome(false);});
          document.getElementById('btnCompetitiveLeaderboard')?.addEventListener('click',openGlobalLeaderboard);
