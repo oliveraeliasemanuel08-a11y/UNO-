@@ -1,44 +1,64 @@
-# UNO! MENTIROSO 3D — integración online
+# UNO! MENTIROSO 3D — integración Firebase Online
 
-El HTML original conserva Three.js, sus animaciones, el motor de reglas y la IA local. `liar-online.js` añade el lobby Firebase y sincroniza la partida online.
+El modo online usa el HTML original de Three.js y su motor de reglas. El adaptador `liar-online.js` conecta el lobby y la partida a Firebase sin reemplazar el juego 3D.
 
-## Flujo online
+## Qué incluye
 
-- Crear sala genera un código de 6 caracteres y registra al anfitrión.
-- Los invitados entran con el código; las salas admiten de 2 a 6 jugadores.
-- El anfitrión inicia la partida y actúa como autoridad del motor original.
-- El estado público contiene turnos, vidas, jugadores, cantidades de cartas y la declaración; nunca contiene las manos.
-- Cada mano se guarda en `uno_liar_private/{roomId}/hands/{uid}`. Solo su dueño puede leerla; el anfitrión la distribuye.
-- Los clientes envían acciones (`play`, `challenge`, `next_round`) y el anfitrión valida UID, turno y pertenencia de cada carta a la mano antes de ejecutar el motor.
-- Un jugador invitado puede reconectarse con el mismo navegador/sesión anónima y el mismo código. El anfitrión debe mantener abierta su pestaña durante la partida porque conserva el motor autoritativo en memoria.
+- Crear sala con código de 6 caracteres.
+- Unirse por código a salas de 2 a 6 jugadores.
+- Reserva transaccional de asientos para evitar superar el límite de seis jugadores cuando entran varios al mismo tiempo.
+- Lobby en tiempo real y salida limpia antes de iniciar.
+- Firebase Authentication anónima, usando la sesión persistente del navegador.
+- El anfitrión mantiene la autoridad del motor original.
+- Manos privadas por UID: cada jugador solo puede leer su propia mano.
+- Estado público con turno, objetivo, vidas, cantidad de cartas, declaración y pila; no publica las cartas privadas.
+- Acciones de jugar, desafiar y avanzar ronda, con validación adicional del anfitrión.
+- Sincronización de cartas 3D, animaciones, vidas, desafío, eliminación y final de partida.
+- Revancha en la misma sala: el anfitrión puede iniciar otra partida con los mismos participantes.
+- Reconexión de invitados mientras la sala siga activa.
+- El modo local contra IA sigue disponible.
 
-## Firestore
+## Publicar las reglas
 
-1. Abrí Firebase Console → Firestore Database → Rules.
-2. Reemplazá las reglas actuales por el contenido completo de `firestore.rules` de esta rama, conservando los permisos existentes que ya utiliza UNO! CLUB.
-3. Publicá las reglas.
-4. Confirmá que el proveedor de autenticación anónima siga habilitado en Firebase Authentication (el juego principal de UNO! CLUB ya lo utiliza).
+1. Abrí Firebase Console → proyecto `uno-club-dc29c` → Firestore Database → Rules.
+2. Copiá el contenido completo del archivo `firestore.rules` de esta rama y reemplazá las reglas actuales.
+3. Revisá que se conserven las reglas que usa el resto de UNO! CLUB; el archivo de esta rama conserva las reglas existentes de salas, leaderboard, usernames y perfiles.
+4. Publicá las reglas.
+5. En Firebase Authentication → Sign-in method, verificá que Anonymous esté habilitado.
+6. No publiques el HTML online antes de publicar las reglas correspondientes.
 
-## Archivos de esta integración
+## Rutas Firestore
 
-- `el_mentiroso_uno_3d_ia_desconfiada.html`: HTML 3D original con controles de lobby y un puente pequeño hacia su motor.
-- `liar-online.js`: conexión Firebase, salas, miembros, manos privadas, acciones y sincronización.
-- `firestore.rules`: reglas para salas, miembros, manos privadas y acciones.
-
-## Antes de publicarlo
-
-- Esta rama todavía requiere una prueba real con dos navegadores y dos sesiones distintas.
-- No publicar las reglas ni fusionar la PR hasta comprobar creación de sala, ingreso con código, reparto privado, jugadas, desafíos, vidas, siguiente ronda y reconexión de un invitado.
-- El anfitrión es una autoridad de cliente, no un servidor confiable. Para anti-trampas fuerte y recuperación de partida si el anfitrión cierra la pestaña, el siguiente paso sería trasladar la autoridad a Cloud Functions o un backend.
-- Las reglas privadas impiden que un invitado lea las manos ajenas; aun así, un anfitrión que controla su propio navegador podría manipular el estado que publica.
-
-## Colecciones
-
-| Ruta | Uso |
+| Ruta | Propósito |
 |---|---|
-| `uno_rooms/{roomId}` | Lobby y estado público de la partida |
-| `uno_liar_private/{roomId}/members/{uid}` | Registro de cada jugador |
-| `uno_liar_private/{roomId}/hands/{uid}` | Mano privada por jugador |
-| `uno_liar_actions/{roomId}/actions/{actionId}` | Acciones que el anfitrión valida |
+| `artifacts/uno-club-official/public/data/uno_rooms/{roomId}` | Lobby y estado público de la partida |
+| `artifacts/uno-club-official/public/data/uno_liar_private/{roomId}/members/{uid}` | Registro público mínimo del jugador en la sala |
+| `artifacts/uno-club-official/public/data/uno_liar_private/{roomId}/hands/{uid}` | Mano privada del jugador |
+| `artifacts/uno-club-official/public/data/uno_liar_actions/{roomId}/actions/{actionId}` | Cola de acciones que valida el anfitrión |
 
-El `appId` de la ruta Firestore es `uno-club-official`, igual que en la aplicación principal.
+## Reglas de privacidad y autoridad
+
+- Los documentos de manos solo permiten lectura al UID dueño.
+- Solo el anfitrión puede crear o modificar manos.
+- Los invitados solo pueden crear acciones siendo miembros y cuando el estado público indica que es su turno.
+- El anfitrión valida la selección de cartas contra su mano autoritativa antes de ejecutar el motor.
+- La reserva de un asiento se realiza mediante transacción; las reglas solo permiten agregar o quitar el UID propio, un asiento por operación y un máximo de seis.
+
+## Límites que todavía requieren infraestructura de servidor
+
+El anfitrión es una autoridad de cliente: debe mantener abierta su pestaña durante la partida. Si se desconecta inesperadamente, los invitados no pueden tomar automáticamente el control del motor. Para autoridad anti-trampas y recuperación completa tras la caída del anfitrión, la lógica debe trasladarse a Cloud Functions o a un backend confiable.
+
+## Prueba obligatoria antes de anunciarlo como estable
+
+- Dos navegadores con dos sesiones anónimas diferentes.
+- Crear sala, entrar por código y comprobar límite de seis.
+- Rechazo de códigos inexistentes y salas llenas.
+- Reparto y privacidad de manos.
+- Jugar 1, 2 y 3 cartas.
+- Desafiar una mentira y desafiar una jugada verdadera.
+- Regla obligatoria de desafiar si el jugador anterior se quedó sin cartas.
+- Pérdida de vida, eliminación y victoria.
+- Siguiente ronda y revancha.
+- Salir del lobby antes de iniciar y reconectar a una partida en curso.
+
+La sintaxis JavaScript del HTML y del adaptador se comprueba en cada actualización. La validación final de permisos necesita Firebase Emulator o una prueba real en el proyecto; no se debe afirmar que las reglas están desplegadas hasta publicarlas desde Firebase Console.
