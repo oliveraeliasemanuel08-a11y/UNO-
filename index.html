@@ -5392,20 +5392,62 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         function arcadeOnlineRef(code){return doc(db,'artifacts',appId,'public','data','uno_rooms',code);}
         function arcadeOnlinePlayer(){return {id:currentUserId,name:state.playerName||'Jugador',avatar:state.playerAvatar?.avatar||'🙂'};}
         function arcadeOnlineOpen(){clearTimeout(arcade.timer);document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');}
+
+        function getClubDiamonds(){return Math.max(0,Number(localStorage.getItem('uno_club_diamonds')||0));}
+        function setClubDiamonds(value){const n=Math.max(0,Math.floor(Number(value)||0));localStorage.setItem('uno_club_diamonds',String(n));const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=n.toLocaleString('es-AR')+' ◆';}
+        async function reservePokerDiamonds(tx,uid,amount){
+          const ref=clubProfileRef(uid),snap=await tx.get(ref),profile=snap.exists()?snap.data():{};
+          const balance=Math.max(0,Number(profile.diamonds??localStorage.getItem('uno_club_diamonds')??0));
+          if(balance<amount)throw new Error('DIAMONDS_LOW');
+          const localData={...(profile.localStorage||snapshotClubLocalStorage()),uno_club_diamonds:String(balance-amount)};
+          tx.set(ref,{uid,diamonds:balance-amount,localStorage:localData,updatedAt:Date.now()},{merge:true});
+          return balance-amount;
+        }
+        async function settlePokerDiamonds(room){
+          if(!room||room.arcadeMode!=='poker'||room.status!=='finished'||!isGoogleAccountLinked()||!currentUser)return;
+          const game=room.arcadeState,winners=Array.isArray(game?.winners)?game.winners:[];
+          const winnerIds=winners.map(i=>game.players?.[i]?.id).filter(Boolean);
+          if(!winnerIds.includes(currentUserId))return;
+          let newBalance=null,payoutPaid=0;
+          try{
+            await runTransaction(db,async tx=>{
+              const roomRef=arcadeOnlineRef(room.code),profileRef=clubProfileRef(currentUserId);
+              const roomSnap=await tx.get(roomRef),profileSnap=await tx.get(profileRef);
+              if(!roomSnap.exists()||!profileSnap.exists())return;
+              const live=roomSnap.data(),g=live.arcadeState||{},ids=(g.winners||[]).map(i=>g.players?.[i]?.id).filter(Boolean);
+              const paid=Array.isArray(live.pokerPaidOutUids)?live.pokerPaidOutUids:[];
+              if(live.status!=='finished'||!ids.includes(currentUserId)||paid.includes(currentUserId))return;
+              const winnerPosition=ids.indexOf(currentUserId),total=Math.max(0,Number(live.pokerStake||0))*Math.max(0,(g.players||[]).length);
+              payoutPaid=Math.floor(total/Math.max(1,ids.length))+(winnerPosition===0?total%Math.max(1,ids.length):0);
+              const profile=profileSnap.data()||{},balance=Math.max(0,Number(profile.diamonds||0));
+              newBalance=balance+payoutPaid;
+              const localData={...(profile.localStorage||{}),uno_club_diamonds:String(newBalance)};
+              tx.set(profileRef,{diamonds:newBalance,localStorage:localData,updatedAt:Date.now()},{merge:true});
+              tx.update(roomRef,{pokerPaidOutUids:[...paid,currentUserId],pokerPaidOutAt:Date.now()});
+            });
+            if(newBalance!==null){setClubDiamonds(newBalance);showToast('🏆 ¡Cobraste '+payoutPaid+' diamantes del pozo!','success');}
+          }catch(err){console.warn('Pago de pozo UNO POK:',err);}
+        }
+
         async function arcadeOnlineCreate(mode){
           if(arcadeOnline.busy)return;arcadeOnline.busy=true;
           try{
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
-            const code=generateRoomCode(),player=arcadeOnlinePlayer();
+            const code=generateRoomCode(),player=arcadeOnlinePlayer(),roomRef=arcadeOnlineRef(code);
+            const pokerStake=mode==='poker'?Math.max(5,Number(document.getElementById('arcadePokerStake')?.value||10)):0;
+            if(mode==='poker'&&!isGoogleAccountLinked())throw new Error('Vinculá tu cuenta de Google para apostar diamantes.');
             const room={code,arcadeRoom:true,arcadeMode:mode,hostId:currentUserId,isPublic:false,status:'lobby',maxSeats:4,
               seats:[{...player,seatIndex:0},{id:null,name:'Asiento 2',avatar:'💺',seatIndex:1},{id:null,name:'Asiento 3',avatar:'💺',seatIndex:2},{id:null,name:'Asiento 4',avatar:'💺',seatIndex:3}],
-              arcadeState:null,createdAt:Date.now(),updatedAt:Date.now()};
-            await setDoc(arcadeOnlineRef(code),room);
-            arcadeOnline.code=code;arcadeOnline.selectedCard=null;
-            await arcadeOnlineSubscribe(code);
+              arcadeState:null,pokerStake,pokerPaidUids:mode==='poker'?[currentUserId]:[],pokerPaidOutUids:[],createdAt:Date.now(),updatedAt:Date.now()};
+            if(mode==='poker'){
+              await loadClubProfileCloud();let balanceAfter=null;
+              await runTransaction(db,async tx=>{balanceAfter=await reservePokerDiamonds(tx,currentUserId,pokerStake);tx.set(roomRef,room);});
+              setClubDiamonds(balanceAfter);
+            }else await setDoc(roomRef,room);
+            arcadeOnline.code=code;arcadeOnline.selectedCard=null;await arcadeOnlineSubscribe(code);
             document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');
             arcadeOnlineRender();
-          }catch(e){console.error('Arcade create:',e);showToast(e.message||'No se pudo crear la sala online.','danger');}
+          }catch(e){console.error('Arcade create:',e);showToast(e.message==='DIAMONDS_LOW'?'No tenés suficientes diamantes para esa entrada.':e.message||'No se pudo crear la sala online.','danger');}
           finally{arcadeOnline.busy=false;}
         }
         async function arcadeOnlineJoin(raw,expectedMode){
@@ -5413,19 +5455,25 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           try{
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
             const code=String(raw||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))throw new Error('Ingresá un código válido de 6 caracteres.');
-            const ref=arcadeOnlineRef(code);
+            const ref=arcadeOnlineRef(code);let balanceAfter=null;
             await runTransaction(db,async tx=>{
               const snap=await tx.get(ref);if(!snap.exists())throw new Error('No existe esa sala.');
               const room=snap.data();if(!room.arcadeRoom)throw new Error('Ese código pertenece a una sala UNO clásica.');if(expectedMode&&room.arcadeMode!==expectedMode)throw new Error('Ese código pertenece a '+metaTitle(room.arcadeMode)+', no a '+metaTitle(expectedMode)+'.');
               if(room.status!=='lobby')throw new Error('La partida ya comenzó.');
               const seats=room.seats||[];if(seats.some(s=>s.id===currentUserId))return;
               const idx=seats.findIndex(s=>!s.id);if(idx<0)throw new Error('La sala está completa.');
+              if(room.arcadeMode==='poker'){
+                if(!isGoogleAccountLinked())throw new Error('Vinculá Google para apostar diamantes.');
+                balanceAfter=await reservePokerDiamonds(tx,currentUserId,Math.max(5,Number(room.pokerStake||10)));
+              }
               seats[idx]={...seats[idx],...arcadeOnlinePlayer(),seatIndex:idx};
-              tx.update(ref,{seats,updatedAt:Date.now()});
+              const paid=[...(room.pokerPaidUids||[])];if(room.arcadeMode==='poker'&&!paid.includes(currentUserId))paid.push(currentUserId);
+              tx.update(ref,{seats,pokerPaidUids:paid,updatedAt:Date.now()});
             });
+            if(balanceAfter!==null)setClubDiamonds(balanceAfter);
             arcadeOnline.code=code;arcadeOnline.selectedCard=null;await arcadeOnlineSubscribe(code);
             document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');
-          }catch(e){console.error('Arcade join:',e);showToast(e.message||'No se pudo entrar a la sala.','danger');}
+          }catch(e){console.error('Arcade join:',e);showToast(e.message==='DIAMONDS_LOW'?'No tenés suficientes diamantes para entrar a esa mesa.':e.message||'No se pudo entrar a la sala.','danger');}
           finally{arcadeOnline.busy=false;}
         }
         async function arcadeOnlineSubscribe(code){
