@@ -4214,6 +4214,18 @@
             const seat = room.seats[seatIndex];
             if (!seat) return;
 
+            if (room.gameMode === 'liar') {
+                seat.hand = drawCardsFromDeck(room,7);
+                seat.saidUno = false;
+                room.liarRequiredColor = COLORS.filter(c=>c!==room.liarRequiredColor)[Math.floor(Math.random()*3)] || 'red';
+                room.currentTurnSeat = getNextSeatIndex(room,seatIndex,1);
+                room.turnStartedAt = Date.now();
+                showToast('🎭 '+seat.name+' se quedó sin cartas y recibió una nueva mano. ¡La supervivencia continúa!','success');
+                await syncRoomToCloud();
+                scheduleBotTurnIfNeeded();
+                return;
+            }
+
             if (room.gameMode === 'survival') {
                 const survivors = getActivePlayers(room);
                 const winner = survivors.find(p => p.seatIndex === seatIndex);
@@ -4366,6 +4378,8 @@
                 challenger.lives = Math.max(0,Number(challenger.lives??3)-1);
                 showToast('🛡️ ¡ERA VERDAD! '+challenger.name+' pierde una vida ('+challenger.lives+'/3).','danger');
                 vfx.showCinemaCallout('¡DESAFÍO FALLIDO!','from-amber-400 via-white to-rose-400');
+                room.liarRequiredColor=COLORS.filter(c=>c!==pending.declaredColor)[Math.floor(Math.random()*3)]||'red';
+                room.liarRequiredColor=COLORS.filter(c=>c!==pending.declaredColor)[Math.floor(Math.random()*3)]||'red';
                 if (liar.hand.length === 0) { await handlePlayerFinishedHand(liar.seatIndex); return; }
                 await applyCardEffectAndAdvanceTurn(liar.seatIndex,pending.declaredCard,false,pending.declaredColor,pending.previousColor);
                 return;
