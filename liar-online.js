@@ -15,10 +15,11 @@
     S.sdk=f; S.app=a.getApps().find(x=>x.name==='[DEFAULT]')||a.initializeApp(CONFIG); S.auth=u.getAuth(S.app); S.db=f.getFirestore(S.app);
     await S.auth.authStateReady(); if(!S.auth.currentUser)await u.signInAnonymously(S.auth); S.uid=S.auth.currentUser.uid;
   }
+  function clearSession(){S.unsubs.forEach(fn=>{try{fn();}catch(e){}});S.unsubs=[];S.processed.clear();S.privateSub=false;S.privateHand=[];S.members=[];S.lastSnapshot=null;S.online=false;S.isHost=false;S.roomId=null;S.roomRef=null;}
   function code6(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=chars[Math.floor(Math.random()*chars.length)];return s;}
   function profile(){return {uid:S.uid,name:S.name.slice(0,16)||'Jugador',avatar:'😎',joinedAt:Date.now()};}
   async function createRoom(){
-    try{await loadFirebase();S.name=($('liar-online-name')?.value||'Jugador').trim().slice(0,16)||'Jugador';let code=code6();let ref=S.sdk.doc(S.db,root()+'/uno_rooms/'+code);
+    try{clearSession();await loadFirebase();S.name=($('liar-online-name')?.value||'Jugador').trim().slice(0,16)||'Jugador';let code=code6();let ref=S.sdk.doc(S.db,root()+'/uno_rooms/'+code);
       for(let i=0;i<5&&(await S.sdk.getDoc(ref)).exists();i++){code=code6();ref=S.sdk.doc(S.db,root()+'/uno_rooms/'+code);}
       S.roomId=code;S.roomRef=ref;S.isHost=true;S.online=true;S.members=[profile()];
       await S.sdk.setDoc(ref,{code:code,gameType:'liar3d',hostId:S.uid,hostName:S.name,memberUids:[S.uid],members:S.members,status:'waiting',maxPlayers:6,createdAt:S.sdk.serverTimestamp(),updatedAt:Date.now()});
@@ -27,7 +28,7 @@
     }catch(e){console.error('[UNO Mentiroso] crear sala',e);status(e.message||'No se pudo crear la sala.',true);}
   }
   async function joinRoom(){
-    try{await loadFirebase();S.name=($('liar-online-name')?.value||'Jugador').trim().slice(0,16)||'Jugador';const code=($('liar-join-code')?.value||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))throw Error('Escribe un código válido de 6 caracteres.');
+    try{clearSession();await loadFirebase();S.name=($('liar-online-name')?.value||'Jugador').trim().slice(0,16)||'Jugador';const code=($('liar-join-code')?.value||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))throw Error('Escribe un código válido de 6 caracteres.');
       S.roomId=code;S.roomRef=S.sdk.doc(S.db,root()+'/uno_rooms/'+code);const snap=await S.sdk.getDoc(S.roomRef);if(!snap.exists())throw Error('No existe una sala con ese código.');const room=snap.data();
       const alreadyMember=(room.memberUids||[]).includes(S.uid);if(room.gameType!=='liar3d'||(room.status!=='waiting'&&!(room.status==='playing'&&alreadyMember)))throw Error('La partida ya comenzó o la sala no es válida.');if(room.status==='playing'&&room.hostId===S.uid)throw Error('El anfitrión debe mantener abierta esta pestaña durante la partida.');
       if(!alreadyMember){if(room.status!=='waiting')throw Error('No puedes entrar a una partida que ya comenzó.');if((room.memberUids||[]).length>=Math.min(6,room.maxPlayers||6))throw Error('La sala está completa.');await S.sdk.setDoc(S.sdk.doc(S.db,paths().members+'/'+S.uid),profile());}
@@ -59,7 +60,7 @@
     window.handleNextRoundClick=async function(){if(!S.online||S.isHost){const r=S.original.next();if(S.isHost)setTimeout(publishState,250);return r;}await sendAction('next_round');};
     const localStart=window.startMatchFromSetup;window.startMatchFromSetup=function(){if(S.online)return;return localStart();};
   }
-  function installUI(){ $('liar-online-create')?.addEventListener('click',createRoom);$('liar-online-join')?.addEventListener('click',joinRoom);$('liar-host-start')?.addEventListener('click',startHostGame);$('liar-lobby-copy')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(S.roomId||'');status('Código copiado. ¡Pásalo al grupo!');}catch(e){status('Copia el código manualmente.',true);}});$('liar-lobby-back')?.addEventListener('click',()=>{S.unsubs.forEach(f=>f());S.unsubs=[];S.online=false;S.isHost=false;showLobby(false);$('setup-modal')?.classList.remove('hidden');});$('liar-join-code')?.addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6));}
+  function installUI(){ $('liar-online-create')?.addEventListener('click',createRoom);$('liar-online-join')?.addEventListener('click',joinRoom);$('liar-host-start')?.addEventListener('click',startHostGame);$('liar-lobby-copy')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(S.roomId||'');status('Código copiado. ¡Pásalo al grupo!');}catch(e){status('Copia el código manualmente.',true);}});$('liar-lobby-back')?.addEventListener('click',()=>{clearSession();showLobby(false);$('setup-modal')?.classList.remove('hidden');});$('liar-join-code')?.addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6));}
   function boot(){if(!window.Liar3DBridge){setTimeout(boot,50);return;}installHooks();installUI();window.Liar3DBridge.setOnlinePublisher(publishState);}
   window.addEventListener('beforeunload',()=>S.unsubs.forEach(f=>{try{f();}catch(e){}}));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   window.LiarOnline={publish:publishState,sendAction:sendAction,getSession:()=>({uid:S.uid,isHost:S.isHost,online:S.online})};
