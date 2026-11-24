@@ -2268,8 +2268,9 @@
                 const local = window.LiarOnline?.getSession?.() || {};
                 const oldLives = game.players.map(p => p.lives);
                 const oldRemotePhase = this.remotePhase;
-                const needsBuild = game.players.length !== gs.players.length || !game.players.length || game.players.some((p, idx) => p.uid !== gs.players[idx]?.uid);
+                const needsBuild = game.players.length !== gs.players.length || !game.players.length || game.players.some((p, idx) => p.uid !== gs.players[idx]?.uid) || (oldRemotePhase === "GAME_OVER" && gs.phase === "TURN");
                 if (needsBuild) {
+                    this.remotePileCount = null; this.remoteRound = null; this.remotePhase = null;
                     tableCardMeshes.forEach(m => tableObjectsGroup.remove(m)); tableCardMeshes.length = 0; activeAnimations.length = 0;
                     game.players = gs.players.map((p, idx) => ({ id: idx, uid: p.uid, name: p.name, avatar: p.avatar || "😎", isHuman: p.uid === local.uid, style: "balanced", lives: p.lives, hand: [], eliminated: !!p.eliminated }));
                     build3DSeatsAndCrystals();
