@@ -2289,8 +2289,8 @@
                 if (gs.phase === "TURN") { document.getElementById("round-next-bar").classList.add("hidden"); document.getElementById("player-action-bar").classList.remove("hidden"); window.beginTurn(); }
                 else { handRigGroup.visible = false; disableHumanControls(); document.getElementById("player-action-bar").classList.add("hidden"); }
                 if (gs.phase === "RESOLVING") showBanner("🚨 ¡DESAFÍO EN CURSO!", "Revelando las cartas de la última jugada…", true);
-                if (gs.phase === "ROUND_END") { document.getElementById("round-next-bar").classList.remove("hidden"); document.getElementById("btn-next-round").textContent = "INICIAR RONDA " + (game.round + 1) + " ➔"; showBanner("⚖️ DESAFÍO RESUELTO", "Las vidas y el turno se han actualizado."); }
-                if (gs.phase === "GAME_OVER") { const winner = game.players.find(p => !p.eliminated); if (winner) triggerGameOver(winner); }
+                if (gs.phase === "ROUND_END") { document.getElementById("round-next-bar").classList.remove("hidden"); const nextBtn = document.getElementById("btn-next-round"); nextBtn.textContent = "INICIAR RONDA " + (game.round + 1) + " ➔"; nextBtn.disabled = game.players[game.turnIndex]?.uid !== local.uid; showBanner("⚖️ DESAFÍO RESUELTO", "Las vidas y el turno se han actualizado."); }
+                if (gs.phase === "GAME_OVER") { const winner = game.players.find(p => !p.eliminated); if (winner) triggerGameOver(winner); document.getElementById("btn-next-round").disabled = true; }
             }
         };
 
