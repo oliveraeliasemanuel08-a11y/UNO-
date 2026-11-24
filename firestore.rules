@@ -1,0 +1,130 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function liarRoomPath(roomId) {
+      return /databases/$(database)/documents/artifacts/$(appId)/public/data/uno_rooms/$(roomId);
+    }
+
+    function isLiarRoomMember(roomId) {
+      let room = get(liarRoomPath(roomId)).data;
+      return isSignedIn()
+        && room.gameType == 'liar3d'
+        && room.memberUids is list
+        && room.memberUids.hasAny([request.auth.uid]);
+    }
+
+    function isLiarRoomHost(roomId) {
+      let room = get(liarRoomPath(roomId)).data;
+      return isSignedIn()
+        && room.gameType == 'liar3d'
+        && room.hostId == request.auth.uid;
+    }
+
+    // SALAS UNO, TCG Y ARCADE
+    match /artifacts/{appId}/public/data/uno_rooms/{roomId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.hostId == request.auth.uid
+        && (
+          request.resource.data.code == roomId
+          || roomId == 'TCG-' + request.resource.data.code
+        );
+
+      // En Mentiroso 3D el anfitrión es la autoridad de la partida.
+      // Se conserva la condición anterior para los modos ya existentes.
+      allow update: if isSignedIn()
+        && request.resource.data.hostId == resource.data.hostId
+        && (
+          resource.data.gameType == 'liar3d'
+            ? resource.data.hostId == request.auth.uid
+            : true
+        );
+
+      allow delete: if isSignedIn()
+        && resource.data.hostId == request.auth.uid;
+    }
+
+    // MANOS PRIVADAS DE UNO! MENTIROSO 3D
+    // Cada jugador solamente puede leer el documento de su propia mano.
+    // El anfitrión distribuye y actualiza las manos como autoridad de la partida.
+    match /artifacts/{appId}/public/data/uno_liar_private/{roomId}/hands/{uid} {
+      allow read: if isSignedIn()
+        && request.auth.uid == uid
+        && isLiarRoomMember(roomId);
+
+      allow create, update: if isLiarRoomHost(roomId)
+        && request.resource.data.uid == uid
+        && request.resource.data.cards is list
+        && request.resource.data.cards.size() <= 28;
+
+      allow delete: if isLiarRoomHost(roomId);
+    }
+
+    // ACCIONES ENVIADAS POR JUGADORES A LA AUTORIDAD DE LA SALA
+    // El cliente no modifica directamente el estado público de la partida.
+    match /artifacts/{appId}/public/data/uno_liar_actions/{roomId}/actions/{actionId} {
+      allow read: if isLiarRoomMember(roomId);
+
+      allow create: if isLiarRoomMember(roomId)
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.type in ['play', 'challenge', 'next_round']
+        && request.resource.data.createdAt is number
+        && (
+          request.resource.data.type == 'play'
+            ? request.resource.data.cardIds is list
+              && request.resource.data.cardIds.size() >= 1
+              && request.resource.data.cardIds.size() <= 3
+            : true
+        )
+        && get(liarRoomPath(roomId)).data.gameState.turnUid == request.auth.uid;
+
+      allow update, delete: if isLiarRoomHost(roomId);
+    }
+
+    // LEADERBOARD GLOBAL UNO! CLUB
+    match /artifacts/{appId}/public/data/uno_leaderboard/{userId} {
+      allow read: if true;
+
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 0
+        && request.resource.data.name is string
+        && request.resource.data.matches is number
+        && request.resource.data.wins is number;
+
+      allow delete: if false;
+    }
+
+    // NOMBRES DE USUARIO ÚNICOS
+    match /artifacts/{appId}/public/data/uno_usernames/{usernameId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.normalized == usernameId;
+
+      allow update: if isSignedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.normalized == usernameId;
+
+      allow delete: if isSignedIn()
+        && resource.data.uid == request.auth.uid;
+    }
+
+    // PERFILES Y PROGRESO SINCRONIZADOS
+    match /artifacts/{appId}/users/{uid} {
+      allow read, write: if isSignedIn()
+        && request.auth.uid == uid;
+    }
+  }
+}
