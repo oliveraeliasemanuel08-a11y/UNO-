@@ -4363,54 +4363,94 @@
             scheduleBotTurnIfNeeded();
         }
 
-        async function resolveLiarDecision(challenge) {
-            const room = state.room, pending = room?.pendingLie;
-            if (!room || !pending || room.currentTurnSeat !== pending.targetSeatIndex) return;
-            const challenger = room.seats[pending.targetSeatIndex], liar = room.seats[pending.fromSeatIndex];
-            if (!challenger || !liar || (challenger.id !== currentUserId && !challenger.isBot)) return;
-            room.pendingLie = null;
-            const lied = pending.actualCard.color !== 'wild' && pending.actualCard.color !== pending.declaredColor;
-            if (challenge && lied) {
-                const at = room.discardPile.findIndex(c => c.id === pending.declaredCard.id);
-                if (at >= 0) room.discardPile.splice(at, 1);
-                liar.hand.push(pending.actualCard);
-                liar.lives = Math.max(0,Number(liar.lives??3)-1);
-                room.activeColor = pending.previousColor;
-                showToast('🚨 ¡MENTIRA DESCUBIERTA! '+liar.name+' pierde una vida ('+liar.lives+'/3).','success');
-                vfx.showCinemaCallout('¡FAROL DESCUBIERTO!','from-rose-500 via-white to-amber-400');
-            } else if (challenge && !lied) {
-                pending.declaredCard.faceDownDeclaration=false;
-                challenger.lives = Math.max(0,Number(challenger.lives??3)-1);
-                showToast('🛡️ ¡ERA VERDAD! '+challenger.name+' pierde una vida ('+challenger.lives+'/3).','danger');
-                vfx.showCinemaCallout('¡DESAFÍO FALLIDO!','from-amber-400 via-white to-rose-400');
-                room.liarRequiredColor=COLORS.filter(c=>c!==pending.declaredColor)[Math.floor(Math.random()*3)]||'red';
-                room.liarRequiredColor=COLORS.filter(c=>c!==pending.declaredColor)[Math.floor(Math.random()*3)]||'red';
-                if (liar.hand.length === 0) { await handlePlayerFinishedHand(liar.seatIndex); return; }
-                await applyCardEffectAndAdvanceTurn(liar.seatIndex,pending.declaredCard,false,pending.declaredColor,pending.previousColor);
-                return;
-            } else {
-                pending.declaredCard.faceDownDeclaration=false;
-                showToast('🤝 Declaración aceptada. La carta cuenta como jugada.','success');
-                if (liar.hand.length === 0) { await handlePlayerFinishedHand(liar.seatIndex); return; }
-                await applyCardEffectAndAdvanceTurn(liar.seatIndex,pending.declaredCard,false,pending.declaredColor,pending.previousColor);
-                return;
-            }
-            const eliminated=liar.lives<=0?liar:null;
-            const loser=challenge&&lied?liar:challenger;
-            if(loser.lives<=0){loser.finishRank=99;loser.hand=[];showToast('💀 '+loser.name+' quedó eliminado.','danger');}
-            const alive=room.seats.filter(s=>s&&s.id&&Number(s.lives)>0&&!s.finishRank);
-            if(alive.length<=1){
-                const champ=alive[0]||challenger;champ.finishRank=1;room.status='finished';
-                room.podium=[{seatIndex:champ.seatIndex,id:champ.id,name:champ.name,avatar:champ.avatar,team:champ.team,rank:1}];
-                awardMatchPointsIfNeeded(room,champ);sfx.playVictory();vfx.spawnVictoryConfetti();
-                showToast('🏆 ¡'+champ.name+' es el último superviviente!','success');
-                await syncRoomToCloud();return;
-            }
-            room.liarRequiredColor=COLORS.filter(c=>c!==pending.declaredColor)[Math.floor(Math.random()*3)]||'red';
-            room.currentTurnSeat=getNextSeatIndex(room,challenger.seatIndex,1);
-            room.turnStartedAt=Date.now();await syncRoomToCloud();scheduleBotTurnIfNeeded();
+        function chooseNextLiarColor(room, previousColor) {
+            const options = COLORS.filter(color => color !== previousColor);
+            room.liarRequiredColor = options[Math.floor(Math.random() * options.length)] || 'red';
         }
 
+        function eliminateLiarPlayer(seat) {
+            if (!seat || Number(seat.lives ?? 0) > 0) return false;
+            seat.lives = 0;
+            seat.finishRank = 99;
+            seat.hand = [];
+            seat.saidUno = false;
+            showToast('💀 ' + seat.name + ' quedó eliminado del UNO! MENTIROSO.', 'danger');
+            return true;
+        }
+
+        async function finishLiarMatchIfNeeded(room) {
+            const alive = room.seats.filter(s => s && s.id && !s.finishRank && Number(s.lives ?? 0) > 0);
+            if (alive.length > 1) return false;
+            const champion = alive[0];
+            if (champion) {
+                champion.finishRank = 1;
+                room.status = 'finished';
+                room.pendingLie = null;
+                room.podium = [{ seatIndex: champion.seatIndex, id: champion.id, name: champion.name, avatar: champion.avatar, team: champion.team, rank: 1 }];
+                awardMatchPointsIfNeeded(room, champion);
+                sfx.playVictory();
+                vfx.spawnVictoryConfetti();
+                showToast('🏆 ¡' + champion.name + ' es el último superviviente!', 'success');
+            } else {
+                room.status = 'finished';
+                room.pendingLie = null;
+                room.podium = [];
+                showToast('La partida terminó sin supervivientes.', 'warn');
+            }
+            await syncRoomToCloud();
+            return true;
+        }
+
+        async function resolveLiarDecision(challenge) {
+            const room = state.room;
+            const pending = room?.pendingLie;
+            if (!room || room.status !== 'playing' || !pending || room.currentTurnSeat !== pending.targetSeatIndex) return;
+            const challenger = room.seats[pending.targetSeatIndex];
+            const liar = room.seats[pending.fromSeatIndex];
+            if (!challenger || !liar) return;
+            const isLocalTarget = challenger.id === currentUserId || challenger.isBot;
+            const hostTakeover = room.hostId === currentUserId && Date.now() >= Number(pending.createdAt || room.turnStartedAt || Date.now()) + ((room.turnDuration || 20) * 1000) + 2000;
+            if (!isLocalTarget && !hostTakeover) return;
+            room.pendingLie = null;
+            const actualCard = pending.actualCard || {};
+            const lied = actualCard.color !== 'wild' && actualCard.color !== pending.declaredColor;
+            const loser = challenge ? (lied ? liar : challenger) : null;
+            if (challenge && lied) {
+                const discardIndex = room.discardPile.findIndex(c => c.id === pending.declaredCard?.id);
+                if (discardIndex >= 0) room.discardPile.splice(discardIndex, 1);
+                liar.hand.push(actualCard);
+                liar.lives = Math.max(0, Number(liar.lives ?? 3) - 1);
+                room.activeColor = pending.previousColor || room.activeColor;
+                sfx.playPenalty();
+                vfx.showCinemaCallout('¡FAROL DESCUBIERTO!', 'from-rose-500 via-white to-amber-400');
+                showToast('🚨 ¡MENTIRA! ' + liar.name + ' pierde una vida (' + liar.lives + '/3) y recupera su carta.', 'success');
+            } else {
+                if (pending.declaredCard) pending.declaredCard.faceDownDeclaration = false;
+                if (challenge) {
+                    challenger.lives = Math.max(0, Number(challenger.lives ?? 3) - 1);
+                    sfx.playPenalty();
+                    vfx.showCinemaCallout('¡DESAFÍO FALLIDO!', 'from-amber-400 via-white to-rose-400');
+                    showToast('🛡️ ¡La declaración era verdadera! ' + challenger.name + ' pierde una vida (' + challenger.lives + '/3).', 'danger');
+                } else {
+                    showToast('🤝 Declaración aceptada. La carta se revela y su efecto continúa.', 'success');
+                }
+            }
+            if (loser) eliminateLiarPlayer(loser);
+            chooseNextLiarColor(room, pending.declaredColor);
+            if (await finishLiarMatchIfNeeded(room)) return;
+            if (!(challenge && lied)) {
+                if (!liar.finishRank && liar.hand.length === 0) {
+                    await handlePlayerFinishedHand(liar.seatIndex);
+                    return;
+                }
+                await applyCardEffectAndAdvanceTurn(liar.seatIndex, { ...pending.declaredCard, faceDownDeclaration: false }, false, pending.declaredColor, pending.previousColor);
+                return;
+            }
+            room.currentTurnSeat = getNextSeatIndex(room, challenger.seatIndex, 1);
+            room.turnStartedAt = Date.now();
+            await syncRoomToCloud();
+            scheduleBotTurnIfNeeded();
+        }
         async function resolveStackPenalty() {
             const room = state.room;
             if (!room || !room.pendingStack) return;
@@ -4520,6 +4560,9 @@
                 lastTimeoutHandledTurnKey = turnTimeoutKey;
                 if (room.pendingStack && room.pendingStack.targetSeatIndex === activeSeat.seatIndex) {
                     await resolveStackPenalty();
+                } else if (room.pendingLie && room.pendingLie.targetSeatIndex === activeSeat.seatIndex) {
+                    // Si no responde a tiempo, se acepta la declaración para que la sala no quede bloqueada.
+                    await resolveLiarDecision(false);
                 } else if (room.pendingDraw4 && room.pendingDraw4.targetSeatIndex === activeSeat.seatIndex) {
                     await resolveDraw4Challenge(false);
                 } else if (state.comboChain && activeSeat.id === currentUserId) {
@@ -4557,9 +4600,16 @@
                 const bot = r.seats[r.currentTurnSeat];
                 if (!bot || !bot.isBot) return;
                 if (r.pendingLie && r.pendingLie.targetSeatIndex === bot.seatIndex) {
-                    const actual=r.pendingLie.actualCard;
-                    const challenge=actual&&actual.color!=='wild'&&actual.color!==r.pendingLie.declaredColor?Math.random()<0.82:Math.random()<0.12;
-                    await resolveLiarDecision(challenge);
+                    const pending = r.pendingLie;
+                    const actual = pending.actualCard;
+                    const isBluff = !!actual && actual.color !== 'wild' && actual.color !== pending.declaredColor;
+                    const liar = r.seats[pending.fromSeatIndex];
+                    const targetLives = Number(bot.lives ?? 3);
+                    const liarNearFinish = (liar?.hand?.length || 0) <= 2;
+                    let challengeChance;
+                    if (isBluff) challengeChance = 0.76 + (liarNearFinish ? 0.13 : 0) + (liar?.lives <= 1 ? 0.08 : 0);
+                    else challengeChance = targetLives <= 1 ? 0.015 : (liarNearFinish ? 0.10 : 0.045);
+                    await resolveLiarDecision(Math.random() < Math.min(0.97, challengeChance));
                     return;
                 }
 
@@ -4585,7 +4635,17 @@
 
                 const playable = r.gameMode === 'liar' ? [...bot.hand] : bot.hand.filter(c => canPlayCard(c, r, null));
                 if (playable.length > 0) {
-                    const chosen = r.competitiveMode ? chooseCompetitiveBotCard(bot,r,playable) : chooseCompetitiveBotCard(bot,r,playable,8);
+                    let chosen;
+                    if (r.gameMode === 'liar') {
+                        const truthful = playable.filter(c => c.color === r.liarRequiredColor || c.color === 'wild');
+                        const target = r.seats[getNextSeatIndex(r, bot.seatIndex, 1)];
+                        const underPressure = Number(bot.lives ?? 3) <= 1;
+                        const targetVulnerable = Number(target?.lives ?? 3) <= 1;
+                        const playTruth = truthful.length > 0 && (underPressure || Math.random() < (targetVulnerable ? 0.48 : 0.78));
+                        chosen = chooseCompetitiveBotCard(bot, r, playTruth ? truthful : playable, 8);
+                    } else {
+                        chosen = r.competitiveMode ? chooseCompetitiveBotCard(bot,r,playable) : chooseCompetitiveBotCard(bot,r,playable,8);
+                    }
                     // Elegir el color más abundante en su mano si es comodín
                     const counts = { red: 0, yellow: 0, green: 0, blue: 0 };
                     bot.hand.forEach(c => { if (counts[c.color] !== undefined) counts[c.color]++; });
@@ -4759,7 +4819,7 @@
             if (chaosInfo) chaosInfo.classList.toggle('hidden', room.gameMode !== 'chaos');
             const specialInfo = document.getElementById('specialModeInfo');
             if (specialInfo) {
-                const descriptions = { survival:'❤️ 3 vidas por jugador. Cada ronda, quien se queda sin cartas primero sobrevive; los demás pierden 1 vida. Con 0 vidas quedas eliminado. ¡Gana el último superviviente!', turbo:'⚡ Turnos de 8 segundos. Si se acaba el tiempo, robas automáticamente y pasa el turno.', liar:'🎭 Jugá UNO normal. Podés activar FAROL al jugar una carta numérica: declarás otra carta y el siguiente jugador decide aceptar o desafiar. Si te descubre, robás 4.', tactical:'⚔️ UNO normal con habilidades especiales. Cada poder tiene su propio enfriamiento en segundos y se recarga en tiempo real.', classic:'', chaos:'' };
+                const descriptions = { survival:'❤️ 3 vidas por jugador. Cada ronda, quien se queda sin cartas primero sobrevive; los demás pierden 1 vida. Con 0 vidas quedas eliminado. ¡Gana el último superviviente!', turbo:'⚡ Turnos de 8 segundos. Si se acaba el tiempo, robas automáticamente y pasa el turno.', liar:'🎭 Cada turno jugás una carta boca abajo y declarás el color obligatorio. El siguiente jugador puede CREER o DESAFIAR. Si descubre el farol, el mentiroso pierde una vida; si acusa mal, la pierde quien desafía. 3 vidas: gana el último en pie.', tactical:'⚔️ UNO normal con habilidades especiales. Cada poder tiene su propio enfriamiento en segundos y se recarga en tiempo real.', classic:'', chaos:'' };
                 specialInfo.textContent = descriptions[room.gameMode] || '';
                 specialInfo.classList.toggle('hidden', !descriptions[room.gameMode]);
             }
@@ -4882,10 +4942,12 @@
             const pending = room.pendingLie;
             if (room.gameMode === 'liar') {
                 if (pending && pending.targetSeatIndex === mySeat.seatIndex) {
-                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 ¡CARTA BOCA ABAJO!</b><p class="text-xs text-zinc-300 mt-1">Declaró <b class="text-white">'+String(pending.declaredColor||room.liarRequiredColor||'color').toUpperCase()+'</b>. ¿Le creés o lo desafiás?</p></div><div class="flex gap-2"><button data-lie-action="accept" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black">CREER</button><button data-lie-action="challenge" class="rounded-xl bg-rose-600 px-4 py-2 text-xs font-black">¡DESAFIAR!</button></div></div>';
+                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 ¡CARTA BOCA ABAJO!</b><p class="text-xs text-zinc-300 mt-1">El rival declaró <b class="text-white">'+String(pending.declaredColor||room.liarRequiredColor||'color').toUpperCase()+'</b>. ¿Le creés o lo desafiás?</p><p class="text-[10px] text-zinc-400 mt-1">Si acertás, pierde una vida. Si fallás, la perdés vos.</p></div><div class="flex gap-2"><button data-lie-action="accept" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-xs font-black">🤝 CREER</button><button data-lie-action="challenge" class="rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-black">🔥 DESAFIAR</button></div></div>';
+                } else if (pending) {
+                    panel.innerHTML='<div class="flex items-center justify-between gap-3"><div><b class="text-violet-200">🎭 DECLARACIÓN EN REVISIÓN</b><p class="text-xs text-zinc-300 mt-1">Esperando que '+escapeLeaderboardText(room.seats[pending.targetSeatIndex]?.name||'el siguiente jugador')+' decida si cree o desafía.</p></div><span class="text-amber-200 text-xs font-bold animate-pulse">⏳ ESPERANDO</span></div>';
                 } else {
-                    const alive=room.seats.filter(s=>s&&s.id&&s.lives>0&&!s.finishRank);
-                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 UNO! MENTIROSO · '+alive.length+' EN JUEGO</b><p class="text-xs text-zinc-300 mt-1">Color obligatorio: <b class="text-white">'+String(room.liarRequiredColor||'green').toUpperCase()+'</b> · Colocá una carta boca abajo y declaralo.</p></div><div class="text-right"><b class="text-rose-300 text-lg">❤️ '+(mySeat.lives??3)+'/3</b><p class="text-[10px] text-zinc-500">TUS VIDAS</p></div></div>';
+                    const alive=room.seats.filter(s=>s&&s.id&&Number(s.lives)>0&&!s.finishRank);
+                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 UNO! MENTIROSO · '+alive.length+' EN JUEGO</b><p class="text-xs text-zinc-300 mt-1">Color obligatorio: <b class="text-white">'+String(room.liarRequiredColor||'green').toUpperCase()+'</b> · Jugá una carta boca abajo y declaralo. Después podrán creerte o desafiarte.</p></div><div class="text-right"><b class="text-rose-300 text-lg">❤️ '+(mySeat.lives??3)+'/3</b><p class="text-[10px] text-zinc-500">TUS VIDAS</p></div></div>';
                 }
             } else {
                 const abilities=[
@@ -5096,7 +5158,7 @@
                             ${renderCustomAvatarSVG(opp.avatar, 'w-9 h-9 sm:w-10 sm:h-10')}
                             <div class="text-left">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${escapeLeaderboardText(opp.name)}</span>${renderPlayerRankBadge(opp.id)}${room.gameMode === 'survival' ? `<span class="text-[9px] font-black text-rose-300">${'❤️'.repeat(Math.max(0, Math.min(3, Number(opp.lives) || 0)))}</span>` : ''}
+                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${escapeLeaderboardText(opp.name)}</span>${renderPlayerRankBadge(opp.id)}${['survival','liar'].includes(room.gameMode) ? `<span class="text-[9px] font-black text-rose-300">${'❤️'.repeat(Math.max(0, Math.min(3, Number(opp.lives) || 0)))}</span>` : ''}
                                     ${opp.finishRank ? `<span class="text-[10px] font-black text-amber-300">#${opp.finishRank}</span>` : ''}
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
@@ -5118,7 +5180,7 @@
             document.getElementById('localPlayerAvatar').innerHTML = renderCustomAvatarSVG(mySeat.avatar, 'w-9 h-9');
             document.getElementById('localPlayerName').textContent = mySeat.name;
             const localRankBadge=document.getElementById('localPlayerRankBadge');if(localRankBadge)localRankBadge.innerHTML=renderPlayerRankBadge(mySeat.id);
-            document.getElementById('localCardCountText').textContent = room.gameMode === 'survival'
+            document.getElementById('localCardCountText').textContent = ['survival','liar'].includes(room.gameMode)
                 ? `${mySeat.finishRank ? '🏅 Eliminado' : mySeat.hand.length + (mySeat.hand.length === 1 ? ' carta' : ' cartas')} • ${'❤️'.repeat(Math.max(0, Math.min(3, Number(mySeat.lives) || 0)))}`
                 : (mySeat.finishRank ? `🏅 Puesto #${mySeat.finishRank}` : `${mySeat.hand.length} ${mySeat.hand.length === 1 ? 'carta' : 'cartas'}`);
 
@@ -6353,8 +6415,6 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         document.getElementById('gameModeChaosBtn').onclick = () => setRoomGameMode('chaos');
         document.getElementById('gameModeSurvivalBtn').onclick = () => setRoomGameMode('survival');
         document.getElementById('gameModeTurboBtn').onclick = () => setRoomGameMode('turbo');
-        document.getElementById('gameModeLiarBtn').onclick = () => setRoomGameMode('liar');
-        document.getElementById('gameModeTacticalBtn').onclick = () => setRoomGameMode('tactical');
         document.getElementById('gameModeLiarBtn').onclick = () => setRoomGameMode('liar');
         document.getElementById('gameModeTacticalBtn').onclick = () => setRoomGameMode('tactical');
 
