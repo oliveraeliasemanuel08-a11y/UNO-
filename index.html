@@ -1023,7 +1023,7 @@
             <section id="accountLinkPanel" class="mt-3 rounded-2xl border border-sky-300/25 bg-gradient-to-r from-sky-950/35 to-zinc-950 p-4">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="min-w-0"><div class="text-[10px] font-black tracking-[.18em] text-sky-300">🔐 PROTEGER MI PERFIL</div><h3 class="font-uno text-lg text-white">Guardá tu progreso</h3><p id="accountLinkStatus" class="text-[11px] text-zinc-400">Tu perfil actual es anónimo. Vinculá Google para recuperarlo en otros dispositivos.</p></div>
-                <button id="btnLinkGoogleAccount" type="button" class="shrink-0 rounded-xl border border-sky-300/30 bg-sky-400 px-4 py-2.5 text-xs font-extrabold text-zinc-950 hover:bg-sky-300">Vincular con Google</button>
+                <div class="flex flex-wrap gap-2"><button id="btnLinkGoogleAccount" type="button" class="shrink-0 rounded-xl border border-sky-300/30 bg-sky-400 px-4 py-2.5 text-xs font-extrabold text-zinc-950 hover:bg-sky-300">Vincular con Google</button><button id="btnSignInGoogleAccount" type="button" class="shrink-0 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-extrabold text-white">Ingresar con Google</button></div>
               </div>
             </section>
 
@@ -1780,7 +1780,7 @@
     <!-- ========================================================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, linkWithPopup, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, runTransaction, serverTimestamp, getDocs, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
@@ -1969,6 +1969,8 @@
         let authInitPromise = null;
         let unsubscribePublicRooms = null;
         let unsubscribeLeaderboard = null;
+        let clubProfileSyncTimer = null;
+        let clubProfileApplyingCloud = false;
         const competitiveProfiles = new Map();
         let competitiveQueueUnsub=null,competitiveSearchInterval=null,competitiveSearchStartedAt=0,competitiveAutoStartLock=false;
         let selectedCompetitiveSeats=Number(localStorage.getItem('uno_competitive_format')||2);
@@ -2136,7 +2138,9 @@
             currentUser = auth.currentUser;
             currentUserId = currentUser.uid;
             firebaseReady = true;
+            if (isGoogleAccountLinked()) await loadClubProfileCloud();
             updatePlayerIdDisplay();
+            renderAccountLinkStatus();
 
             updateOnlineBadgeUI('connected', currentUserId);
             startPublicRoomsListener();
@@ -2155,6 +2159,41 @@
 
     return authInitPromise;
 }
+
+        // El progreso se sincroniza en la nube solo cuando la sesión está vinculada a Google.
+        function isGoogleAccountLinked(){return !!currentUser?.providerData?.some(p=>p.providerId==='google.com');}
+        function clubProfileRef(uid=currentUserId){return doc(db,'artifacts',appId,'users',uid);}
+        function snapshotClubLocalStorage(){
+          const data={};
+          for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key||key.startsWith('firebase:')||key.startsWith('google:'))continue;data[key]=localStorage.getItem(key);}
+          return data;
+        }
+        async function saveClubProfileCloud(){
+          if(!db||!currentUser||!isGoogleAccountLinked()||clubProfileApplyingCloud)return false;
+          try{const localData=snapshotClubLocalStorage();const diamonds=Math.max(0,Number(localStorage.getItem('uno_club_diamonds')||0));
+            await setDoc(clubProfileRef(),{uid:currentUser.uid,diamonds,localStorage:localData,updatedAt:Date.now()},{merge:true});return true;
+          }catch(err){console.warn('Sincronización de perfil:',err);return false;}
+        }
+        async function loadClubProfileCloud(){
+          if(!db||!currentUser||!isGoogleAccountLinked())return false;
+          try{const snap=await getDoc(clubProfileRef());if(!snap.exists()){await saveClubProfileCloud();return true;}
+            const saved=snap.data()?.localStorage||{};clubProfileApplyingCloud=true;
+            try{Object.entries(saved).forEach(([key,value])=>{if(typeof value==='string')localStorage.setItem(key,value);});}
+            finally{clubProfileApplyingCloud=false;}return true;
+          }catch(err){console.warn('Carga de perfil Google:',err);return false;}
+        }
+        function scheduleClubProfileCloudSync(){
+          if(!isGoogleAccountLinked()||clubProfileApplyingCloud)return;
+          clearTimeout(clubProfileSyncTimer);clubProfileSyncTimer=setTimeout(()=>saveClubProfileCloud(),700);
+        }
+        if(!window.__unoClubStorageSyncInstalled){
+          window.__unoClubStorageSyncInstalled=true;
+          const originalSetItem=Storage.prototype.setItem;
+          Storage.prototype.setItem=function(key,value){originalSetItem.call(this,key,value);if(this===localStorage)scheduleClubProfileCloudSync();};
+          const originalRemoveItem=Storage.prototype.removeItem;
+          Storage.prototype.removeItem=function(key){originalRemoveItem.call(this,key);if(this===localStorage)scheduleClubProfileCloudSync();};
+        }
+
         function renderAccountLinkStatus() {
             const status = document.getElementById('accountLinkStatus');
             const button = document.getElementById('btnLinkGoogleAccount');
@@ -2192,12 +2231,18 @@
                 const result = await linkWithPopup(auth.currentUser, provider);
                 currentUser = result.user;
                 currentUserId = result.user.uid;
+                await saveClubProfileCloud();
                 renderAccountLinkStatus();
-                showToast('✅ Google vinculado. Tu perfil conserva el mismo identificador.', 'success');
+                showToast('✅ Google vinculado. Tu progreso se guarda en la nube.', 'success');
             } catch (err) {
                 console.error('Error vinculando Google:', err);
                 if (err.code === 'auth/credential-already-in-use' || err.code === 'auth/email-already-in-use') {
-                    showToast('Ese Google ya pertenece a otra cuenta. No se fusionaron perfiles para evitar perder progreso.', 'warn');
+                    try {
+                        const signed = await signInWithPopup(auth, provider);
+                        currentUser = signed.user; currentUserId = signed.user.uid;
+                        await loadClubProfileCloud(); renderAccountLinkStatus();
+                        showToast('Entraste con tu Google existente. Recuperamos tu progreso guardado.', 'success');
+                    } catch (signErr) { console.warn('Inicio Google existente:',signErr); showToast('No se pudo entrar a esa cuenta de Google.', 'warn'); }
                 } else if (err.code === 'auth/popup-closed-by-user') {
                     showToast('Cerraste la ventana de Google antes de terminar.', 'warn');
                 } else if (err.code === 'auth/operation-not-allowed') {
@@ -5644,6 +5689,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         };
 
         document.getElementById('btnLinkGoogleAccount')?.addEventListener('click', linkGoogleAccount);
+        document.getElementById('btnSignInGoogleAccount')?.addEventListener('click',async()=>{try{await initFirebase();const result=await signInWithPopup(auth,new GoogleAuthProvider());currentUser=result.user;currentUserId=result.user.uid;await loadClubProfileCloud();renderAccountLinkStatus();updatePlayerIdDisplay();showToast('¡Bienvenido! Tu progreso se recuperó desde Google.','success');}catch(e){console.error(e);showToast('No se pudo iniciar sesión con Google.','warn');}});
         document.getElementById('modeTeamsBtn').onclick = async () => {
             if (!state.room || state.room.hostId !== currentUserId) return;
             state.room.teamMode = true;
