@@ -1491,10 +1491,10 @@
     <section id="arcadeScreen" class="hidden fixed inset-0 z-[65] overflow-y-auto arcade-screen p-3 sm:p-6">
       <div class="max-w-6xl mx-auto">
         <header class="flex items-center justify-between gap-3 mb-6">
-          <div><div class="text-[10px] tracking-[.3em] text-emerald-300 font-black">UNO! CLUB ARCADE</div><h2 class="font-uno text-3xl sm:text-4xl font-black">Modos especiales</h2><p class="text-xs text-zinc-400 mt-1">Tres juegos nuevos, cada uno con sus propias reglas.</p></div>
+          <div><div class="text-[10px] tracking-[.3em] text-emerald-300 font-black">UNO! CLUB ARCADE</div><h2 class="font-uno text-3xl sm:text-4xl font-black">Modos especiales</h2><p class="text-xs text-zinc-400 mt-1">Juegos especiales del club, cada uno con sus propias reglas.</p></div>
           <button id="arcadeBackHome" class="arcade-action">← Menú principal</button>
         </header>
-        <div id="arcadeModeMenu" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div id="arcadeModeMenu" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <article class="arcade-card p-5 flex flex-col">
             <div class="text-5xl mb-3">♠️</div><div class="text-[10px] font-black tracking-widest text-amber-300">TEXAS HOLD’EM 3D</div><h3 class="font-uno text-2xl mt-1">UNO HOLD'EM POKER 3D</h3>
             <p class="text-sm text-zinc-400 mt-2 flex-1">Texas Hold’em clásico en una mesa 3D: baraja francesa de 52 cartas, dos cartas privadas, cinco comunitarias y showdown. La economía y las apuestas se ajustarán en una próxima actualización.</p>
@@ -1509,7 +1509,17 @@
             <div class="text-5xl mb-3">🏠</div><div class="text-[10px] font-black tracking-widest text-sky-300">CLÁSICO ARGENTINO</div><h3 class="font-uno text-2xl mt-1">UNO! ROBADO</h3>
             <p class="text-sm text-zinc-400 mt-2 flex-1">Inspirado en la Casita Robada: capturá cartas del centro y robá la casita rival igualando el valor de su carta superior.</p>
             <div class="flex items-center justify-between mt-5"><span class="text-xs text-sky-200">🃏 Capturá y acumulá</span><button data-arcade-menu="robado" class="arcade-action border-sky-400/40 text-sky-200">Abrir menú →</button></div>
-          <article class="arcade-card p-5 flex flex-col"><div class="text-5xl mb-3">🎭</div><div class="text-[10px] font-black tracking-widest text-violet-300">BLUFF · MESA 3D</div><h3 class="font-uno text-2xl mt-1">UNO! MENTIROSO 3D</h3><p class="text-sm text-zinc-400 mt-2 flex-1">La versión original adjunta: mesa 3D, faroles, sospechas y rivales IA desconfiados.</p><button data-standalone-game="el_mentiroso_uno_3d_ia_desconfiada.html" data-standalone-title="UNO! MENTIROSO 3D" class="arcade-action mt-4 border-violet-400/40 text-violet-200">Jugar juego original →</button></article></article><article class="arcade-card p-5 flex flex-col"><div class="text-5xl mb-3">🃏</div><div class="text-[10px] font-black tracking-widest text-fuchsia-300">CARTAS COLECCIONABLES</div><h3 class="font-uno text-2xl mt-1">UNO! TCG</h3><p class="text-sm text-zinc-400 mt-2 flex-1">Coleccioná cartas, armá tu mazo y entrá al campo de batalla Pokémon TCG.</p><button id="btnOpenTCGFromArcade" type="button" class="arcade-action mt-4 w-full">Abrir TCG →</button></article>
+          </article>
+          <article class="arcade-card p-5 flex flex-col">
+            <div class="text-5xl mb-3">🎭</div><div class="text-[10px] font-black tracking-widest text-violet-300">BLUFF · MESA 3D</div><h3 class="font-uno text-2xl mt-1">UNO! MENTIROSO 3D</h3>
+            <p class="text-sm text-zinc-400 mt-2 flex-1">La versión original 3D: faroles, sospechas y rivales IA desconfiados.</p>
+            <button data-standalone-game="el_mentiroso_uno_3d_ia_desconfiada.html" data-standalone-title="UNO! MENTIROSO 3D" class="arcade-action mt-4 border-violet-400/40 text-violet-200">Jugar UNO! MENTIROSO 3D →</button>
+          </article>
+          <article class="arcade-card p-5 flex flex-col">
+            <div class="text-5xl mb-3">🃏</div><div class="text-[10px] font-black tracking-widest text-fuchsia-300">CARTAS COLECCIONABLES</div><h3 class="font-uno text-2xl mt-1">UNO! TCG</h3>
+            <p class="text-sm text-zinc-400 mt-2 flex-1">Coleccioná cartas, armá tu mazo y entrá al campo de batalla Pokémon TCG.</p>
+            <button id="btnOpenTCGFromArcade" type="button" class="arcade-action mt-4 w-full">Abrir TCG →</button>
+          </article>
         </div>
         <section id="arcadeModeSetup" class="hidden arcade-card p-5 mt-4">
           <button id="arcadeSetupBack" class="text-xs text-zinc-400 mb-3">← Volver a los modos</button>
@@ -1596,7 +1606,7 @@
             <div class="py-4 border-b border-white/10">
                 <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5">
                     <div class="flex flex-wrap items-center justify-between gap-3"><div><span class="block text-xs font-extrabold text-fuchsia-300">🎲 Modo de juego</span><span id="gameModeHint" class="block text-[11px] text-zinc-400">UNO CAOS solo está disponible online.</span></div>
-                    <div class="flex flex-wrap gap-2"><button id="gameModeClassicBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🃏 Clásico</button><button id="gameModeChaosBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">💥 Caos</button><button id="gameModeSurvivalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">❤️ Supervivencia</button><button id="gameModeTurboBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚡ Turbo</button><button id="gameModeLiarBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🎭 Mentiroso</button><button id="gameModeTacticalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚔️ Táctico</button></div></div>
+                    <div class="flex flex-wrap gap-2"><button id="gameModeClassicBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🃏 Clásico</button><button id="gameModeChaosBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">💥 Caos</button><button id="gameModeSurvivalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">❤️ Supervivencia</button><button id="gameModeTurboBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚡ Turbo</button><button id="gameModeTacticalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚔️ Táctico</button></div></div>
                     <p id="chaosModeInfo" class="hidden mt-3 text-[11px] text-fuchsia-200 bg-fuchsia-950/40 border border-fuchsia-400/20 rounded-xl p-2.5">Cartas especiales, +99 ultra rara y mazo que se repone automáticamente sin límite.</p><p id="specialModeInfo" class="hidden mt-2 text-[11px] text-emerald-200 bg-emerald-950/40 border border-emerald-400/20 rounded-xl p-2.5"></p><div class="mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-300/20 bg-amber-950/20 p-3"><div><b class="block text-xs text-amber-200">🏆 Modo Competitivo Online</b><span class="text-[11px] text-zinc-400">Ranking individual: +30 al ganar, +12 segundo, +2 tercero y -12 restantes.</span></div><button id="competitiveModeBtn" type="button" class="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-extrabold text-zinc-300">Activar competitivo</button></div>
                 </div>
             </div>
