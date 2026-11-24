@@ -2278,14 +2278,14 @@
                 const claimIndex = gs.lastClaim ? gs.players.findIndex(p => p.uid === gs.lastClaim.playerUid) : -1;
                 game.lastClaim = claimIndex >= 0 ? { playerIndex: claimIndex, cards: gs.revealedCards || [], meshes: [], count: gs.lastClaim.count } : null;
                 tableCardMeshes.forEach(m => tableObjectsGroup.remove(m)); tableCardMeshes.length = 0; activeAnimations.length = 0;
-                const revealed = gs.phase === "RESOLVING" && Array.isArray(gs.revealedCards) ? gs.revealedCards : [];
+                const revealed = (gs.phase === "RESOLVING" || gs.phase === "ROUND_END") && Array.isArray(gs.revealedCards) ? gs.revealedCards : [];
                 const hiddenCount = Math.max(0, (gs.pileCount || 0) - revealed.length);
                 for (let i = 0; i < hiddenCount; i++) { const mesh = createCard3D(target, false, new THREE.Vector3(((i % 7) - 3) * 0.16, 0.18 + i * 0.006, 0.1 + (i % 3) * 0.05)); mesh.rotation.y = (i % 5) * 0.08; }
                 revealed.forEach((card, i) => { const type = CARD_TYPES.find(c => c.id === card.id) || WILD_TYPE; createCard3D(type, true, new THREE.Vector3((i - (revealed.length - 1) / 2) * 0.85, 0.48, 0.2)); });
                 game.crystalMeshes.forEach((arr, idx) => arr.forEach((mesh, n) => { const alive = n < (game.players[idx]?.lives || 0); mesh.visible = alive; }));
                 updateAllSeatsUI();
                 const claimText = document.getElementById("last-claim-text");
-                if (claimText) claimText.textContent = game.lastClaim ? (game.players[game.lastClaim.playerIndex].name + ': "Juego " + game.lastClaim.count + " carta(s) de " + target.label + '"') : "Mesa vacía — Inicia la ronda";
+                if (claimText) claimText.textContent = game.lastClaim ? (game.players[game.lastClaim.playerIndex].name + ': "Juego ' + game.lastClaim.count + ' carta(s) de ' + target.label + '"') : 'Mesa vacía — Inicia la ronda';
                 if (gs.phase === "TURN") { document.getElementById("round-next-bar").classList.add("hidden"); document.getElementById("player-action-bar").classList.remove("hidden"); window.beginTurn(); }
                 else { handRigGroup.visible = false; disableHumanControls(); document.getElementById("player-action-bar").classList.add("hidden"); }
                 if (gs.phase === "RESOLVING") showBanner("🚨 ¡DESAFÍO EN CURSO!", "Revelando las cartas de la última jugada…", true);
