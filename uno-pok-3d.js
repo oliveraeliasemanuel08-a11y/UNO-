@@ -26,6 +26,15 @@ function setup(){
  try{
  scene=new THREE.Scene();scene.background=new THREE.Color(0x06100e);scene.fog=new THREE.Fog(0x06100e,18,38);camera=new THREE.PerspectiveCamera(35,stage.clientWidth/Math.max(1,stage.clientHeight),.1,80);camera.position.set(0,10.8,12.4);camera.lookAt(0,.1,0);
  renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(stage.clientWidth,stage.clientHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;stage.prepend(renderer.domElement);
+ let orbit=0,zoom=1,drag=null;
+ renderer.domElement.style.cursor='grab';
+ renderer.domElement.style.touchAction='pan-y';
+ renderer.domElement.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,id:e.pointerId};renderer.domElement.style.cursor='grabbing';try{renderer.domElement.setPointerCapture(e.pointerId);}catch(_){}});
+ renderer.domElement.addEventListener('pointermove',e=>{if(!drag)return;orbit+=(e.clientX-drag.x)*.006;zoom=Math.max(.82,Math.min(1.22,zoom+(e.clientY-drag.y)*.002));drag.x=e.clientX;drag.y=e.clientY;camera.position.set(Math.sin(orbit)*12.4*zoom,10.8*zoom,Math.cos(orbit)*12.4*zoom);camera.lookAt(0,.1,0);});
+ const releaseDrag=()=>{drag=null;renderer?.domElement&&(renderer.domElement.style.cursor='grab');};
+ renderer.domElement.addEventListener('pointerup',releaseDrag);renderer.domElement.addEventListener('pointercancel',releaseDrag);
+ renderer.domElement.addEventListener('wheel',e=>{zoom=Math.max(.82,Math.min(1.22,zoom+e.deltaY*.0007));camera.position.set(Math.sin(orbit)*12.4*zoom,10.8*zoom,Math.cos(orbit)*12.4*zoom);camera.lookAt(0,.1,0);e.preventDefault();},{passive:false});
+
  scene.add(new THREE.AmbientLight(0xd5e7dc,.8));const key=new THREE.DirectionalLight(0xffe9bf,2.3);key.position.set(-4,12,7);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);const glow=new THREE.PointLight(0x00d4a0,1.2,20);glow.position.set(5,4,-4);scene.add(glow);const red=new THREE.PointLight(0xff3355,.8,18);red.position.set(-6,3,1);scene.add(red);
  const floor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshStandardMaterial({color:0x050a0c,roughness:.85}));floor.rotation.x=-Math.PI/2;floor.position.y=-.9;scene.add(floor);const table=new THREE.Group();
  const base=new THREE.Mesh(new THREE.CylinderGeometry(4.8,4.8,.48,80),new THREE.MeshStandardMaterial({color:0x171b20,roughness:.3,metalness:.5}));base.scale.set(1,.95,.66);base.position.y=-.02;base.castShadow=true;base.receiveShadow=true;table.add(base);
