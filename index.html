@@ -2048,7 +2048,7 @@
           try{
             await createNewRoom(true,true,false,true);if(!state.room||!state.room.competitiveMode)throw new Error('No se pudo crear la cola.');
             const roomsRef=collection(db,'artifacts',appId,'public','data','uno_rooms');
-            competitiveQueueUnsub=onSnapshot(roomsRef,snapshot=>{
+            competitiveQueueUnsub=onSnapshot(query(roomsRef,where('status','==','lobby')),snapshot=>{
               const own=state.room;if(!own||!own.competitiveMode||own.status!=='lobby')return;
               const humans=(own.seats||[]).filter(x=>x&&x.id&&!x.isBot);
               if(humans.length>=own.maxSeats){set('competitiveSearchTitle','¡Mesa completa!');set('competitiveSearchStatus','La partida está comenzando.');set('competitiveSearchFound',humans.length+' jugadores reales encontrados.');closeCompetitiveSearch();return;}
@@ -2180,7 +2180,7 @@
           try{const snap=await getDoc(clubProfileRef());if(!snap.exists()){await saveClubProfileCloud();return true;}
             const saved=snap.data()?.localStorage||{};clubProfileApplyingCloud=true;
             try{Object.entries(saved).forEach(([key,value])=>{if(typeof value==='string')localStorage.setItem(key,value);});}
-            finally{clubProfileApplyingCloud=false;}return true;
+            finally{clubProfileApplyingCloud=false;}updatePlusWalletUI?.();renderCompetitiveRank?.();renderClubProgressHub?.();return true;
           }catch(err){console.warn('Carga de perfil Google:',err);return false;}
         }
         function scheduleClubProfileCloudSync(){
@@ -5489,6 +5489,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         }
         async function arcadeOnlineLeave(goMenu=true){
           const code=arcadeOnline.code,room=arcadeOnline.room;
+          if(room?.arcadeMode==='poker'&&room.status==='finished')await settlePokerDiamonds(room);
           if(arcadeOnline.unsubscribe){arcadeOnline.unsubscribe();arcadeOnline.unsubscribe=null;}
           arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.selectedCard=null;
           if(code&&room&&db&&currentUserId){try{const ref=arcadeOnlineRef(code);await runTransaction(db,async tx=>{
