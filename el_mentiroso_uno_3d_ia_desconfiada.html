@@ -997,4 +997,1223 @@
 
             game.players.forEach((p, idx) => {
                 const st = game.seatPositions[idx];
-                const theme = themes[idx % themes.length];
+                const theme = themes[idx % themes.length];                const charRoot = new THREE.Group();
+
+                // Posicionar detrás del borde de la mesa
+                const seatCharPos = new THREE.Vector3(
+                    Math.cos(st.angle) * 6.05,
+                    0.1,
+                    Math.sin(st.angle) * 6.05
+                );
+                charRoot.position.copy(seatCharPos);
+                charRoot.lookAt(0, 0.1, 0);
+
+                // Cuerpo / hombros
+                const torsoMat = new THREE.MeshStandardMaterial({ color: theme.body, roughness: 0.45, metalness: 0.15 });
+                const torso = createCapsuleMesh(0.46, 0.72, torsoMat);
+                torso.position.y = 0.75;
+                torso.traverse(child => {
+                    if (child.isMesh) child.castShadow = true;
+                });
+                charRoot.add(torso);
+
+                // Cabeza
+                const headGroup = new THREE.Group();
+                headGroup.position.y = 1.65;
+                const skinMat = new THREE.MeshStandardMaterial({ color: 0xf1c29b, roughness: 0.55 });
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 20, 20), skinMat);
+                head.castShadow = true;
+                headGroup.add(head);
+
+                // Ojos / visor expresivo mirando hacia la mesa (+Z local)
+                const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+                const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 10), eyeMat);
+                leftEye.position.set(-0.13, 0.04, 0.34);
+                const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 10), eyeMat);
+                rightEye.position.set(0.13, 0.04, 0.34);
+                headGroup.add(leftEye, rightEye);
+
+                // Brazos y cuello para mayor presencia y expresividad en mesa
+                const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.2, 12), skinMat);
+                neck.position.y = 1.28;
+                charRoot.add(neck);
+
+                const leftArm = createCapsuleMesh(0.11, 0.48, torsoMat);
+                leftArm.position.set(-0.56, 0.78, 0.14);
+                leftArm.rotation.set(0.65, 0, -0.28);
+                leftArm.traverse(m => { if (m.isMesh) m.castShadow = true; });
+
+                const rightArm = createCapsuleMesh(0.11, 0.48, torsoMat);
+                rightArm.position.set(0.56, 0.78, 0.14);
+                rightArm.rotation.set(0.65, 0, 0.28);
+                rightArm.traverse(m => { if (m.isMesh) m.castShadow = true; });
+
+                const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.125, 12, 12), skinMat);
+                leftHand.position.set(-0.66, 0.56, 0.34);
+                const rightHand = new THREE.Mesh(new THREE.SphereGeometry(0.125, 12, 12), skinMat);
+                rightHand.position.set(0.66, 0.56, 0.34);
+                charRoot.add(leftArm, rightArm, leftHand, rightHand);
+
+                // Accesorios distintivos por personaje
+                const accMat = new THREE.MeshStandardMaterial({ color: theme.accent, roughness: 0.3, metalness: 0.35 });
+                if (theme.hat === 'crown') {
+                    const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.18, 0.24, 6), accMat);
+                    crown.position.y = 0.42;
+                    headGroup.add(crown);
+                } else if (theme.hat === 'visor') {
+                    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.13, 0.14), accMat);
+                    visor.position.set(0, 0.08, 0.33);
+                    headGroup.add(visor);
+                } else if (theme.hat === 'hood') {
+                    const hood = new THREE.Mesh(new THREE.ConeGeometry(0.44, 0.48, 14), torsoMat);
+                    hood.position.set(0, 0.32, -0.04);
+                    headGroup.add(hood);
+                } else {
+                    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.34, 0.16, 16), accMat);
+                    cap.position.set(0, 0.34, 0.04);
+                    headGroup.add(cap);
+                }
+
+                charRoot.add(headGroup);
+                charactersGroup.add(charRoot);
+
+                characterRigs.push({
+                    root: charRoot,
+                    head: headGroup,
+                    leftArm,
+                    rightArm,
+                    basePos: seatCharPos.clone(),
+                    reactionType: null,
+                    reactionTimer: 0
+                });
+            });
+        }
+
+        function triggerCharacterReaction(playerId, reactionType, duration = 1.5) {
+            const rig = characterRigs[playerId];
+            if (!rig) return;
+            rig.reactionType = reactionType;
+            rig.reactionTimer = duration;
+        }
+
+        function spawnLifeShatterParticles(originPos, colorHex = 0xff2a55) {
+            const shardGeo = new THREE.TetrahedronGeometry(0.09, 0);
+            const shardMat = new THREE.MeshBasicMaterial({ color: colorHex });
+            for (let i = 0; i < 18; i++) {
+                const mesh = new THREE.Mesh(shardGeo, shardMat);
+                mesh.position.copy(originPos);
+                particlesGroup.add(mesh);
+                particles.push({
+                    mesh,
+                    vel: new THREE.Vector3(
+                        (Math.random() - 0.5) * 4.5,
+                        1.8 + Math.random() * 3.8,
+                        (Math.random() - 0.5) * 4.5
+                    ),
+                    life: 1.0
+                });
+            }
+        }
+
+        function setCameraView(mode) {
+            document.querySelectorAll('.cam-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('text-slate-300');
+            });
+            const activeBtn = document.getElementById(`cam-${mode}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-indigo-600', 'text-white');
+                activeBtn.classList.remove('text-slate-300');
+            }
+
+            camOrbit = { x: 0, y: 0 };
+            if (mode === 'overview') {
+                cameraTargetPos.set(0, 4.35, 6.35);
+                cameraTargetLook.set(0, 1.05, 0.35);
+            } else if (mode === 'hand') {
+                cameraTargetPos.set(0, 2.35, 4.55);
+                cameraTargetLook.set(0, 1.45, 2.2);
+            } else if (mode === 'center') {
+                cameraTargetPos.set(0, 3.65, 3.45);
+                cameraTargetLook.set(0, 0.25, 0.05);
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function createCard3D(cardType, faceUp = false, startPos = new THREE.Vector3(0, 1.5, 4)) {
+            const geo = new THREE.BoxGeometry(0.92, 0.018, 1.36);
+            const edgeMat = new THREE.MeshStandardMaterial({ color: 0xf6efe2, roughness: 0.4 });
+            const frontMat = new THREE.MeshStandardMaterial({ map: getCardFrontTexture(cardType), roughness: 0.28 });
+            const backMat = new THREE.MeshStandardMaterial({ map: getCardBackTexture(), roughness: 0.32 });
+
+            const mesh = new THREE.Mesh(geo, [edgeMat, edgeMat, frontMat, backMat, edgeMat, edgeMat]);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.position.copy(startPos);
+            mesh.rotation.set(0, 0, faceUp ? 0 : Math.PI);
+            mesh.userData = { cardType, faceUp };
+
+            tableObjectsGroup.add(mesh);
+            tableCardMeshes.push(mesh);
+            return mesh;
+        }
+
+        function animateMeshTo(mesh, endPos, endRot, faceUp, delay = 0, duration = 0.45) {
+            const finalRotZ = faceUp ? 0 : Math.PI;
+            activeAnimations.push({
+                mesh,
+                startPos: mesh.position.clone(),
+                endPos: endPos.clone(),
+                startRot: new THREE.Vector3(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z),
+                endRot: new THREE.Vector3(endRot.x, endRot.y, finalRotZ),
+                progress: 0,
+                duration,
+                delay
+            });
+            mesh.userData.faceUp = faceUp;
+        }
+
+        function rebuild3DHandFan() {
+            handCardMeshes.forEach(m => handRigGroup.remove(m));
+            handCardMeshes.length = 0;
+            hoveredHandIndex = -1;
+            lastHoveredCueIdx = -1;
+
+            const active = game.players[game.turnIndex];
+            const showHand = game.phase === 'TURN' && active && active.isHuman && !active.eliminated;
+            handRigGroup.visible = showHand;
+            updateSelected3DStrip();
+            if (!showHand) return;
+
+            const count = active.hand.length;
+            const spacingX = count > 5 ? 0.44 : 0.52;
+
+            active.hand.forEach((card, idx) => {
+                const geo = new THREE.BoxGeometry(0.54, 0.78, 0.02);
+                const edgeMat = new THREE.MeshStandardMaterial({ color: 0xf6efe2, roughness: 0.4 });
+                const sideMat = new THREE.MeshStandardMaterial({ color: 0xf6efe2, roughness: 0.4 });
+                const frontMat = new THREE.MeshStandardMaterial({
+                    map: getCardFrontTexture(card),
+                    roughness: 0.22,
+                    emissive: 0x000000,
+                    emissiveIntensity: 0
+                });
+                const backMat = new THREE.MeshStandardMaterial({ map: getCardBackTexture(), roughness: 0.32 });
+
+                // En BoxGeometry(w, h, d), la cara +Z es la frontal y -Z es la trasera:
+                // colocamos frontMat en +Z (índice 4) y backMat en -Z (índice 5)
+                const mesh = new THREE.Mesh(geo, [edgeMat, edgeMat, sideMat, sideMat, frontMat, backMat]);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+
+                // Abanico horizontal de frente hacia la cámara (+Z apunta hacia el jugador)
+                const centerOffset = idx - (count - 1) / 2;
+                const tiltZ = -centerOffset * 0.06;
+                const basePos = new THREE.Vector3(
+                    centerOffset * spacingX,
+                    -0.08 - Math.abs(centerOffset) * 0.02,
+                    0
+                );
+                const baseRot = new THREE.Euler(-0.12, centerOffset * 0.04, tiltZ);
+
+                mesh.position.copy(basePos);
+                mesh.rotation.copy(baseRot);
+                mesh.userData = { cardIndex: idx, basePos, baseRot };
+
+                handRigGroup.add(mesh);
+                handCardMeshes.push(mesh);
+            });
+        }
+
+        function handle3DCardClick(clientX, clientY) {
+// ... existing code ... -->
+            updatePointerNDC(clientX, clientY);
+            raycaster.setFromCamera(pointerNDC, camera);
+            const hits = raycaster.intersectObjects(handCardMeshes, false);
+            if (hits.length > 0) {
+                const idx = hits[0].object.userData.cardIndex;
+                if (typeof idx === 'number') {
+                    toggleCardSelection(idx);
+                }
+            }
+        }
+
+        function update3DHandHoverAndSelection(elapsed) {
+            if (!handRigGroup.visible || handCardMeshes.length === 0) return;
+
+            raycaster.setFromCamera(pointerNDC, camera);
+            const hits = raycaster.intersectObjects(handCardMeshes, false);
+            hoveredHandIndex = hits.length > 0 ? hits[0].object.userData.cardIndex : -1;
+
+            if (hoveredHandIndex !== -1 && hoveredHandIndex !== lastHoveredCueIdx) {
+                lastHoveredCueIdx = hoveredHandIndex;
+                sfx.playCardSlap();
+            } else if (hoveredHandIndex === -1) {
+                lastHoveredCueIdx = -1;
+            }
+
+            handCardMeshes.forEach((mesh, idx) => {
+                const { basePos, baseRot } = mesh.userData;
+                const isSelected = game.selectedIndices.includes(idx);
+                const isHovered = idx === hoveredHandIndex;
+
+                let liftY = 0;
+                let liftZ = 0;
+                let tiltX = baseRot.x;
+
+                if (isSelected) {
+                    liftY = 0.2 + Math.sin(elapsed * 5) * 0.018;
+                    liftZ = -0.16;
+                    tiltX = baseRot.x - 0.12;
+                } else if (isHovered) {
+                    liftY = 0.12;
+                    liftZ = -0.12;
+                    tiltX = baseRot.x - 0.08;
+                }
+
+                const targetP = new THREE.Vector3(basePos.x, basePos.y + liftY, basePos.z + liftZ);
+                mesh.position.lerp(targetP, 0.22);
+                mesh.rotation.x = THREE.MathUtils.lerp(mesh.rotation.x, tiltX, 0.22);
+
+                const frontMat = mesh.material[2];
+                if (isSelected) {
+                    frontMat.emissive.setHex(0xffb703);
+                    frontMat.emissiveIntensity = 0.42;
+                } else if (isHovered) {
+                    frontMat.emissive.setHex(0x38bdf8);
+                    frontMat.emissiveIntensity = 0.24;
+                } else {
+                    frontMat.emissiveIntensity = 0;
+                }
+            });
+        }
+
+        function updateSelected3DStrip() {
+            const strip = document.getElementById('selected-3d-strip');
+            const chips = document.getElementById('selected-3d-chips');
+            const active = game.players[game.turnIndex];
+
+            if (!active || !active.isHuman || game.selectedIndices.length === 0) {
+                strip.classList.add('hidden');
+                chips.innerHTML = '';
+                return;
+            }
+
+            strip.classList.remove('hidden');
+            chips.innerHTML = '';
+            game.selectedIndices.forEach(idx => {
+                const card = active.hand[idx];
+                if (!card) return;
+                const tag = document.createElement('span');
+                tag.className = `px-2 py-0.5 rounded-md text-[10px] font-black border border-white/70 ${card.badgeClass}`;
+                tag.textContent = card.value;
+                chips.appendChild(tag);
+            });
+        }
+
+        /**
+         * ============================================================================
+         * 4B. CONFIGURACIÓN DE MESA (2 A 6 JUGADORES, HUMANOS Y BOTS IA)
+         * ============================================================================
+         */
+        const DEFAULT_SEAT_TEMPLATES = [
+            { name: 'Tú', avatar: '😎', isHuman: true, style: 'balanced' },
+            { name: 'Reina Roja', avatar: '👑', isHuman: false, style: 'bluffer' },
+            { name: 'CyberBot', avatar: '🤖', isHuman: false, style: 'skeptic' },
+            { name: 'El Mago', avatar: '🧙‍♂️', isHuman: false, style: 'chaotic' },
+            { name: 'Lady Volt', avatar: '⚡', isHuman: false, style: 'skeptic' },
+            { name: 'Don Mentira', avatar: '🎭', isHuman: false, style: 'bluffer' }
+        ];
+
+        let setupSeatCount = 4;
+        let setupConfig = DEFAULT_SEAT_TEMPLATES.slice(0, 4).map(s => ({ ...s }));
+
+        function openSetupModal() {
+            game.phase = 'SETUP';
+            handRigGroup.visible = false;
+            document.getElementById('privacy-curtain').classList.add('hidden');
+            renderSetupSeats();
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+
+        function setPlayerCountSetup(count) {
+            setupSeatCount = count;
+            document.querySelectorAll('.cnt-btn').forEach(btn => {
+                const active = Number(btn.id.replace('cnt-btn-', '')) === count;
+                btn.className = active
+                    ? 'cnt-btn py-2 rounded-xl font-display font-black text-sm bg-indigo-600 text-white transition'
+                    : 'cnt-btn py-2 rounded-xl font-display font-black text-sm bg-white/10 text-slate-300 hover:bg-white/20 transition';
+            });
+
+            const nextConfig = [];
+            for (let i = 0; i < count; i++) {
+                if (setupConfig[i]) {
+                    nextConfig.push({ ...setupConfig[i] });
+                } else {
+                    const tpl = DEFAULT_SEAT_TEMPLATES[i % DEFAULT_SEAT_TEMPLATES.length];
+                    nextConfig.push({
+                        name: i === 0 ? 'Tú' : `${tpl.name} ${i + 1}`,
+                        avatar: tpl.avatar,
+                        isHuman: i === 0,
+                        style: tpl.style
+                    });
+                }
+            }
+            setupConfig = nextConfig;
+            renderSetupSeats();
+        }
+
+        function renderSetupSeats() {
+            const container = document.getElementById('setup-seats-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            setupConfig.forEach((seat, idx) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-white/5 border border-white/10';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <span class="text-xl shrink-0">${seat.avatar}</span>
+                        <input
+                            type="text"
+                            maxlength="16"
+                            value="${seat.name.replace(/"/g, '&quot;')}"
+                            onchange="updateSetupSeatName(${idx}, this.value)"
+                            class="bg-slate-900/90 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-white w-full focus:outline-none focus:border-amber-400"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        onclick="toggleSetupSeatType(${idx})"
+                        class="px-3 py-1.5 rounded-xl text-xs font-extrabold shrink-0 transition ${seat.isHuman ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40' : 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/40'}"
+                    >
+                        ${seat.isHuman ? '🧑 Humano' : '🤖 Bot IA'}
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function updateSetupSeatName(idx, val) {
+            if (!setupConfig[idx]) return;
+            const trimmed = val.trim();
+            setupConfig[idx].name = trimmed || (setupConfig[idx].isHuman ? `Jugador ${idx + 1}` : `Bot ${idx + 1}`);
+        }
+
+        function toggleSetupSeatType(idx) {
+            if (!setupConfig[idx]) return;
+            setupConfig[idx].isHuman = !setupConfig[idx].isHuman;
+            if (setupConfig[idx].isHuman && (setupConfig[idx].name.startsWith('Bot') || setupConfig[idx].name.includes('Reina') || setupConfig[idx].name.includes('Mago') || setupConfig[idx].name.includes('Cyber'))) {
+                setupConfig[idx].name = `Jugador ${idx + 1}`;
+                setupConfig[idx].avatar = '😎';
+            } else if (!setupConfig[idx].isHuman) {
+                const tpl = DEFAULT_SEAT_TEMPLATES[(idx + 1) % DEFAULT_SEAT_TEMPLATES.length];
+                setupConfig[idx].name = tpl.name;
+                setupConfig[idx].avatar = tpl.avatar;
+            }
+            renderSetupSeats();
+        }
+
+        /**
+         * ============================================================================
+         * 5. ESTADO Y MOTOR DE REGLAS DE "EL MENTIROSO UNO 3D"
+         * ============================================================================
+         */
+        const game = {
+            round: 1,
+            players: [],
+            targetCard: CARD_TYPES[0],
+            turnIndex: 0,
+            lastClaim: null, // { playerIndex, cards: [], meshes: [], count: number }
+            selectedIndices: [],
+            phase: 'SETUP', // SETUP, TURN, RESOLVING, ROUND_END, GAME_OVER
+            seatPositions: [],
+            crystalMeshes: [] // [playerIdx][0..2]
+        };
+
+        function startMatchFromSetup() {
+            sfx.init();
+            document.getElementById('setup-modal').classList.add('hidden');
+
+            game.round = 1;
+            game.players = setupConfig.map((cfg, idx) => ({
+                id: idx,
+                name: cfg.name,
+                avatar: cfg.avatar,
+                isHuman: cfg.isHuman,
+                style: cfg.style,
+                lives: 3,
+                hand: [],
+                eliminated: false
+            }));
+
+            build3DSeatsAndCrystals();
+            startNewRound();
+        }
+
+        function build3DSeatsAndCrystals() {
+            // Limpiar cristales previos
+            game.crystalMeshes.forEach(arr => arr.forEach(m => scene.remove(m)));
+            game.crystalMeshes = [];
+            game.seatPositions = [];
+
+            const n = game.players.length;
+            const seatHudLayer = document.getElementById('seat-hud-layer');
+            seatHudLayer.innerHTML = '';
+
+            for (let i = 0; i < n; i++) {
+                // Ángulo: asiento 0 abajo (PI/2), distribuidos alrededor de la mesa
+                const angle = Math.PI / 2 + (i * 2 * Math.PI) / n;
+                const radius = 4.25;
+                const pos = new THREE.Vector3(Math.cos(angle) * radius, 0.25, Math.sin(angle) * radius);
+                const labelPos = new THREE.Vector3(Math.cos(angle) * 5.35, 2.35, Math.sin(angle) * 5.35);
+                game.seatPositions.push({ pos, labelPos, angle });
+
+                // Crear 3 cristales de vida en 3D frente al asiento
+                const playerCrystals = [];
+                const tangent = new THREE.Vector3(-Math.sin(angle), 0, Math.cos(angle));
+                for (let c = 0; c < 3; c++) {
+                    const offset = (c - 1) * 0.42;
+                    const cPos = pos.clone()
+                        .addScaledVector(new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle)), -0.75)
+                        .addScaledVector(tangent, offset);
+
+                    const crystalGeo = new THREE.OctahedronGeometry(0.16, 0);
+                    const crystalMat = new THREE.MeshStandardMaterial({
+                        color: 0xff2a55,
+                        emissive: 0xff1744,
+                        emissiveIntensity: 0.75,
+                        roughness: 0.15,
+                        metalness: 0.3
+                    });
+                    const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+                    crystal.position.set(cPos.x, 0.34, cPos.z);
+                    crystal.castShadow = true;
+                    scene.add(crystal);
+                    playerCrystals.push(crystal);
+                }
+                game.crystalMeshes.push(playerCrystals);
+
+                // Crear tarjeta flotante HTML para proyectar en 3D
+                const tag = document.createElement('div');
+                tag.id = `seat-tag-${i}`;
+                tag.className = 'absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-150';
+                tag.innerHTML = `
+                    <div id="seat-bubble-${i}" class="hidden mb-1.5 px-3 py-1 rounded-full bg-white text-slate-950 font-black text-xs shadow-xl text-center whitespace-nowrap"></div>
+                    <div id="seat-box-${i}" class="glass-pill rounded-2xl px-3 py-1.5 flex items-center gap-2 border border-white/20">
+                        <span class="text-base">${game.players[i].avatar}</span>
+                        <div>
+                            <div class="font-bold text-xs text-white leading-none">${game.players[i].name}</div>
+                            <div class="flex items-center gap-1.5 mt-1 text-[11px]">
+                                <span id="seat-lives-${i}">❤️❤️❤️</span>
+                                <span id="seat-cards-cnt-${i}" class="text-slate-300 font-bold">🃏5</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                seatHudLayer.appendChild(tag);
+            }
+
+            build3DCharactersAroundTable();
+        }
+
+        function startNewRound() {
+            // Limpiar cartas 3D de la mesa
+            tableCardMeshes.forEach(m => tableObjectsGroup.remove(m));
+            tableCardMeshes.length = 0;
+            activeAnimations.length = 0;
+
+            game.lastClaim = null;
+            game.selectedIndices = [];
+            game.phase = 'TURN';
+
+            document.getElementById('round-next-bar').classList.add('hidden');
+            document.getElementById('player-action-bar').classList.remove('hidden');
+
+            // Sortear Carta Objetivo de la Ronda
+            game.targetCard = CARD_TYPES[Math.floor(Math.random() * CARD_TYPES.length)];
+
+            // Actualizar color neón de la mesa 3D y carta central
+            neonRingMat.color.setHex(game.targetCard.neon);
+            neonSpotLight.color.setHex(game.targetCard.neon);
+            targetCenterMesh.material[2].map = getCardFrontTexture(game.targetCard);
+            targetCenterMesh.material[2].needsUpdate = true;
+
+            // Actualizar HUD de Carta Objetivo
+            document.getElementById('round-label').textContent = `RONDA ${game.round}`;
+            const badge = document.getElementById('target-mini-badge');
+            badge.className = `w-7 h-9 rounded-lg border-2 border-white flex items-center justify-center font-black text-sm shadow ${game.targetCard.badgeClass}`;
+            badge.textContent = game.targetCard.value;
+            document.getElementById('target-name-text').textContent = game.targetCard.label;
+
+            // Repartir 5 cartas a cada jugador vivo
+            const deck = createLiarDeck();
+            game.players.forEach(p => {
+                p.hand = [];
+                if (!p.eliminated) {
+                    for (let i = 0; i < 5; i++) {
+                        p.hand.push(deck.pop());
+                    }
+                }
+            });
+
+            // Elegir primer jugador vivo
+            while (game.players[game.turnIndex].eliminated) {
+                game.turnIndex = (game.turnIndex + 1) % game.players.length;
+            }
+
+            sfx.playCardSlap();
+            showBanner(`🎯 RONDA ${game.round}: ${game.targetCard.label}`, 'Miente con astucia o descubre al impostor');
+            updateAllSeatsUI();
+            beginTurn();
+        }
+
+        function beginTurn() {
+            if (game.phase !== 'TURN') return;
+
+            // Verificar si solo queda 1 jugador con vidas
+            const alivePlayers = game.players.filter(p => !p.eliminated);
+            if (alivePlayers.length <= 1) {
+                triggerGameOver(alivePlayers[0]);
+                return;
+            }
+
+            // Si el jugador actual está eliminado, avanzar
+            if (game.players[game.turnIndex].eliminated) {
+                game.turnIndex = (game.turnIndex + 1) % game.players.length;
+                beginTurn();
+                return;
+            }
+
+            const current = game.players[game.turnIndex];
+
+            // Si solo queda 1 jugador con cartas en la mano y hay una jugada previa en mesa, debe desafiar automáticamente
+            const playersWithCards = alivePlayers.filter(p => p.hand.length > 0);
+            if (playersWithCards.length === 0 && game.lastClaim) {
+                resolveLiarChallenge(current);
+                return;
+            }
+
+            // Si el jugador actual se quedó sin cartas pero otros aún tienen, saltar turno
+            if (current.hand.length === 0) {
+                game.turnIndex = (game.turnIndex + 1) % game.players.length;
+                beginTurn();
+                return;
+            }
+
+            updateAllSeatsUI();
+            setCameraView('overview');
+            triggerCharacterReaction(current.id, 'thinking', 1.2);
+
+            if (current.isHuman) {
+                const humanCount = alivePlayers.filter(p => p.isHuman).length;
+                if (humanCount > 1) {
+                    handRigGroup.visible = false;
+                    document.getElementById('privacy-player-title').textContent = `Turno de ${current.name}`;
+                    document.getElementById('privacy-curtain').classList.remove('hidden');
+                } else {
+                    prepareHumanTurn(current);
+                }
+            } else {
+                handRigGroup.visible = false;
+                disableHumanControls();
+                const botStatus = document.getElementById('bot-turn-status');
+                botStatus.classList.remove('hidden');
+                botStatus.innerHTML = `Esperando jugada de <strong class="text-white">${current.name}</strong>...`;
+                setTimeout(() => executeBotTurn(current), 1150 + Math.random() * 650);
+            }
+        }
+
+        function revealHumanTurn() {
+            document.getElementById('privacy-curtain').classList.add('hidden');
+            prepareHumanTurn(game.players[game.turnIndex]);
+        }
+
+        function prepareHumanTurn(player) {
+            document.getElementById('bot-turn-status').classList.add('hidden');
+            game.selectedIndices = [];
+            rebuild3DHandFan();
+
+            const canChallenge = game.lastClaim !== null && game.lastClaim.playerIndex !== player.id;
+            const prevPlayer = canChallenge ? game.players[game.lastClaim.playerIndex] : null;
+            const mustChallengeOnly = prevPlayer && prevPlayer.hand.length === 0;
+
+            const btnPlay = document.getElementById('btn-play-cards');
+            const btnLiar = document.getElementById('btn-call-liar');
+
+            btnLiar.disabled = !canChallenge;
+            btnPlay.disabled = true;
+            btnPlay.textContent = mustChallengeOnly ? 'DEBES DESAFIAR' : 'LANZAR CARTAS (0/3)';
+        }
+
+        function toggleCardSelection(idx) {
+            const player = game.players[game.turnIndex];
+            if (!player || !player.isHuman || game.phase !== 'TURN') return;
+
+            // Si el jugador anterior se quedó con 0 cartas, es obligatorio gritar ¡Mentiroso!
+            if (game.lastClaim && game.players[game.lastClaim.playerIndex].hand.length === 0) {
+                showBanner('⚠️ ¡Sin cartas en mano!', 'Debes presionar "¡MENTIROSO!" para verificar su última jugada');
+                return;
+            }
+
+            const pos = game.selectedIndices.indexOf(idx);
+            if (pos >= 0) {
+                game.selectedIndices.splice(pos, 1);
+            } else {
+                if (game.selectedIndices.length >= 3) {
+                    game.selectedIndices.shift();
+                }
+                game.selectedIndices.push(idx);
+            }
+
+            updateSelected3DStrip();
+            const btnPlay = document.getElementById('btn-play-cards');
+            const count = game.selectedIndices.length;
+            btnPlay.disabled = count === 0;
+            btnPlay.textContent = `LANZAR ${count} ${count === 1 ? 'CARTA' : 'CARTAS'} (${count}/3)`;
+        }
+
+        function disableHumanControls() {
+            document.getElementById('btn-play-cards').disabled = true;
+            document.getElementById('btn-call-liar').disabled = true;
+        }
+
+        function humanPlaySelected() {
+            const player = game.players[game.turnIndex];
+            if (!player.isHuman || game.selectedIndices.length === 0) return;
+            handRigGroup.visible = false;
+            disableHumanControls();
+
+            // Extraer cartas seleccionadas en orden descendente de índice
+            const sortedIdx = [...game.selectedIndices].sort((a, b) => b - a);
+            const playedCards = [];
+            sortedIdx.forEach(i => {
+                playedCards.unshift(player.hand.splice(i, 1)[0]);
+            });
+            game.selectedIndices = [];
+
+            playCardsToCenter(player, playedCards);
+        }
+
+        function humanCallLiar() {
+            const player = game.players[game.turnIndex];
+            if (!player.isHuman || !game.lastClaim) return;
+            handRigGroup.visible = false;
+            disableHumanControls();
+            resolveLiarChallenge(player);
+        }
+
+        function playCardsToCenter(player, cards) {
+            // Atenuar cartas viejas en la pila central
+            tableCardMeshes.forEach(m => {
+                m.position.y = Math.max(0.14, m.position.y - 0.01);
+            });
+
+            const seatOrigin = player.isHuman
+                ? new THREE.Vector3(0, 1.35, 3.2)
+                : game.seatPositions[player.id].pos.clone().setY(0.8);
+            const spawnedMeshes = [];
+
+            cards.forEach((card, idx) => {
+                const mesh = createCard3D(card, false, seatOrigin);
+                const spreadX = (idx - (cards.length - 1) / 2) * 0.72 + 0.35;
+                const spreadZ = (Math.random() - 0.5) * 0.25 + 0.15;
+                const targetPos = new THREE.Vector3(spreadX, 0.18 + tableCardMeshes.length * 0.008, spreadZ);
+                const targetRot = new THREE.Vector3(0, (Math.random() - 0.5) * 0.35, 0);
+
+                animateMeshTo(mesh, targetPos, targetRot, false, idx * 0.08, 0.42);
+                spawnedMeshes.push(mesh);
+            });
+
+            sfx.playCardSlap();
+
+            game.lastClaim = {
+                playerIndex: player.id,
+                cards,
+                meshes: spawnedMeshes,
+                count: cards.length
+            };
+
+            const claimMsg = `Juego ${cards.length} ${cards.length === 1 ? 'carta' : 'cartas'} de ${game.targetCard.label}`;
+            showSeatBubble(player.id, claimMsg);
+            document.getElementById('last-claim-text').textContent = `${player.name}: "${claimMsg}"`;
+
+            updateAllSeatsUI();
+
+            // Avanzar turno al siguiente jugador vivo
+            game.turnIndex = (game.turnIndex + 1) % game.players.length;
+            setTimeout(() => beginTurn(), 750);
+        }
+
+        /**
+         * ============================================================================
+         * 6. INTELIGENCIA ARTIFICIAL DE BOTS (EVALUACIÓN DE MENTIRAS Y DESAFÍOS)
+         * ============================================================================
+         */
+        function getPlayedCardsCountInRound() {
+            let playedCount = 0;
+            tableCardMeshes.forEach(m => {
+                if (m.userData && m.userData.cardType) playedCount++;
+            });
+            return playedCount;
+        }
+
+        function executeBotTurn(bot) {
+            if (game.phase !== 'TURN') return;
+
+            // 1. Decidir si gritar "¡MENTIROSO!" a la jugada anterior (mucho más desconfiada)
+            if (game.lastClaim && game.lastClaim.playerIndex !== bot.id) {
+                const prevPlayer = game.players[game.lastClaim.playerIndex];
+                const claimedCount = game.lastClaim.count;
+
+                // Cartas válidas en mano del bot y estimación de cuántas quedan en juego/mazo
+                const myValidCount = bot.hand.filter(c => c.id === game.targetCard.id || c.color === 'wild').length;
+                const playedInPile = getPlayedCardsCountInRound();
+                const otherPlayersCards = game.players
+                    .filter(p => !p.eliminated && p.id !== bot.id)
+                    .reduce((acc, p) => acc + p.hand.length, 0);
+
+                // De 10 cartas válidas totales (6 objetivo + 4 Wild), restamos las que ya tiene el bot y las ya bajadas en pila
+                const maxRemainingValid = Math.max(0, 10 - myValidCount - Math.floor(playedInPile * 0.35));
+
+                let liarChance = 0.28;
+
+                // Si tiran 3 cartas de golpe, levanta muchísima sospecha
+                if (prevPlayer.hand.length === 0) {
+                    liarChance = 1.0;
+                } else if (claimedCount === 3) {
+                    liarChance += 0.52;
+                } else if (claimedCount === 2) {
+                    liarChance += 0.24;
+                }
+
+                // Si el rival tiene pocas cartas en mano o ya bajó varias antes, sospecha más de un farol
+                if (prevPlayer.hand.length <= 2) liarChance += 0.16;
+                if (otherPlayersCards < claimedCount + 2) liarChance += 0.12;
+
+                // Si estadísticamente es muy difícil que existan tantas cartas válidas restantes, casi seguro desafía
+                if (maxRemainingValid < claimedCount) {
+                    liarChance = Math.max(liarChance, 0.94);
+                } else if (myValidCount >= 3 && claimedCount >= 2) {
+                    liarChance += 0.25;
+                }
+
+                // Ajuste por personalidad y vidas restantes
+                if (bot.style === 'skeptic') liarChance += 0.22;
+                if (bot.style === 'bluffer') liarChance += 0.05;
+                if (bot.style === 'chaotic') liarChance += (Math.random() * 0.28 - 0.06);
+                if (bot.lives === 1) liarChance += 0.12; // Más alerta cuando está en su última vida
+
+                liarChance = Math.max(0.08, Math.min(0.98, liarChance));
+
+                if (Math.random() < liarChance) {
+                    resolveLiarChallenge(bot);
+                    return;
+                }
+            }
+
+            // 2. Pensar mejor qué cartas jugar (1 a 3): evitar regalar tiradas de 3 cartas si van a desconfiar
+            const validIndices = [];
+            const lieIndices = [];
+            bot.hand.forEach((c, idx) => {
+                if (c.id === game.targetCard.id || c.color === 'wild') validIndices.push(idx);
+                else lieIndices.push(idx);
+            });
+
+            let chosenIndices = [];
+            const hasValid = validIndices.length > 0;
+            const bluffProb = !hasValid
+                ? 1.0
+                : bot.style === 'bluffer'
+                    ? 0.42
+                    : bot.style === 'skeptic'
+                        ? 0.14
+                        : 0.24;
+
+            const shouldBluff = Math.random() < bluffProb;
+
+            if (!shouldBluff && hasValid) {
+                // Jugar cartas válidas de forma inteligente: preferir 1 carta, o 2 si tiene sobrantes y baja presión
+                const wantTwo = validIndices.length >= 2 && bot.hand.length >= 3 && Math.random() < 0.35;
+                chosenIndices = validIndices.slice(0, wantTwo ? 2 : 1);
+            } else {
+                // Al mentir, priorizar cartas que no sirven y evitar tirar 3 cartas salvo en caos o última carta
+                const sortedLies = [...lieIndices].sort((a, b) => {
+                    const aIsWild = bot.hand[a].color === 'wild' ? 1 : 0;
+                    const bIsWild = bot.hand[b].color === 'wild' ? 1 : 0;
+                    return aIsWild - bIsWild;
+                });
+
+                const pool = sortedLies.length > 0 ? sortedLies : [...validIndices];
+                let countToPlay = 1;
+
+                if (pool.length >= 2 && Math.random() < 0.28) {
+                    countToPlay = 2;
+                }
+                if (pool.length >= 3 && ((bot.style === 'chaotic' && Math.random() < 0.22) || (bot.hand.length === 3 && Math.random() < 0.15))) {
+                    countToPlay = 3;
+                }
+
+                chosenIndices = pool.slice(0, Math.min(countToPlay, bot.hand.length));
+            }
+
+            chosenIndices.sort((a, b) => b - a);
+            const playedCards = [];
+            chosenIndices.forEach(i => playedCards.unshift(bot.hand.splice(i, 1)[0]));
+
+            playCardsToCenter(bot, playedCards);
+        }
+
+        /**
+         * ============================================================================
+         * 7. RESOLUCIÓN DRAMÁTICA DE DESAFÍO ("¡MENTIROSO!") Y PÉRDIDA DE VIDAS
+         * ============================================================================
+         */
+        function resolveLiarChallenge(challenger) {
+            game.phase = 'RESOLVING';
+            handRigGroup.visible = false;
+            const accused = game.players[game.lastClaim.playerIndex];
+            const claimedCards = game.lastClaim.cards;
+            const claimedMeshes = game.lastClaim.meshes;
+
+            // Alarma visual y sonora + Zoom dramático al centro de la mesa
+            sfx.playLiarAlarm();
+            neonRingMat.color.setHex(0xff0033);
+            neonSpotLight.color.setHex(0xff0033);
+            setCameraView('center');
+            triggerCharacterReaction(challenger.id, 'accuse', 1.8);
+            triggerCharacterReaction(accused.id, 'sweat', 1.8);
+
+            showSeatBubble(challenger.id, '🚨 ¡MENTIROSO! 🚨');
+            showBanner(`🚨 ¡${challenger.name.toUpperCase()} GRITA MENTIROSO!`, `Revisando las ${claimedCards.length} cartas de ${accused.name}...`, true);
+
+            // Voltear boca arriba las cartas desafiadas en 3D
+            claimedMeshes.forEach((mesh, idx) => {
+                const spreadX = (idx - (claimedMeshes.length - 1) / 2) * 1.05 + 0.35;
+                animateMeshTo(
+                    mesh,
+                    new THREE.Vector3(spreadX, 0.45, 0.2),
+                    new THREE.Vector3(0, 0, 0),
+                    true,
+                    0.35 + idx * 0.18,
+                    0.45
+                );
+            });
+
+            // Evaluar si hubo mentira
+            const isLie = claimedCards.some(c => c.id !== game.targetCard.id && c.color !== 'wild');
+
+            setTimeout(() => {
+                const loser = isLie ? accused : challenger;
+                const winner = isLie ? challenger : accused;
+                loser.lives = Math.max(0, loser.lives - 1);
+                triggerCharacterReaction(loser.id, 'hit', 1.8);
+                triggerCharacterReaction(winner.id, 'win', 1.8);
+
+                // Apagar / romper cristal de vida 3D del perdedor
+                const crystalIdx = loser.lives; // si tenía 3 y bajó a 2, apaga índice 2
+                const crystalMesh = game.crystalMeshes[loser.id]?.[crystalIdx];
+                if (crystalMesh) {
+                    spawnLifeShatterParticles(crystalMesh.position, 0xff2a55);
+                    crystalMesh.material.color.setHex(0x1e293b);
+                    crystalMesh.material.emissive.setHex(0x000000);
+                    crystalMesh.scale.set(0.55, 0.55, 0.55);
+                }
+
+                sfx.playLifeLost();
+
+                if (loser.lives === 0) {
+                    loser.eliminated = true;
+                    const rig = characterRigs[loser.id];
+                    if (rig) {
+                        rig.root.rotation.x = -0.35;
+                        rig.root.position.y = -0.35;
+                    }
+                }
+
+                const verdictTitle = isLie
+                    ? `💥 ¡ERA MENTIRA! ${accused.name} pierde 1 vida`
+                    : `✅ ¡DECÍA LA VERDAD! ${challenger.name} pierde 1 vida`;
+
+                const verdictSub = loser.eliminated
+                    ? `💀 ${loser.name} perdió sus 3 vidas y queda ELIMINADO`
+                    : `${loser.name} conserva ${'❤️'.repeat(loser.lives)} (${loser.lives} ${loser.lives === 1 ? 'vida' : 'vidas'})`;
+
+                showBanner(verdictTitle, verdictSub, isLie);
+                updateAllSeatsUI();
+
+                // El perdedor (o siguiente vivo) inicia la siguiente ronda
+                game.turnIndex = loser.eliminated
+                    ? (loser.id + 1) % game.players.length
+                    : loser.id;
+
+                const alive = game.players.filter(p => !p.eliminated);
+                if (alive.length <= 1) {
+                    setTimeout(() => triggerGameOver(alive[0]), 2200);
+                } else {
+                    game.phase = 'ROUND_END';
+                    document.getElementById('player-action-bar').classList.add('hidden');
+                    const nextBtn = document.getElementById('btn-next-round');
+                    nextBtn.textContent = `INICIAR RONDA ${game.round + 1} ➔`;
+                    document.getElementById('round-next-bar').classList.remove('hidden');
+                }
+            }, 1750);
+        }
+
+        function handleNextRoundClick() {
+            if (game.phase === 'GAME_OVER') {
+                openSetupModal();
+            } else {
+                game.round++;
+                startNewRound();
+            }
+        }
+
+        function triggerGameOver(winner) {
+            game.phase = 'GAME_OVER';
+            sfx.playVictory();
+            neonRingMat.color.setHex(0xffd600);
+            neonSpotLight.color.setHex(0xffd600);
+            setCameraView('overview');
+
+            showBanner(
+                `🏆 ¡${winner.name.toUpperCase()} GANA LA PARTIDA!`,
+                `Sobrevivió con ${'❤️'.repeat(winner.lives)} en la mesa del Mentiroso UNO`
+            );
+
+            document.getElementById('player-action-bar').classList.add('hidden');
+            const nextBtn = document.getElementById('btn-next-round');
+            nextBtn.textContent = '🔄 JUGAR OTRA PARTIDA';
+            document.getElementById('round-next-bar').classList.remove('hidden');
+        }
+
+        /**
+         * ============================================================================
+         * 8. ACTUALIZACIÓN DE INTERFAZ Y PROYECCIÓN 3D -> 2D
+         * ============================================================================
+         */        function updateAllSeatsUI() {
+            const current = game.players[game.turnIndex];
+            if (current) {
+                document.getElementById('active-player-avatar').textContent = current.avatar;
+                document.getElementById('active-player-name').textContent = current.isHuman ? `${current.name} (Tu turno)` : `Turno de ${current.name}`;
+                document.getElementById('active-player-lives').textContent = current.lives > 0 ? '❤️'.repeat(current.lives) + '🖤'.repeat(3 - current.lives) : '💀 Eliminado';
+            }
+
+            if (!game.lastClaim) {
+                document.getElementById('last-claim-text').textContent = 'Mesa vacía — Inicia la ronda';
+            }
+
+            game.players.forEach((p, idx) => {
+                const livesEl = document.getElementById(`seat-lives-${idx}`);
+                const cardsEl = document.getElementById(`seat-cards-cnt-${idx}`);
+                const boxEl = document.getElementById(`seat-box-${idx}`);
+                if (!livesEl || !cardsEl || !boxEl) return;
+
+                if (p.eliminated) {
+                    livesEl.textContent = '💀 ELIMINADO';
+                    cardsEl.textContent = '';
+                    boxEl.style.opacity = '0.42';
+                } else {
+                    livesEl.textContent = '❤️'.repeat(p.lives) + '🖤'.repeat(3 - p.lives);
+                    cardsEl.textContent = `🃏${p.hand.length}`;
+                    boxEl.style.opacity = '1';
+                }
+
+                // Resaltar asiento activo
+                if (idx === game.turnIndex && !p.eliminated && game.phase === 'TURN') {
+                    boxEl.classList.add('ring-2', 'ring-amber-400', 'scale-105');
+                } else {
+                    boxEl.classList.remove('ring-2', 'ring-amber-400', 'scale-105');
+                }
+            });
+        }
+
+        function showSeatBubble(seatIdx, text) {
+            const b = document.getElementById(`seat-bubble-${seatIdx}`);
+            if (!b) return;
+            b.textContent = text;
+            b.classList.remove('hidden', 'speech-bubble');
+            void b.offsetWidth;
+            b.classList.add('speech-bubble');
+        }
+
+        let bannerTimer = null;
+        function showBanner(title, sub, shake = false) {
+            const banner = document.getElementById('center-banner');
+            const box = document.getElementById('banner-box');
+            document.getElementById('banner-title').textContent = title;
+            document.getElementById('banner-sub').textContent = sub;
+
+            banner.classList.remove('opacity-0', 'scale-90');
+            banner.classList.add('opacity-100', 'scale-100');
+
+            if (shake) {
+                banner.classList.remove('animate-liar');
+                void banner.offsetWidth;
+                banner.classList.add('animate-liar');
+                box.classList.add('border-rose-500');
+            } else {
+                box.classList.remove('border-rose-500');
+            }
+
+            clearTimeout(bannerTimer);
+            bannerTimer = setTimeout(() => {
+                banner.classList.remove('opacity-100', 'scale-100');
+                banner.classList.add('opacity-0', 'scale-90');
+            }, 4200);
+        }
+
+        function toggleRulesModal(show) {
+            document.getElementById('rules-modal').classList.toggle('hidden', !show);
+        }
+
+        function projectSeatsToScreen() {
+            for (let i = 0; i < game.seatPositions.length; i++) {
+                const tag = document.getElementById(`seat-tag-${i}`);
+                if (!tag) continue;
+                const worldPos = game.seatPositions[i].labelPos.clone();
+                worldPos.project(camera);
+                const x = (worldPos.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-worldPos.y * 0.5 + 0.5) * window.innerHeight;
+                tag.style.left = `${x}px`;
+                tag.style.top = `${y}px`;
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 9. BUCLE DE RENDERIZADO Y ANIMACIÓN 3D
+         * ============================================================================
+         */
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = Math.min(clock.getDelta(), 0.05);
+            const elapsed = clock.getElapsedTime();
+
+            // Rotar suavemente los cristales de vida activos
+            game.crystalMeshes.forEach((arr, pIdx) => {
+                const player = game.players[pIdx];
+                arr.forEach((crystal, cIdx) => {
+                    if (player && cIdx < player.lives) {
+                        crystal.rotation.y = elapsed * 1.8 + cIdx;
+                        crystal.position.y = 0.34 + Math.sin(elapsed * 3 + cIdx) * 0.03;
+                    }
+                });
+            });
+
+            // Animar personajes 3D alrededor de la mesa (respiración, turno activo y reacciones)
+            characterRigs.forEach((rig, pIdx) => {
+                const pl = game.players[pIdx];
+                if (!pl) return;
+                if (rig.reactionTimer > 0) rig.reactionTimer = Math.max(0, rig.reactionTimer - dt);
+
+                const isTurn = pIdx === game.turnIndex && !pl.eliminated && game.phase === 'TURN';
+                let lean = isTurn ? 0.25 : Math.sin(elapsed * 1.6 + pIdx) * 0.04;
+                let headYaw = Math.sin(elapsed * 1.1 + pIdx * 1.7) * 0.08;
+                let headPitch = 0;
+
+                if (rig.reactionTimer > 0) {
+                    if (rig.reactionType === 'hit') {
+                        lean = -0.22;
+                        headPitch = Math.sin(elapsed * 26) * 0.16;
+                    } else if (rig.reactionType === 'win') {
+                        rig.root.position.y = rig.basePos.y + Math.abs(Math.sin(elapsed * 10)) * 0.14;
+                        headPitch = -0.12;
+                    } else if (rig.reactionType === 'sweat') {
+                        headYaw = Math.sin(elapsed * 22) * 0.14;
+                    } else if (rig.reactionType === 'accuse') {
+                        lean = 0.36;
+                    }
+                } else if (!pl.eliminated) {
+                    rig.root.position.y = THREE.MathUtils.lerp(rig.root.position.y, rig.basePos.y, 0.12);
+                }
+
+                rig.head.rotation.y = headYaw;
+                rig.head.rotation.x = headPitch;
+                rig.root.rotation.x = THREE.MathUtils.lerp(rig.root.rotation.x, pl.eliminated ? -0.35 : lean * 0.2, 0.12);
+            });
+
+            // Mantener las cartas 3D del jugador inclinadas sobre el tapete en frente y actualizar hover/selección por raycast
+            if (handRigGroup.visible) {
+                const forward = camera.getWorldDirection(new THREE.Vector3()).normalize();
+                const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+                const up = new THREE.Vector3().crossVectors(right, forward).normalize();
+
+                // Colocar el abanico a mayor distancia de la cámara para una vista más amplia y cómoda
+                const handAnchor = camera.position.clone()
+                    .addScaledVector(forward, 4.65)
+                    .addScaledVector(up, -0.72);
+                handRigGroup.position.lerp(handAnchor, 0.32);
+
+                // Construir base ortonormal donde +X es derecha, +Y es arriba y +Z apunta HACIA la cámara (-forward)
+                const basis = new THREE.Matrix4().makeBasis(right, up, forward.clone().negate());
+                const targetQuat = new THREE.Quaternion().setFromRotationMatrix(basis);
+                handRigGroup.quaternion.slerp(targetQuat, 0.32);
+
+                update3DHandHoverAndSelection(elapsed);
+            }
+
+            // Animaciones de cartas hacia el centro o volteo
+            for (let i = activeAnimations.length - 1; i >= 0; i--) {
+                const anim = activeAnimations[i];
+                if (anim.delay > 0) {
+                    anim.delay -= dt;
+                    continue;
+                }
+                anim.progress += dt / anim.duration;
+                const t = Math.min(1, anim.progress);
+                const ease = 1 - Math.pow(1 - t, 3);
+
+                anim.mesh.position.lerpVectors(anim.startPos, anim.endPos, ease);
+                anim.mesh.position.y += Math.sin(t * Math.PI) * 0.65;
+
+                anim.mesh.rotation.x = THREE.MathUtils.lerp(anim.startRot.x, anim.endRot.x, ease);
+                anim.mesh.rotation.y = THREE.MathUtils.lerp(anim.startRot.y, anim.endRot.y, ease);
+                anim.mesh.rotation.z = THREE.MathUtils.lerp(anim.startRot.z, anim.endRot.z, ease);
+
+                if (t >= 1) activeAnimations.splice(i, 1);
+            }
+
+            // Actualizar partículas de cristales rotos
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const pt = particles[i];
+                pt.life -= dt * 1.45;
+                if (pt.life <= 0) {
+                    particlesGroup.remove(pt.mesh);
+                    particles.splice(i, 1);
+                    continue;
+                }
+                pt.vel.y -= 9.8 * dt;
+                pt.mesh.position.addScaledVector(pt.vel, dt);
+                pt.mesh.rotation.x += dt * 7;
+                pt.mesh.rotation.y += dt * 5;
+                pt.mesh.scale.setScalar(Math.max(0.01, pt.life));
+            }
+
+            // Cámara orbital suave + seguimiento
+            const desiredPos = cameraTargetPos.clone();
+            desiredPos.x += Math.sin(camOrbit.x) * 4.5;
+            desiredPos.y += camOrbit.y * 3.0;
+            camera.position.lerp(desiredPos, 0.08);
+            currentLookAt.lerp(cameraTargetLook, 0.1);
+            camera.lookAt(currentLookAt);
+
+            projectSeatsToScreen();
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            initThreeJS();
+            renderSetupSeats();
+            animate();
+        };
+    </script>
+</body>
+</html>
