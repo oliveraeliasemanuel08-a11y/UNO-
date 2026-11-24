@@ -2171,7 +2171,7 @@
         }
         async function saveClubProfileCloud(){
           if(!db||!currentUser||!isGoogleAccountLinked()||clubProfileApplyingCloud)return false;
-          try{const localData=snapshotClubLocalStorage();const diamonds=Math.max(0,Number(localStorage.getItem('uno_club_diamonds')||0));
+          try{const localData=snapshotClubLocalStorage();const diamonds=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));
             await setDoc(clubProfileRef(),{uid:currentUser.uid,diamonds,localStorage:localData,updatedAt:Date.now()},{merge:true});return true;
           }catch(err){console.warn('Sincronización de perfil:',err);return false;}
         }
@@ -5393,13 +5393,13 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         function arcadeOnlinePlayer(){return {id:currentUserId,name:state.playerName||'Jugador',avatar:state.playerAvatar?.avatar||'🙂'};}
         function arcadeOnlineOpen(){clearTimeout(arcade.timer);document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');}
 
-        function getClubDiamonds(){return Math.max(0,Number(localStorage.getItem('uno_club_diamonds')||0));}
-        function setClubDiamonds(value){const n=Math.max(0,Math.floor(Number(value)||0));localStorage.setItem('uno_club_diamonds',String(n));const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=n.toLocaleString('es-AR')+' ◆';}
+        function getClubDiamonds(){return typeof getUnoPlus==='function'?getUnoPlus():Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));}
+        function setClubDiamonds(value){const n=Math.max(0,Math.floor(Number(value)||0));if(typeof setUnoPlus==='function')setUnoPlus(n);else localStorage.setItem('uno_plus_balance',String(n));const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=n.toLocaleString('es-AR')+' ◆';}
         async function reservePokerDiamonds(tx,uid,amount){
           const ref=clubProfileRef(uid),snap=await tx.get(ref),profile=snap.exists()?snap.data():{};
-          const balance=Math.max(0,Number(profile.diamonds??localStorage.getItem('uno_club_diamonds')??0));
+          const balance=Math.max(0,Number(profile.diamonds??localStorage.getItem('uno_plus_balance')??0));
           if(balance<amount)throw new Error('DIAMONDS_LOW');
-          const localData={...(profile.localStorage||snapshotClubLocalStorage()),uno_club_diamonds:String(balance-amount)};
+          const localData={...(profile.localStorage||snapshotClubLocalStorage()),uno_plus_balance:String(balance-amount)};
           tx.set(ref,{uid,diamonds:balance-amount,localStorage:localData,updatedAt:Date.now()},{merge:true});
           return balance-amount;
         }
@@ -5421,7 +5421,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
               payoutPaid=Math.floor(total/Math.max(1,ids.length))+(winnerPosition===0?total%Math.max(1,ids.length):0);
               const profile=profileSnap.data()||{},balance=Math.max(0,Number(profile.diamonds||0));
               newBalance=balance+payoutPaid;
-              const localData={...(profile.localStorage||{}),uno_club_diamonds:String(newBalance)};
+              const localData={...(profile.localStorage||{}),uno_plus_balance:String(newBalance)};
               tx.set(profileRef,{diamonds:newBalance,localStorage:localData,updatedAt:Date.now()},{merge:true});
               tx.update(roomRef,{pokerPaidOutUids:[...paid,currentUserId],pokerPaidOutAt:Date.now()});
             });
@@ -5496,7 +5496,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             if(r.arcadeMode==='poker'&&r.status==='lobby'&&(r.pokerPaidUids||[]).includes(currentUserId)){
               const profileRef=clubProfileRef(currentUserId),profileSnap=await tx.get(profileRef),profile=profileSnap.exists()?profileSnap.data():{};
               const refund=Math.max(0,Number(r.pokerStake||0)),balance=Math.max(0,Number(profile.diamonds||0))+refund;
-              const localData={...(profile.localStorage||{}),uno_club_diamonds:String(balance)};
+              const localData={...(profile.localStorage||{}),uno_plus_balance:String(balance)};
               tx.set(profileRef,{diamonds:balance,localStorage:localData,updatedAt:Date.now()},{merge:true});
               r.pokerPaidUids=(r.pokerPaidUids||[]).filter(uid=>uid!==currentUserId);
             }
@@ -5523,6 +5523,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             const humans=seats.filter(s=>s.id);if(!humans.length){tx.delete(ref);return;}
             const hostStill=humans.some(s=>s.id===r.hostId);tx.update(ref,{seats,hostId:hostStill?r.hostId:humans[0].id,arcadeState:r.arcadeState||null,status:r.status,pokerPaidUids:r.pokerPaidUids||[],updatedAt:Date.now()});
           });}catch(e){console.warn('Arcade leave:',e);}}
+          if(room?.arcadeMode==='poker'&&room.status==='lobby'&&isGoogleAccountLinked()){try{const walletSnap=await getDoc(clubProfileRef(currentUserId));if(walletSnap.exists())setClubDiamonds(walletSnap.data().diamonds||0);}catch(e){console.warn('Actualizar saldo tras reembolso:',e);}}
           if(goMenu){document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}
         }
         function arcadeOnlineRender(){
@@ -5665,7 +5666,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           document.getElementById('arcadeSetupRules').innerHTML=({poker:'<div class="arcade-rules-panel"><h4>♠ REGLAS DE UNO! POK</h4><ol><li>Cada jugador recibe 2 cartas privadas. En la mesa se revelan 5 cartas comunitarias: 3 en el flop, 1 en el turn y 1 en el river.</li><li>Combiná tus 2 cartas con las comunitarias para formar la mejor mano de póker de 5 cartas.</li><li>En tu turno podés <b>Igualar</b> la apuesta actual, <b>Subir +20</b> fichas o <b>Retirarte</b>.</li><li>Si todos se retiran menos uno, esa persona gana el pozo. Si llegan al final, gana la mejor combinación.</li><li>Empezás con 1000 fichas virtuales. Ciegas iniciales: 10 y 20. No hay dinero real.</li></ol></div>',battle:'<div class="arcade-rules-panel"><h4>⚔️ REGLAS DE UNO! BATALLA</h4><ol><li>Todos comienzan con <b>100 puntos de vida</b> y 7 cartas UNO.</li><li>En tu turno elegí una carta de tu mano para atacar al siguiente rival que siga vivo.</li><li>Las cartas numéricas hacen daño según su valor. Las cartas especiales tienen efectos: <b>Salto</b> causa 16 de daño y <b>Reversa</b> te da 18 puntos de escudo.</li><li>Las cartas verdes normales te curan. La vida nunca supera los 100 puntos; el escudo absorbe daño antes que la vida.</li><li>Si te quedás sin cartas, recibís hasta 4 nuevas. También podés robar una carta y pasar el turno.</li><li>Cuando tu vida llega a 0 quedás eliminado. Gana el último jugador que permanezca en pie.</li></ol></div>',robado:'<div class="arcade-rules-panel"><h4>🏠 REGLAS DE UNO! ROBADO</h4><ol><li>Cada jugador recibe 3 cartas y se colocan 4 cartas boca arriba en el centro.</li><li>Elegí una carta de tu mano. Si coincide en valor con una carta del centro, tocá esa carta para llevarte ambas a tu casita.</li><li>También podés robar la casita de otro jugador: tu carta debe coincidir con la carta que está arriba de su pila. Te llevás toda su casita.</li><li>Si no hay ninguna coincidencia, podés dejar tu carta en el centro para que otro jugador intente capturarla.</li><li>Cuando te quedás sin cartas, recibís hasta 3 nuevas si todavía queda mazo.</li><li>Cuando se termina el mazo y todos vacían su mano, gana quien haya juntado más cartas en su casita.</li></ol></div>'})[mode];
           document.getElementById('arcadeJoinCode').value='';
           const stakeBox=document.getElementById('arcadePokerStakeBox');if(stakeBox)stakeBox.classList.toggle('hidden',mode!=='poker');
-          const wallet=document.getElementById('arcadePokerWallet');if(wallet)wallet.textContent=Math.max(0,Number(localStorage.getItem('uno_club_diamonds')||0)).toLocaleString('es-AR')+' ◆';
+          const wallet=document.getElementById('arcadePokerWallet');if(wallet)wallet.textContent=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0)).toLocaleString('es-AR')+' ◆';
         }
         document.querySelectorAll('[data-arcade-menu]').forEach(b=>b.addEventListener('click',()=>arcadeShowModeSetup(b.dataset.arcadeMenu)));
         document.getElementById('arcadeSetupBack').onclick=()=>{document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');};
