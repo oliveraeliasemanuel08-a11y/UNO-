@@ -2184,7 +2184,7 @@
         }
         async function loadClubProfileCloud(){
           if(!db||!currentUser||!isGoogleAccountLinked())return false;
-          try{const snap=await getDoc(clubProfileRef());if(!snap.exists()){await saveClubProfileCloud();return true;}
+          try{const snap=await getDoc(clubProfileRef());if(!snap.exists()){localStorage.setItem('uno_competitive_rating','0');await saveClubProfileCloud();renderCompetitiveRank?.();return true;}
             const saved=snap.data()?.localStorage||{};clubProfileApplyingCloud=true;
             try{Object.entries(saved).forEach(([key,value])=>{if(typeof value==='string')localStorage.setItem(key,value);});}
             finally{clubProfileApplyingCloud=false;}updatePlusWalletUI?.();renderCompetitiveRank?.();renderClubProgressHub?.();return true;
