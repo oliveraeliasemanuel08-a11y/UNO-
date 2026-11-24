@@ -5883,7 +5883,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         function pokerBest(cards){let best=null;for(const c of pokerCombos(cards,5)){const score=pokerEval5(c);if(!best||pokerCompare(score,best.score)>0)best={score,cards:c};}return best;}
         function pokerCompare(a,b){for(let i=0;i<Math.max(a.length,b.length);i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x-y;}return 0;}
         function arcadeStartPoker(){
-          let chips=1000;try{chips=Math.max(0,Number(localStorage.getItem('uno_holdem_chips'))||1000);}catch(e){}
+          let chips=1000;try{chips=Math.max(0,Number(localStorage.getItem('uno_pok_chips'))||1000);}catch(e){}
           const deck=pokerDeck();const players=arcadeNames.map((name,i)=>({name,bot:i>0,stack:i===0?chips:1000,hand:[deck.pop(),deck.pop()],folded:false,bet:0,total:0}));
           const small=Math.min(10,players[0].stack),big=Math.min(20,players[1].stack);players[0].stack-=small;players[0].bet=small;players[0].total=small;players[1].stack-=big;players[1].bet=big;players[1].total=big;
           arcade.game={players,deck,community:[],pot:small+big,currentBet:big,stage:0,street:0,over:false,message:'Preflop: igualá 10 fichas, subí o retirate.'};
@@ -5930,7 +5930,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         }
         function pokerAward(winners){
           const g=arcade.game;const share=Math.floor(g.pot/winners.length),remainder=g.pot-share*winners.length;winners.forEach((i,k)=>g.players[i].stack+=share+(k===0?remainder:0));g.pot=0;g.over=true;
-          const human=g.players[0];try{localStorage.setItem('uno_holdem_chips',String(human.stack));}catch(e){}
+          const human=g.players[0];try{localStorage.setItem('uno_pok_chips',String(human.stack));}catch(e){}
           if(winners.includes(0))g.message='¡Ganaste el pozo!';else g.message='Ganó '+g.players[winners[0]].name+'.';
           pokerRender();
         }
