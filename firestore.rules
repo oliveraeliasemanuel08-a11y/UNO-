@@ -51,6 +51,30 @@ service cloud.firestore {
         && resource.data.hostId == request.auth.uid;
     }
 
+    // MIEMBROS DEL LOBBY: cada jugador registra su propio UID; el host publica la lista en la sala.
+    match /artifacts/{appId}/public/data/uno_liar_private/{roomId}/members/{uid} {
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && get(liarRoomPath(appId, roomId)).data.gameType == 'liar3d'
+        && get(liarRoomPath(appId, roomId)).data.status == 'waiting'
+        && get(liarRoomPath(appId, roomId)).data.memberUids is list
+        && get(liarRoomPath(appId, roomId)).data.memberUids.size() < 6;
+
+      allow read: if isSignedIn()
+        && (request.auth.uid == uid || isLiarRoomHost(appId, roomId));
+
+      allow update: if isSignedIn()
+        && request.auth.uid == uid
+        && resource.data.uid == uid
+        && request.resource.data.uid == uid
+        && get(liarRoomPath(appId, roomId)).data.status == 'waiting';
+
+      allow delete: if isLiarRoomHost(appId, roomId)
+        || (isSignedIn() && request.auth.uid == uid
+          && get(liarRoomPath(appId, roomId)).data.status == 'waiting');
+    }
+
     // MANOS PRIVADAS DE UNO! MENTIROSO 3D
     // Cada jugador solamente puede leer el documento de su propia mano.
     // El anfitrión distribuye y actualiza las manos como autoridad de la partida.
