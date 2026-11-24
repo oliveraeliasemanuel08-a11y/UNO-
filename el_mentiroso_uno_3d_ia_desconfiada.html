@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EL MENTIROSO UNO 3D - Liar's Table</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #05070c;
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+        }
+        #canvas-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+        }
+        .font-display {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(12, 18, 34, 0.76);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+        }
+        .glass-pill {
+            background: rgba(8, 12, 24, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+        .uno-border {
+            position: relative;
+        }
+        .uno-border::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1.5px;
+            background: linear-gradient(90deg, #ff2a55, #ffcc00, #00e676, #00b0ff);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        @keyframes liarShake {
+            0%, 100% { transform: translate(-50%, 0) scale(1) rotate(0deg); }
+            20% { transform: translate(-52%, -4px) scale(1.08) rotate(-2deg); }
+            40% { transform: translate(-48%, 3px) scale(1.1) rotate(2deg); }
+            60% { transform: translate(-51%, -2px) scale(1.06) rotate(-1deg); }
+            80% { transform: translate(-49%, 2px) scale(1.04) rotate(1deg); }
+        }
+        .animate-liar {
+            animation: liarShake 0.55s ease-in-out;
+        }
+        @keyframes floatBubble {
+            0% { opacity: 0; transform: translateY(10px) scale(0.88); }
+            12% { opacity: 1; transform: translateY(0) scale(1); }
+            85% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-8px) scale(0.95); }
+        }
+        .speech-bubble {
+            animation: floatBubble 3.4s forwards ease-out;
+        }
+        .hand-card-btn {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+        .hand-card-btn.selected {
+            transform: translateY(-16px) scale(1.07);
+            box-shadow: 0 12px 24px rgba(255, 204, 0, 0.55), 0 0 0 3px #ffcc00;
+        }
+        /* Barra compacta de selección 3D */
+        #selected-3d-strip {
+            background: rgba(10, 15, 28, 0.82);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 204, 0, 0.35);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Contenedor 3D -->
+    <div id="canvas-container"></div>
+
+    <!-- HUD Superior -->
+    <header class="fixed top-0 left-0 right-0 z-20 p-3 sm:p-4 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <!-- Marca + Carta Objetivo de la Ronda -->
+        <div class="flex items-center gap-2 sm:gap-3 pointer-events-auto">
+            <div class="glass-panel uno-border rounded-2xl px-3 py-2 flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-600 via-amber-400 to-sky-500 flex items-center justify-center font-display font-black text-[11px] text-slate-950 shadow-lg">
+                    UNO
+                </div>
+                <div>
+                    <h1 class="font-display font-black text-xs sm:text-sm tracking-wider text-white leading-none">EL MENTIROSO</h1>
+                    <span id="round-label" class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-amber-400">RONDA 1</span>
+                </div>
+            </div>
+
+            <!-- Carta Objetivo Actual -->
+            <div id="target-card-hud" class="glass-panel rounded-2xl px-3.5 py-1.5 flex items-center gap-2.5 border border-white/20">
+                <div id="target-mini-badge" class="w-7 h-9 rounded-lg bg-red-600 border-2 border-white flex items-center justify-center font-black text-sm shadow">7</div>
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold leading-none">Carta Objetivo</div>
+                    <div id="target-name-text" class="font-display font-black text-xs sm:text-base text-white leading-tight mt-0.5">7 ROJO</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles de Cámara, Mesa, Sonido y Reglas -->
+        <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+            <div class="glass-panel rounded-xl p-1 hidden sm:flex items-center gap-1">
+                <button onclick="setCameraView('overview')" id="cam-overview" class="cam-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition">Mesa</button>
+                <button onclick="setCameraView('hand')" id="cam-hand" class="cam-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Mi Mano</button>
+                <button onclick="setCameraView('center')" id="cam-center" class="cam-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Centro</button>
+            </div>
+
+            <button onclick="openSetupModal()" class="glass-panel px-3 py-2 rounded-xl text-xs font-extrabold text-emerald-300 hover:bg-slate-800/80 transition flex items-center gap-1.5" title="Configurar jugadores">
+                <span>👥</span>
+                <span>Mesa</span>
+            </button>
+
+            <button onclick="toggleSound()" id="sound-btn" title="Sonido" class="glass-panel p-2 rounded-xl text-slate-200 hover:text-amber-400 transition">
+                <svg id="sound-on-icon" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <svg id="sound-off-icon" class="w-4 h-4 sm:w-5 sm:h-5 hidden text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+            </button>
+
+            <button onclick="toggleRulesModal(true)" class="glass-panel uno-border px-3 py-2 rounded-xl text-xs font-extrabold text-white hover:bg-slate-800/80 transition flex items-center gap-1">
+                <span>📜</span>
+                <span class="hidden sm:inline">Reglas</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Capa de Etiquetas Flotantes Proyectadas desde 3D para cada Asiento -->
+    <div id="seat-hud-layer" class="fixed inset-0 z-10 pointer-events-none overflow-hidden"></div>
+
+    <!-- Banner Central Dramático (Eventos, Desafíos y Resultados) -->
+    <div id="center-banner" class="fixed top-20 sm:top-24 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-300 opacity-0 scale-90 w-[92%] max-w-md">
+        <div id="banner-box" class="glass-panel uno-border rounded-2xl px-5 py-3 text-center shadow-2xl">
+            <div id="banner-title" class="font-display font-black text-base sm:text-lg text-amber-300 tracking-wide"></div>
+            <div id="banner-sub" class="text-xs sm:text-sm text-slate-200 font-semibold mt-1"></div>
+        </div>
+    </div>
+
+    <!-- Panel Inferior del Jugador Activo -->
+    <footer class="fixed bottom-0 left-0 right-0 z-20 p-3 sm:p-4 flex flex-col items-center gap-2.5 pointer-events-none">
+
+        <!-- Info de Última Jugada en la Mesa + Vidas del Jugador Activo -->
+        <div class="flex flex-wrap items-center justify-center gap-2 pointer-events-auto">
+            <div class="glass-panel rounded-2xl px-3.5 py-2 flex items-center gap-2.5">
+                <div id="active-player-avatar" class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shadow">😎</div>
+                <div>
+                    <div id="active-player-name" class="text-xs font-black text-white leading-none">Tu Turno</div>
+                    <div id="active-player-lives" class="flex items-center gap-1 mt-1 text-xs">❤️❤️❤️</div>
+                </div>
+            </div>
+
+            <div id="last-claim-pill" class="glass-panel uno-border rounded-2xl px-3.5 py-2 flex items-center gap-2">
+                <span class="text-base">🃏</span>
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold leading-none">Última Declaración</div>
+                    <div id="last-claim-text" class="text-xs sm:text-sm font-extrabold text-amber-300 mt-0.5">Mesa vacía — Inicia la ronda</div>
+                </div>
+            </div>
+
+            <div id="selected-3d-strip" class="hidden rounded-2xl px-3 py-1.5 flex items-center gap-1.5">
+                <span class="text-[10px] uppercase tracking-wider text-amber-300 font-extrabold">3D:</span>
+                <div id="selected-3d-chips" class="flex items-center gap-1"></div>
+            </div>
+        </div>
+
+        <!-- Las cartas ahora se muestran y seleccionan directamente en el abanico 3D en primera persona -->
+        <div id="human-hand-container" class="hidden"></div>
+        <div id="bot-turn-status" class="hidden glass-pill px-4 py-2 rounded-xl text-xs text-slate-300 font-semibold"></div>
+
+        <!-- Botonera de Acciones del Jugador -->
+        <div id="player-action-bar" class="glass-panel rounded-2xl p-2.5 w-full max-w-xl grid grid-cols-2 gap-2.5 pointer-events-auto transition-opacity duration-200">
+            <button id="btn-play-cards" onclick="humanPlaySelected()" disabled class="py-3 px-3 rounded-xl font-display font-black text-xs sm:text-sm bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 disabled:opacity-40 disabled:pointer-events-none text-slate-950 shadow-lg transition active:scale-95">
+                LANZAR CARTAS (0/3)
+            </button>
+
+            <button id="btn-call-liar" onclick="humanCallLiar()" disabled class="py-3 px-3 rounded-xl font-display font-black text-xs sm:text-sm bg-gradient-to-r from-rose-600 to-red-500 hover:brightness-110 disabled:opacity-40 disabled:pointer-events-none text-white shadow-lg shadow-rose-950/60 transition active:scale-95">
+                🚨 ¡MENTIROSO!
+            </button>
+        </div>
+
+        <!-- Botón Siguiente Ronda / Nueva Partida -->
+        <div id="round-next-bar" class="hidden pointer-events-auto">
+            <button id="btn-next-round" onclick="handleNextRoundClick()" class="px-7 py-3.5 rounded-2xl font-display font-black text-sm sm:text-base bg-gradient-to-r from-amber-400 via-orange-400 to-rose-500 text-slate-950 shadow-2xl hover:brightness-110 transition active:scale-95">
+                SIGUIENTE RONDA ➔
+            </button>
+        </div>
+    </footer>
+
+    <!-- Pantalla de Privacidad (Modo Pasa y Juega para múltiples humanos) -->
+    <div id="privacy-curtain" class="fixed inset-0 z-40 hidden bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center">
+        <div class="glass-panel uno-border rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-5">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-rose-500 via-amber-400 to-sky-500 flex items-center justify-center text-3xl shadow-xl">🙈</div>
+            <div>
+                <div class="text-xs font-bold uppercase tracking-widest text-amber-400">Modo Pasa y Juega</div>
+                <h2 id="privacy-player-title" class="font-display font-black text-2xl text-white mt-1">Turno de Jugador 2</h2>
+                <p class="text-xs sm:text-sm text-slate-300 mt-2">Asegúrate de que nadie más esté mirando la pantalla antes de ver tus cartas secretas.</p>
+            </div>
+            <button onclick="revealHumanTurn()" class="w-full py-3.5 rounded-2xl font-display font-black text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg transition active:scale-95">
+                SOY YO — VER MIS CARTAS 👁️
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Configuración de Mesa (2 a 6 Jugadores) -->
+    <div id="setup-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel uno-border rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-white/15 pb-3">
+                <div>
+                    <h2 class="font-display font-black text-lg sm:text-xl text-white">EL MENTIROSO UNO 3D</h2>
+                    <p class="text-xs text-slate-400">Configura tu mesa VIP (3 vidas por jugador)</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-black text-xs">❤️❤️❤️</span>
+            </div>
+
+            <!-- Selector de cantidad de asientos -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Cantidad de Jugadores en Mesa</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="setPlayerCountSetup(2)" id="cnt-btn-2" class="cnt-btn py-2 rounded-xl font-display font-black text-sm bg-white/10 text-slate-300 hover:bg-white/20 transition">2</button>
+                    <button onclick="setPlayerCountSetup(3)" id="cnt-btn-3" class="cnt-btn py-2 rounded-xl font-display font-black text-sm bg-white/10 text-slate-300 hover:bg-white/20 transition">3</button>
+                    <button onclick="setPlayerCountSetup(4)" id="cnt-btn-4" class="cnt-btn py-2 rounded-xl font-display font-black text-sm bg-indigo-600 text-white transition">4</button>
+                    <button onclick="setPlayerCountSetup(6)" id="cnt-btn-6" class="cnt-btn py-2 rounded-xl font-display font-black text-sm bg-white/10 text-slate-300 hover:bg-white/20 transition">6</button>
+                </div>
+            </div>
+
+            <!-- Lista editable de asientos -->
+            <div id="setup-seats-list" class="space-y-2">
+                <!-- Se genera dinámicamente -->
+            </div>
+
+            <button onclick="startMatchFromSetup()" class="w-full py-3.5 rounded-2xl font-display font-black text-sm sm:text-base bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400 text-slate-950 shadow-xl hover:brightness-110 transition active:scale-95">
+                ¡COMENZAR PARTIDA 3D! 🃏
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Reglas -->
+    <div id="rules-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel uno-border rounded-3xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-5 sm:p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-white/15 pb-3">
+                <h2 class="font-display font-black text-lg text-white">📜 Reglas: El Mentiroso UNO</h2>
+                <button onclick="toggleRulesModal(false)" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white font-bold">✕</button>
+            </div>
+
+            <div class="space-y-3 text-xs sm:text-sm text-slate-200">
+                <div class="p-3 rounded-2xl bg-indigo-500/15 border border-indigo-400/30">
+                    <p class="font-bold text-indigo-300 mb-1">🎯 1. La Carta Objetivo y el Mazo (28 cartas)</p>
+                    <p class="text-xs text-slate-300">El mazo tiene 6 copias de <strong>7 Rojo</strong>, 6 de <strong>5 Azul</strong>, 6 de <strong>9 Verde</strong>, 6 de <strong>+2 Amarillo</strong> y 4 comodines <strong>Wild</strong>. Al iniciar cada ronda se sortea una <strong>Carta Objetivo</strong> y cada jugador recibe 5 cartas.</p>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-400/30">
+                    <p class="font-bold text-emerald-300 mb-1">🃏 2. Jugar Cartas (Verdad o Mentira)</p>
+                    <p class="text-xs text-slate-300">En tu turno lanzas de <strong>1 a 3 cartas boca abajo</strong> al centro declarando que todas son la Carta Objetivo. Los comodines <strong>Wild</strong> siempre cuentan como verdaderos.</p>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-rose-500/15 border border-rose-400/30">
+                    <p class="font-bold text-rose-300 mb-1">🚨 3. Gritar "¡MENTIROSO!" y las 3 Vidas</p>
+                    <p class="text-xs text-slate-300">Antes de bajar cartas, puedes desafiar al jugador anterior gritando <strong>¡MENTIROSO!</strong> Se voltean sus cartas en 3D:</p>
+                    <ul class="list-disc pl-5 mt-1 space-y-1 text-xs text-slate-300">
+                        <li>Si <strong>al menos una carta NO coincide</strong> (ni es Wild): el mentiroso pierde <strong>1 vida</strong>.</li>
+                        <li>Si <strong>todas coinciden</strong> (o son Wild): tú te equivocaste y pierdes <strong>1 vida</strong>.</li>
+                    </ul>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-amber-500/15 border border-amber-400/30">
+                    <p class="font-bold text-amber-300 mb-1">🏆 4. Eliminación y Victoria</p>
+                    <p class="text-xs text-slate-300">Cada jugador tiene <strong>3 cristales de vida</strong> frente a su asiento. Al perder los 3, queda eliminado. ¡Gana el último sobreviviente en la mesa!</p>
+                </div>
+            </div>
+
+            <button onclick="toggleRulesModal(false)" class="w-full py-3 rounded-xl font-extrabold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition">
+                ¡Listo para engañar!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * 1. MOTOR DE AUDIO SINTETIZADO (WEB AUDIO API)
+         * ============================================================================
+         */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            playCardSlap() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const bufSize = this.ctx.sampleRate * 0.08;
+                const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.25));
+                }
+                const src = this.ctx.createBufferSource();
+                src.buffer = buf;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1900, now);
+                filter.frequency.exponentialRampToValueAtTime(350, now + 0.08);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.32, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+                src.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                src.start(now);
+            }
+            playLiarAlarm() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [190, 145].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.16);
+                    osc.frequency.linearRampToValueAtTime(freq * 0.85, now + idx * 0.16 + 0.15);
+
+                    gain.gain.setValueAtTime(0.22, now + idx * 0.16);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.16 + 0.22);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.16);
+                    osc.stop(now + idx * 0.16 + 0.24);
+                });
+            }
+            playLifeLost() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                // Subgrave dramático + cristal rompiéndose
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(130, now);
+                osc.frequency.exponentialRampToValueAtTime(36, now + 0.55);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.58);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.6);
+
+                // Destellos agudos de cristal roto
+                [2600, 3400, 4200, 5100].forEach((f, i) => {
+                    const o = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(f, now + i * 0.03);
+                    g.gain.setValueAtTime(0.1, now + i * 0.03);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.03 + 0.12);
+                    o.connect(g);
+                    g.connect(this.ctx.destination);
+                    o.start(now + i * 0.03);
+                    o.stop(now + i * 0.03 + 0.13);
+                });
+            }
+            playSafeChime() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99].forEach((f, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, now + i * 0.07);
+                    gain.gain.setValueAtTime(0.14, now + i * 0.07);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.07);
+                    osc.stop(now + i * 0.07 + 0.32);
+                });
+            }
+            playVictory() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(f, now + i * 0.09);
+                    gain.gain.setValueAtTime(0.18, now + i * 0.09);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.65);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.09);
+                    osc.stop(now + i * 0.09 + 0.66);
+                });
+            }
+        }
+        const sfx = new SoundEngine();
+
+        function toggleSound() {
+            sfx.enabled = !sfx.enabled;
+            document.getElementById('sound-on-icon').classList.toggle('hidden', !sfx.enabled);
+            document.getElementById('sound-off-icon').classList.toggle('hidden', sfx.enabled);
+        }
+
+        /**
+         * ============================================================================
+         * 2. BARAJA ESPECIAL "EL MENTIROSO UNO" Y TEXTURAS CANVAS HD
+         * ============================================================================
+         */
+        const CARD_TYPES = [
+            { id: 'red_7',    color: 'red',    value: '7',  label: '7 ROJO',      hex: '#e51c24', light: '#ff5252', neon: 0xff2a44, badgeClass: 'bg-red-600 text-white' },
+            { id: 'blue_5',   color: 'blue',   value: '5',  label: '5 AZUL',      hex: '#0066cc', light: '#38bdf8', neon: 0x00aaff, badgeClass: 'bg-blue-600 text-white' },
+            { id: 'green_9',  color: 'green',  value: '9',  label: '9 VERDE',     hex: '#16a34a', light: '#4ade80', neon: 0x00e676, badgeClass: 'bg-emerald-600 text-white' },
+            { id: 'yellow_2', color: 'yellow', value: '+2', label: '+2 AMARILLO', hex: '#eab308', light: '#fde047', neon: 0xffd600, badgeClass: 'bg-amber-400 text-slate-950' }
+        ];
+
+        const WILD_TYPE = {
+            id: 'wild', color: 'wild', value: 'W', label: 'COMODÍN WILD', hex: '#141824', light: '#334155', neon: 0xffffff,
+            badgeClass: 'bg-gradient-to-br from-rose-500 via-amber-400 to-sky-500 text-slate-950'
+        };
+
+        const textureCache = {};
+
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        function getCardBackTexture() {
+            if (textureCache['BACK']) return textureCache['BACK'];
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 768;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            roundRect(ctx, 0, 0, 512, 768, 42);
+            ctx.fill();
+
+            ctx.fillStyle = '#10131c';
+            roundRect(ctx, 22, 22, 468, 724, 30);
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(256, 384);
+            ctx.rotate(-0.42);
+            const grad = ctx.createLinearGradient(-180, -250, 180, 250);
+            grad.addColorStop(0, '#ff2a38');
+            grad.addColorStop(1, '#990711');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 185, 295, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#ffcc00';
+            ctx.stroke();
+
+            ctx.rotate(0.22);
+            ctx.font = '900 132px Orbitron, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#000000';
+            ctx.fillText('UNO', 10, 14);
+            ctx.lineWidth = 12;
+            ctx.strokeStyle = '#000000';
+            ctx.strokeText('UNO', 0, 0);
+            ctx.fillStyle = '#ffd600';
+            ctx.fillText('UNO', 0, 0);
+            ctx.restore();
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.anisotropy = 8;
+            textureCache['BACK'] = tex;
+            return tex;
+        }
+
+        function getCardFrontTexture(cardType) {
+            if (textureCache[cardType.id]) return textureCache[cardType.id];
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 768;
+            const ctx = canvas.getContext('2d');
+
+            // Marco marfil/pergamino estilo ilustración de carta
+            ctx.fillStyle = '#f6efe2';
+            roundRect(ctx, 0, 0, 512, 768, 42);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(20, 24, 38, 0.35)';
+            ctx.lineWidth = 5;
+            roundRect(ctx, 10, 10, 492, 748, 36);
+            ctx.stroke();
+
+            const bgGrad = ctx.createLinearGradient(26, 26, 486, 742);
+            bgGrad.addColorStop(0, cardType.light);
+            bgGrad.addColorStop(0.55, cardType.hex);
+            bgGrad.addColorStop(1, cardType.hex);
+            ctx.fillStyle = bgGrad;
+            roundRect(ctx, 24, 24, 464, 720, 28);
+            ctx.fill();
+
+            // Rayos radiales artísticos sutiles en el fondo de la carta
+            ctx.save();
+            ctx.translate(256, 384);
+            for (let r = 0; r < 16; r++) {
+                ctx.rotate((Math.PI * 2) / 16);
+                ctx.fillStyle = r % 2 === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-28, -360);
+                ctx.lineTo(28, -360);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // Óvalo central
+            ctx.save();
+            ctx.translate(256, 384);
+            ctx.rotate(-0.42);
+            ctx.fillStyle = '#fdfaf2';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 182, 290, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = 'rgba(15, 23, 42, 0.45)';
+            ctx.stroke();
+
+            if (cardType.color === 'wild') {
+                const quads = ['#e51c24', '#0066cc', '#eab308', '#16a34a'];
+                for (let i = 0; i < 4; i++) {
+                    ctx.fillStyle = quads[i];
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.ellipse(0, 0, 162, 265, 0, (i * Math.PI) / 2, ((i + 1) * Math.PI) / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+
+            // Símbolo central
+            ctx.save();
+            ctx.translate(256, 384);
+            ctx.font = cardType.value.length > 1 ? '900 155px Inter, sans-serif' : '900 205px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#000000';
+            ctx.fillText(cardType.value, 10, 12);
+            ctx.lineWidth = 14;
+            ctx.strokeStyle = '#000000';
+            ctx.strokeText(cardType.value, 0, 0);
+            ctx.fillStyle = cardType.color === 'wild' ? '#ffffff' : cardType.hex;
+            ctx.fillText(cardType.value, 0, 0);
+
+            if (cardType.value === '9') {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(-45, 110, 96, 16);
+                ctx.fillStyle = cardType.hex;
+                ctx.fillRect(-48, 106, 96, 16);
+            }
+            ctx.restore();
+
+            // Medallones de esquina estilo ilustración
+            [ { x: 74, y: 92, inv: false }, { x: 438, y: 676, inv: true } ].forEach(c => {
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                if (c.inv) ctx.rotate(Math.PI);
+
+                // Disco exterior oscuro + anillo dorado
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.arc(0, 0, 48, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#fbbf24';
+                ctx.stroke();
+
+                ctx.font = '900 46px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(cardType.value, 0, 2);
+                ctx.restore();
+            });
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.anisotropy = 8;
+            textureCache[cardType.id] = tex;
+            return tex;
+        }
+
+        function createLiarDeck() {
+            const deck = [];
+            CARD_TYPES.forEach(t => {
+                for (let i = 0; i < 6; i++) deck.push({ ...t });
+            });
+            for (let i = 0; i < 4; i++) deck.push({ ...WILD_TYPE });
+            // Fisher-Yates shuffle
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        }
+
+        /**
+         * ============================================================================
+         * 3. ESCENA 3D CON THREE.JS (MESA VIP, CRISTALES DE 3 VIDAS Y PARTÍCULAS)
+         * ============================================================================
+         */
+        let scene, camera, renderer;
+        let neonRingMat, neonSpotLight, warmRimLight, targetCenterMesh;
+        let tableObjectsGroup, particlesGroup, charactersGroup, handRigGroup, loungeDecorGroup;
+        const activeAnimations = [];
+        const tableCardMeshes = [];
+        const handCardMeshes = [];
+        const characterRigs = [];
+        const particles = [];
+
+        // Raycasting para hover y clic sobre cartas 3D en primera persona
+        const raycaster = new THREE.Raycaster();
+        const pointerNDC = new THREE.Vector2(-99, -99);
+        let hoveredHandIndex = -1;
+        let lastHoveredCueIdx = -1;
+        let pointerDownPos = { x: 0, y: 0 };
+
+        // Cámara suave + órbita manual
+        const cameraTargetPos = new THREE.Vector3(0, 4.35, 6.35);
+        const cameraTargetLook = new THREE.Vector3(0, 1.05, 0.35);
+        const currentLookAt = new THREE.Vector3(0, 1.05, 0.35);
+        let camOrbit = { x: 0, y: 0 };
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0c0912);
+            scene.fog = new THREE.FogExp2(0x0c0912, 0.02);
+
+            camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.copy(cameraTargetPos);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.38;
+            container.appendChild(renderer.domElement);
+
+            // Luces cálidas de salón, lámpara central y acentos neón intensos
+            const ambient = new THREE.AmbientLight(0xffe4c4, 0.85);
+            scene.add(ambient);
+
+            const hemiLight = new THREE.HemisphereLight(0xfff1d6, 0x2b1838, 0.75);
+            scene.add(hemiLight);
+
+            const mainSpot = new THREE.SpotLight(0xffe7c2, 2.65);
+            mainSpot.position.set(0, 11.5, 2.0);
+            mainSpot.angle = Math.PI / 2.6;
+            mainSpot.penumbra = 0.65;
+            mainSpot.castShadow = true;
+            mainSpot.shadow.mapSize.width = 2048;
+            mainSpot.shadow.mapSize.height = 2048;
+            scene.add(mainSpot);
+
+            warmRimLight = new THREE.PointLight(0xffa73b, 2.1, 26);
+            warmRimLight.position.set(-7.5, 4.4, -5.0);
+            scene.add(warmRimLight);
+
+            const cyanRimLight = new THREE.PointLight(0x22d3ee, 1.55, 24);
+            cyanRimLight.position.set(7.8, 3.8, -4.5);
+            scene.add(cyanRimLight);
+
+            neonSpotLight = new THREE.PointLight(0xff2a55, 2.1, 22);
+            neonSpotLight.position.set(0, 3.8, 0);
+            scene.add(neonSpotLight);
+
+            buildClubTable();
+            buildLoungeAtmosphere();
+
+            charactersGroup = new THREE.Group();
+            scene.add(charactersGroup);
+
+            tableObjectsGroup = new THREE.Group();
+            scene.add(tableObjectsGroup);
+
+            particlesGroup = new THREE.Group();
+            scene.add(particlesGroup);
+
+            // Rig de cartas 3D en primera persona (sin mano)
+            handRigGroup = new THREE.Group();
+            scene.add(handRigGroup);
+
+            // Eventos de cámara y raycasting 3D
+            window.addEventListener('resize', onWindowResize);
+            const dom = renderer.domElement;
+
+            dom.addEventListener('mousedown', e => {
+                pointerDownPos = { x: e.clientX, y: e.clientY };
+                isDragging = true;
+                prevMouse = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('mouseup', e => {
+                const movedDist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+                if (isDragging && movedDist < 6) {
+                    handle3DCardClick(e.clientX, e.clientY);
+                }
+                isDragging = false;
+            });
+
+            window.addEventListener('mousemove', e => {
+                updatePointerNDC(e.clientX, e.clientY);
+                if (!isDragging) return;
+                camOrbit.x = Math.max(-0.65, Math.min(0.65, camOrbit.x - (e.clientX - prevMouse.x) * 0.0045));
+                camOrbit.y = Math.max(-0.22, Math.min(0.32, camOrbit.y + (e.clientY - prevMouse.y) * 0.0045));
+                prevMouse = { x: e.clientX, y: e.clientY };
+            });
+
+            dom.addEventListener('touchstart', e => {
+                if (e.touches.length === 1) {
+                    const t = e.touches[0];
+                    pointerDownPos = { x: t.clientX, y: t.clientY };
+                    updatePointerNDC(t.clientX, t.clientY);
+                    isDragging = true;
+                    prevMouse = { x: t.clientX, y: t.clientY };
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', e => {
+                if (e.changedTouches.length > 0) {
+                    const t = e.changedTouches[0];
+                    const movedDist = Math.hypot(t.clientX - pointerDownPos.x, t.clientY - pointerDownPos.y);
+                    updatePointerNDC(t.clientX, t.clientY);
+                    if (isDragging && movedDist < 10) {
+                        handle3DCardClick(t.clientX, t.clientY);
+                    }
+                }
+                isDragging = false;
+                hoveredHandIndex = -1;
+            });
+
+            window.addEventListener('touchmove', e => {
+                if (e.touches.length === 1) {
+                    const t = e.touches[0];
+                    updatePointerNDC(t.clientX, t.clientY);
+                    if (!isDragging) return;
+                    camOrbit.x = Math.max(-0.65, Math.min(0.65, camOrbit.x - (t.clientX - prevMouse.x) * 0.0045));
+                    camOrbit.y = Math.max(-0.22, Math.min(0.32, camOrbit.y + (t.clientY - prevMouse.y) * 0.0045));
+                    prevMouse = { x: t.clientX, y: t.clientY };
+                }
+            }, { passive: true });
+        }
+
+        function updatePointerNDC(clientX, clientY) {
+            pointerNDC.x = (clientX / window.innerWidth) * 2 - 1;
+            pointerNDC.y = -(clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function createCapsuleMesh(radius, length, material) {
+            const group = new THREE.Group();
+            const cyl = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, 12), material);
+            const topCap = new THREE.Mesh(new THREE.SphereGeometry(radius, 12, 10), material);
+            topCap.position.y = length / 2;
+            const botCap = new THREE.Mesh(new THREE.SphereGeometry(radius, 12, 10), material);
+            botCap.position.y = -length / 2;
+            group.add(cyl, topCap, botCap);
+            return group;
+        }
+
+        function buildClubTable() {
+            // Textura procedural de madera cálida para el piso/salón
+            const woodCanvas = document.createElement('canvas');
+            woodCanvas.width = 512;
+            woodCanvas.height = 512;
+            const wctx = woodCanvas.getContext('2d');
+            wctx.fillStyle = '#24150e';
+            wctx.fillRect(0, 0, 512, 512);
+            for (let y = 0; y < 512; y += 16) {
+                wctx.fillStyle = y % 32 === 0 ? 'rgba(255, 190, 120, 0.04)' : 'rgba(0, 0, 0, 0.16)';
+                wctx.fillRect(0, y, 512, 12);
+            }
+            const woodTex = new THREE.CanvasTexture(woodCanvas);
+            woodTex.wrapS = THREE.RepeatWrapping;
+            woodTex.wrapT = THREE.RepeatWrapping;
+            woodTex.repeat.set(8, 8);
+
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(60, 60),
+                new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.65, metalness: 0.1 })
+            );
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -2.2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Textura del tapete VIP oscuro
+            const fCanvas = document.createElement('canvas');
+            fCanvas.width = 1024;
+            fCanvas.height = 1024;
+            const ctx = fCanvas.getContext('2d');
+            const grad = ctx.createRadialGradient(512, 512, 50, 512, 512, 512);
+            grad.addColorStop(0, '#1d2842');
+            grad.addColorStop(0.7, '#0f1628');
+            grad.addColorStop(1, '#080c16');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 1024, 1024);
+
+            ctx.strokeStyle = 'rgba(255, 225, 170, 0.14)';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(512, 512, 340, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.font = '900 40px Orbitron, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255, 240, 210, 0.08)';
+            ctx.fillText("LIAR'S UNO LOUNGE", 512, 260);
+
+            const feltTex = new THREE.CanvasTexture(fCanvas);
+            feltTex.anisotropy = 8;
+
+            // Mesa circular de lujo
+            const tableMesh = new THREE.Mesh(
+                new THREE.CylinderGeometry(5.2, 5.2, 0.26, 64),
+                new THREE.MeshStandardMaterial({ map: feltTex, roughness: 0.78, metalness: 0.12 })
+            );
+            tableMesh.receiveShadow = true;
+            scene.add(tableMesh);
+
+            // Borde de madera noble
+            const rail = new THREE.Mesh(
+                new THREE.TorusGeometry(5.25, 0.34, 24, 64),
+                new THREE.MeshStandardMaterial({ color: 0x3b2012, roughness: 0.38, metalness: 0.22 })
+            );
+            rail.rotation.x = Math.PI / 2;
+            rail.position.y = 0.14;
+            rail.castShadow = true;
+            scene.add(rail);
+
+            // Anillo Neón dinámico (cambia de color con la Carta Objetivo o Alarma)
+            neonRingMat = new THREE.MeshBasicMaterial({ color: 0xff2a44 });
+            const neonRing = new THREE.Mesh(new THREE.TorusGeometry(4.92, 0.04, 12, 64), neonRingMat);
+            neonRing.rotation.x = Math.PI / 2;
+            neonRing.position.y = 0.14;
+            scene.add(neonRing);
+
+            // Doble anillo exterior neón decorativo en el borde de la mesa
+            const outerNeonMat = new THREE.MeshBasicMaterial({ color: 0xffb703 });
+            const outerNeon = new THREE.Mesh(new THREE.TorusGeometry(5.58, 0.025, 10, 72), outerNeonMat);
+            outerNeon.rotation.x = Math.PI / 2;
+            outerNeon.position.y = 0.34;
+            scene.add(outerNeon);
+
+            // Carta Objetivo de muestra en la mesa (a un costado del centro)
+            const geo = new THREE.BoxGeometry(0.95, 0.02, 1.4);
+            const edgeMat = new THREE.MeshStandardMaterial({ color: 0xf6efe2 });
+            const frontMat = new THREE.MeshStandardMaterial({ map: getCardFrontTexture(CARD_TYPES[0]), roughness: 0.25 });
+            targetCenterMesh = new THREE.Mesh(geo, [edgeMat, edgeMat, frontMat, edgeMat, edgeMat, edgeMat]);
+            targetCenterMesh.position.set(-1.55, 0.15, -0.35);
+            targetCenterMesh.rotation.y = 0.22;
+            targetCenterMesh.castShadow = true;
+            scene.add(targetCenterMesh);
+        }
+
+        function buildLoungeAtmosphere() {
+            loungeDecorGroup = new THREE.Group();
+
+            // Lámpara colgante cálida sobre la mesa
+            const cord = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.025, 0.025, 4.5, 8),
+                new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 })
+            );
+            cord.position.set(0, 10.2, 0);
+            loungeDecorGroup.add(cord);
+
+            const shade = new THREE.Mesh(
+                new THREE.ConeGeometry(1.35, 0.75, 28, 1, true),
+                new THREE.MeshStandardMaterial({
+                    color: 0x2a1810,
+                    emissive: 0xff9e2c,
+                    emissiveIntensity: 0.35,
+                    roughness: 0.35,
+                    metalness: 0.4,
+                    side: THREE.DoubleSide
+                })
+            );
+            shade.position.set(0, 7.7, 0);
+            loungeDecorGroup.add(shade);
+
+            const bulb = new THREE.Mesh(
+                new THREE.SphereGeometry(0.28, 16, 16),
+                new THREE.MeshBasicMaterial({ color: 0xfff3d1 })
+            );
+            bulb.position.set(0, 7.55, 0);
+            loungeDecorGroup.add(bulb);
+
+            // Pilares luminosos decorativos alrededor del salón
+            const pillarPositions = [
+                [-11, 2.2, -9], [11, 2.2, -9], [-12, 2.2, 5], [12, 2.2, 5]
+            ];
+            pillarPositions.forEach(([px, py, pz], idx) => {
+                const colColor = idx % 2 === 0 ? 0xff2a55 : 0x22d3ee;
+                const pillar = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.24, 0.28, 9.5, 16),
+                    new THREE.MeshStandardMaterial({
+                        color: 0x131722,
+                        emissive: colColor,
+                        emissiveIntensity: 0.22,
+                        roughness: 0.3,
+                        metalness: 0.6
+                    })
+                );
+                pillar.position.set(px, py, pz);
+                loungeDecorGroup.add(pillar);
+            });
+
+            // Polvo dorado / chispas ambientales flotantes
+            const sparkGeo = new THREE.OctahedronGeometry(0.032, 0);
+            const sparkMat = new THREE.MeshBasicMaterial({ color: 0xffd166 });
+            for (let i = 0; i < 42; i++) {
+                const spark = new THREE.Mesh(sparkGeo, sparkMat);
+                const angle = (i / 42) * Math.PI * 2;
+                const radius = 5.5 + (i % 5) * 1.4;
+                spark.position.set(
+                    Math.cos(angle) * radius,
+                    0.8 + (i % 7) * 0.65,
+                    Math.sin(angle) * radius
+                );
+                spark.userData = {
+                    baseY: spark.position.y,
+                    phase: i * 0.55,
+                    radius,
+                    angle
+                };
+                loungeDecorGroup.add(spark);
+            }
+
+            scene.add(loungeDecorGroup);
+        }
+
+        function build3DCharactersAroundTable() {
+            characterRigs.forEach(rig => {
+                if (rig.root) charactersGroup.remove(rig.root);
+            });
+            characterRigs.length = 0;
+
+            const themes = [
+                { body: 0x2563eb, accent: 0xfbbf24, hat: 'visor' },
+                { body: 0xdc2626, accent: 0xfde047, hat: 'crown' },
+                { body: 0x7c3aed, accent: 0x38bdf8, hat: 'hood' },
+                { body: 0x059669, accent: 0xfb7185, hat: 'cap' },
+                { body: 0xd97706, accent: 0xa78bfa, hat: 'visor' },
+                { body: 0xdb2777, accent: 0x34d399, hat: 'crown' }
+            ];
+
+            game.players.forEach((p, idx) => {
+                const st = game.seatPositions[idx];
+                const theme = themes[idx % themes.length];

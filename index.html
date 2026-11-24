@@ -1498,7 +1498,7 @@
           <article class="arcade-card p-5 flex flex-col">
             <div class="text-5xl mb-3">♠️</div><div class="text-[10px] font-black tracking-widest text-amber-300">TEXAS HOLD’EM 3D</div><h3 class="font-uno text-2xl mt-1">UNO HOLD'EM POKER 3D</h3>
             <p class="text-sm text-zinc-400 mt-2 flex-1">Texas Hold’em clásico en una mesa 3D: baraja francesa de 52 cartas, dos cartas privadas, cinco comunitarias y showdown. La economía y las apuestas se ajustarán en una próxima actualización.</p>
-            <div class="flex items-center justify-between mt-5"><span class="text-xs text-amber-200">🪙 1.000 fichas iniciales</span><button data-arcade-menu="poker" class="arcade-action border-amber-400/40 text-amber-200">Abrir menú →</button></div>
+            <div class="flex items-center justify-between mt-5"><span class="text-xs text-amber-200">🪙 1.000 fichas iniciales</span><button data-standalone-game="uno_hold_em_poker_3d.html" data-standalone-title="UNO HOLD’EM POKER 3D" class="arcade-action border-amber-400/40 text-amber-200">Jugar juego original →</button></div>
           </article>
           <article class="arcade-card p-5 flex flex-col">
             <div class="text-5xl mb-3">⚔️</div><div class="text-[10px] font-black tracking-widest text-rose-300">COMBATE POR TURNOS</div><h3 class="font-uno text-2xl mt-1">UNO! BATALLA</h3>
@@ -1509,7 +1509,7 @@
             <div class="text-5xl mb-3">🏠</div><div class="text-[10px] font-black tracking-widest text-sky-300">CLÁSICO ARGENTINO</div><h3 class="font-uno text-2xl mt-1">UNO! ROBADO</h3>
             <p class="text-sm text-zinc-400 mt-2 flex-1">Inspirado en la Casita Robada: capturá cartas del centro y robá la casita rival igualando el valor de su carta superior.</p>
             <div class="flex items-center justify-between mt-5"><span class="text-xs text-sky-200">🃏 Capturá y acumulá</span><button data-arcade-menu="robado" class="arcade-action border-sky-400/40 text-sky-200">Abrir menú →</button></div>
-          </article><article class="arcade-card p-5 flex flex-col"><div class="text-5xl mb-3">🃏</div><div class="text-[10px] font-black tracking-widest text-fuchsia-300">CARTAS COLECCIONABLES</div><h3 class="font-uno text-2xl mt-1">UNO! TCG</h3><p class="text-sm text-zinc-400 mt-2 flex-1">Coleccioná cartas, armá tu mazo y entrá al campo de batalla Pokémon TCG.</p><button id="btnOpenTCGFromArcade" type="button" class="arcade-action mt-4 w-full">Abrir TCG →</button></article>
+          <article class="arcade-card p-5 flex flex-col"><div class="text-5xl mb-3">🎭</div><div class="text-[10px] font-black tracking-widest text-violet-300">BLUFF · MESA 3D</div><h3 class="font-uno text-2xl mt-1">UNO! MENTIROSO 3D</h3><p class="text-sm text-zinc-400 mt-2 flex-1">La versión original adjunta: mesa 3D, faroles, sospechas y rivales IA desconfiados.</p><button data-standalone-game="el_mentiroso_uno_3d_ia_desconfiada.html" data-standalone-title="UNO! MENTIROSO 3D" class="arcade-action mt-4 border-violet-400/40 text-violet-200">Jugar juego original →</button></article></article><article class="arcade-card p-5 flex flex-col"><div class="text-5xl mb-3">🃏</div><div class="text-[10px] font-black tracking-widest text-fuchsia-300">CARTAS COLECCIONABLES</div><h3 class="font-uno text-2xl mt-1">UNO! TCG</h3><p class="text-sm text-zinc-400 mt-2 flex-1">Coleccioná cartas, armá tu mazo y entrá al campo de batalla Pokémon TCG.</p><button id="btnOpenTCGFromArcade" type="button" class="arcade-action mt-4 w-full">Abrir TCG →</button></article>
         </div>
         <section id="arcadeModeSetup" class="hidden arcade-card p-5 mt-4">
           <button id="arcadeSetupBack" class="text-xs text-zinc-400 mb-3">← Volver a los modos</button>
@@ -6343,6 +6343,24 @@ async function arcadeOnlineBattlePlay(cardId){
           const wallet=document.getElementById('arcadePokerWallet');if(wallet)wallet.textContent=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0)).toLocaleString('es-AR')+' ◆';
         }
         document.querySelectorAll('[data-arcade-menu]').forEach(b=>b.addEventListener('click',()=>arcadeShowModeSetup(b.dataset.arcadeMenu)));
+function arcadeOpenStandalone(path,title){
+  clearTimeout(arcade.timer);arcade.game=null;arcade.mode='standalone';
+  document.getElementById('arcadeScreen').classList.add('hidden');
+  document.getElementById('arcadeModeMenu').classList.add('hidden');
+  document.getElementById('arcadeModeSetup').classList.add('hidden');
+  document.getElementById('arcadeGameScreen').classList.remove('hidden');
+  document.getElementById('arcadeGameEyebrow').textContent='MODO ORIGINAL IMPORTADO · HTML COMPLETO';
+  document.getElementById('arcadeGameTitle').textContent=title;
+  document.getElementById('arcadeGameSubtitle').textContent='Código original integrado en UNO! CLUB · versión independiente';
+  const root=document.getElementById('arcadeGameContent');
+  root.className='w-full overflow-hidden rounded-2xl border border-white/10 bg-black p-0';
+  root.innerHTML='';
+  const frame=document.createElement('iframe');frame.src=path;frame.title=title;frame.allow='autoplay; fullscreen; gamepad';frame.allowFullscreen=true;
+  frame.style.cssText='display:block;width:100%;height:calc(100dvh - 132px);min-height:560px;border:0;background:#05070c';
+  root.appendChild(frame);
+}
+document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListener('click',()=>arcadeOpenStandalone(b.dataset.standaloneGame,b.dataset.standaloneTitle||'Modo independiente')));
+
         document.getElementById('arcadeSetupBack').onclick=()=>{document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');};
         document.getElementById('arcadeSetupSolo').onclick=()=>arcadeOpenGame(arcadeOnline.selectedMode);
         document.getElementById('arcadeSetupCreate').onclick=()=>arcadeOnlineCreate(arcadeOnline.selectedMode);

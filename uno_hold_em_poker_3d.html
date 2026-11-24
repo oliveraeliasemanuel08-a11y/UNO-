@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UNO Hold'em Poker 3D - Mesa VIP 8 Jugadores</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #06080f;
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+        }
+        #canvas-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+        }
+        .font-display {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(12, 18, 34, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.55);
+        }
+        .glass-pill {
+            background: rgba(8, 13, 26, 0.88);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .uno-gradient-border {
+            position: relative;
+        }
+        .uno-gradient-border::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1.5px;
+            background: linear-gradient(90deg, #ff2a55, #ffcc00, #00e676, #00b0ff);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        /* Estilo de Ficha Real para Botones */
+        .poker-chip-btn {
+            position: relative;
+            border-radius: 9999px;
+            border: 3px dashed rgba(255, 255, 255, 0.85);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.4);
+            transition: transform 0.12s ease, filter 0.12s ease;
+        }
+        .poker-chip-btn:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.05);
+            filter: brightness(1.12);
+        }
+        .poker-chip-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.96);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.6)); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 18px rgba(255, 204, 0, 0.95)); }
+        }
+        .animate-win {
+            animation: pulseGlow 1.5s infinite ease-in-out;
+        }
+        @keyframes floatBubble {
+            0% { opacity: 0; transform: translateY(8px) scale(0.9); }
+            15% { opacity: 1; transform: translateY(0) scale(1); }
+            85% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-8px) scale(0.95); }
+        }
+        .speech-bubble {
+            animation: floatBubble 3s forwards ease-out;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Contenedor 3D -->
+    <div id="canvas-container"></div>
+
+    <!-- PANTALLA DE CONFIGURACIÓN INICIAL (2 A 8 JUGADORES) -->
+    <div id="setup-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-lg flex items-center justify-center p-4">
+        <div class="glass-panel uno-gradient-border rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5">
+            <div class="text-center space-y-1.5">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 font-display font-bold text-xs tracking-widest">
+                    EDICIÓN MULTIJUGADOR VIP
+                </div>
+                <h1 class="font-display font-black text-2xl sm:text-3xl text-white tracking-wide">
+                    UNO HOLD'EM <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 to-cyan-400">3D</span>
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-300">Configura tu mesa para hasta 8 jugadores simultáneos</p>
+            </div>
+
+            <!-- Selector Total de Jugadores -->
+            <div class="space-y-2">
+                <label class="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex justify-between">
+                    <span>1. Cantidad de Jugadores en la Mesa</span>
+                    <span id="setup-total-label" class="text-amber-400 font-display">6 Jugadores</span>
+                </label>
+                <div class="grid grid-cols-4 gap-2" id="total-players-btns">
+                    <button type="button" onclick="selectTotalPlayers(2)" data-val="2" class="setup-total-btn py-2.5 rounded-xl font-display font-black text-sm bg-white/10 hover:bg-white/20 text-slate-200 border border-white/15 transition">2</button>
+                    <button type="button" onclick="selectTotalPlayers(4)" data-val="4" class="setup-total-btn py-2.5 rounded-xl font-display font-black text-sm bg-white/10 hover:bg-white/20 text-slate-200 border border-white/15 transition">4</button>
+                    <button type="button" onclick="selectTotalPlayers(6)" data-val="6" class="setup-total-btn py-2.5 rounded-xl font-display font-black text-sm bg-amber-500 text-slate-950 border border-amber-300 shadow-lg transition">6</button>
+                    <button type="button" onclick="selectTotalPlayers(8)" data-val="8" class="setup-total-btn py-2.5 rounded-xl font-display font-black text-sm bg-white/10 hover:bg-white/20 text-slate-200 border border-white/15 transition">8</button>
+                </div>
+            </div>
+
+            <!-- Selector de Humanos vs Bots IA -->
+            <div class="space-y-2">
+                <label class="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex justify-between">
+                    <span>2. Humanos (Pasa y Juega) vs Bots IA</span>
+                    <span id="setup-humans-label" class="text-emerald-400 font-bold">1 Humano + 5 Bots</span>
+                </label>
+                <input type="range" id="setup-humans-slider" min="1" max="6" value="1" oninput="updateSetupSummary()" class="w-full accent-amber-400 cursor-pointer">
+                <p class="text-[11px] text-slate-400">
+                    💡 Si eliges 2 o más humanos, se activará una pantalla de privacidad entre turnos para que nadie vea las cartas del otro.
+                </p>
+            </div>
+
+            <!-- Fichas Iniciales y Modo Sin Sonido -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+                    <div class="text-[11px] font-bold text-slate-400 uppercase">Stack Inicial</div>
+                    <select id="setup-starting-chips" class="mt-1 w-full bg-slate-900 border border-white/20 rounded-xl px-2.5 py-1.5 text-sm font-display font-bold text-amber-300 focus:outline-none">
+                        <option value="1000">$1,000 (Rápido)</option>
+                        <option value="2500" selected>$2,500 (Estándar)</option>
+                        <option value="5000">$5,000 (High Roller)</option>
+                    </select>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                    <div class="text-[11px] font-bold text-slate-400 uppercase">Audio / Enfoque</div>
+                    <button type="button" id="setup-mute-toggle" onclick="toggleTryhardMode()" class="mt-1 w-full py-1.5 px-2.5 rounded-xl bg-slate-900 border border-white/20 text-xs font-extrabold text-slate-200 hover:border-amber-400 transition flex items-center justify-between">
+                        <span id="setup-mute-text">🔊 Con Sonido</span>
+                        <span class="text-[10px] text-slate-400">Cambiar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Guía rápida de Fichas en el Setup -->
+            <div class="p-3 rounded-2xl bg-slate-900/90 border border-white/10">
+                <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2 text-center">Valor de las Fichas de Casino</div>
+                <div class="flex flex-wrap items-center justify-center gap-2 text-xs font-display font-black">
+                    <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-950 border-2 border-dashed border-slate-500">⚪ $10</span>
+                    <span class="px-2.5 py-1 rounded-full bg-red-600 text-white border-2 border-dashed border-white">🔴 $50</span>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-600 text-white border-2 border-dashed border-white">🟢 $100</span>
+                    <span class="px-2.5 py-1 rounded-full bg-blue-600 text-white border-2 border-dashed border-white">🔵 $500</span>
+                    <span class="px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 border-2 border-dashed border-slate-950">🟡 $1,000</span>
+                </div>
+            </div>
+
+            <button onclick="confirmSetupAndStart()" class="w-full py-3.5 rounded-2xl font-display font-black text-base bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-400 text-slate-950 shadow-xl hover:brightness-110 transition active:scale-95">
+                SENTARSE A LA MESA 3D ➔
+            </button>
+        </div>
+    </div>
+
+    <!-- CORTINA DE PRIVACIDAD PARA MODO PASA Y JUEGA (MULTI-HUMANO) -->
+    <div id="privacy-curtain" class="fixed inset-0 z-40 hidden bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4">
+        <div class="glass-panel uno-gradient-border rounded-3xl max-w-md w-full p-7 text-center space-y-5 shadow-2xl">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-3xl shadow-lg">
+                🙈
+            </div>
+            <div>
+                <div class="text-xs font-extrabold uppercase tracking-widest text-amber-400">Modo Pasa y Juega</div>
+                <h2 id="privacy-player-name" class="font-display font-black text-2xl text-white mt-1">Turno de Jugador 2</h2>
+                <p class="text-xs sm:text-sm text-slate-300 mt-2">
+                    Asegúrate de que los demás jugadores no miren la pantalla antes de revelar tus cartas UNO.
+                </p>
+            </div>
+            <button onclick="revealHumanTurn()" class="w-full py-3.5 rounded-2xl font-display font-black text-sm sm:text-base bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg transition active:scale-95">
+                👁️ REVELAR MIS CARTAS Y ACTUAR
+            </button>
+        </div>
+    </div>
+
+    <!-- HUD SUPERIOR -->
+    <header class="fixed top-0 left-0 right-0 z-20 p-2.5 sm:p-3.5 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <!-- Izquierda: Logo, Pozo Central y Leyenda de Fichas -->
+        <div class="flex flex-wrap items-center gap-2 pointer-events-auto">
+            <div class="glass-panel uno-gradient-border rounded-2xl px-3 py-1.5 flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 via-yellow-400 to-blue-500 flex items-center justify-center font-display font-black text-[10px] text-slate-950 shadow">
+                    UNO
+                </div>
+                <div>
+                    <h1 class="font-display font-black text-xs tracking-wider text-white leading-none">HOLD'EM 8P</h1>
+                    <span id="phase-badge" class="text-[10px] font-extrabold uppercase tracking-widest text-amber-400">PRE-FLOP</span>
+                </div>
+            </div>
+
+            <!-- Pozo Total (Pot) -->
+            <div class="glass-panel rounded-2xl px-3.5 py-1.5 flex items-center gap-2 border border-amber-400/30">
+                <div class="w-6 h-6 rounded-full bg-amber-400 border-2 border-dashed border-slate-950 flex items-center justify-center text-slate-950 font-black text-xs">$</div>
+                <div>
+                    <div class="text-[9px] uppercase tracking-wider text-slate-400 font-bold leading-none">Pozo Total</div>
+                    <div id="pot-display" class="font-display font-black text-sm sm:text-lg text-amber-300 leading-tight">$0</div>
+                </div>
+            </div>
+
+            <!-- Leyenda Permanente y Entendible de Fichas -->
+            <div class="hidden xl:flex glass-panel rounded-2xl px-3 py-1.5 items-center gap-2 text-[11px] font-display font-black">
+                <span class="text-slate-400 font-sans font-bold uppercase text-[10px]">Fichas:</span>
+                <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-950 border border-dashed border-slate-600">$10</span>
+                <span class="px-2 py-0.5 rounded-full bg-red-600 text-white border border-dashed border-white">$50</span>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white border border-dashed border-white">$100</span>
+                <span class="px-2 py-0.5 rounded-full bg-blue-600 text-white border border-dashed border-white">$500</span>
+                <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 border border-dashed border-slate-950">$1K</span>
+            </div>
+        </div>
+
+        <!-- Derecha: Vistas de Cámara, Audio/Tryhard, Mesa Nueva y Reglas -->
+        <div class="flex items-center gap-1.5 pointer-events-auto">
+            <div class="glass-panel rounded-xl p-1 flex items-center gap-1">
+                <button onclick="setCameraView('overview')" id="cam-overview" class="cam-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition">Mesa</button>
+                <button onclick="setCameraView('hand')" id="cam-hand" class="cam-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Mis Cartas</button>
+                <button onclick="setCameraView('top')" id="cam-top" class="cam-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Aérea 8P</button>
+            </div>
+
+            <button onclick="toggleTryhardMode()" id="sound-btn" title="Modo Sin Sonido (Tryhard)" class="glass-panel px-2.5 py-2 rounded-xl text-xs font-extrabold text-slate-200 hover:text-amber-400 transition flex items-center gap-1">
+                <span id="hud-sound-icon">🔊</span>
+                <span id="hud-sound-label" class="hidden md:inline">Audio</span>
+            </button>
+
+            <button onclick="openSetupModal()" title="Cambiar Jugadores" class="glass-panel px-2.5 py-2 rounded-xl text-xs font-extrabold text-slate-200 hover:text-cyan-300 transition">
+                👥 <span class="hidden sm:inline">Mesa</span>
+            </button>
+
+            <button onclick="toggleRulesModal(true)" class="glass-panel uno-gradient-border px-3 py-2 rounded-xl text-xs font-extrabold text-white hover:bg-slate-800/80 transition flex items-center gap-1">
+                <span class="text-amber-400">?</span>
+                <span class="hidden sm:inline">Reglas</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- CAPA DE ETIQUETAS PROYECTADAS EN 3D PARA TODOS LOS ASIENTOS (HASTA 8) Y EL POZO -->
+    <div id="projected-hud-layer" class="fixed inset-0 z-10 pointer-events-none overflow-hidden">
+        <!-- Badge flotante sobre el Pozo 3D -->
+        <div id="pot-3d-badge" class="hidden absolute -translate-x-1/2 -translate-y-1/2 px-3 py-1 rounded-full bg-slate-950/90 border border-amber-400 text-amber-300 font-display font-black text-xs shadow-lg">
+            POZO: $0
+        </div>
+        <!-- Aquí se inyectan dinámicamente las etiquetas de los 2 a 8 asientos -->
+        <div id="seats-hud-container"></div>
+    </div>
+
+    <!-- BANNER CENTRAL DE EVENTOS / GANADOR -->
+    <div id="center-toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-300 opacity-0 scale-95">
+        <div class="glass-panel uno-gradient-border rounded-2xl px-5 py-2.5 text-center shadow-2xl">
+            <div id="toast-title" class="font-display font-black text-sm sm:text-base text-amber-300 tracking-wide"></div>
+            <div id="toast-sub" class="text-xs text-slate-200 font-medium mt-0.5"></div>
+        </div>
+    </div>
+
+    <!-- PANEL INFERIOR DEL JUGADOR ACTIVO -->
+    <footer class="fixed bottom-0 left-0 right-0 z-20 p-2.5 sm:p-3.5 flex flex-col items-center gap-2 pointer-events-none">
+        
+        <!-- Barra de Estado del Jugador en Turno + Cartas UNO + Mano Evaluada -->
+        <div class="flex flex-wrap items-center justify-center gap-2 pointer-events-auto">
+            <!-- Fichas del Jugador Activo -->
+            <div class="glass-panel rounded-2xl px-3.5 py-2 flex items-center gap-2.5">
+                <div id="active-player-avatar" class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-300 font-black text-xs">
+                    P1
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span id="active-player-name" class="text-xs font-extrabold text-white">Jugador 1</span>
+                        <span id="active-dealer-badge" class="hidden w-4 h-4 rounded-full bg-amber-400 text-slate-950 font-black text-[9px] flex items-center justify-center">D</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="player-chips" class="font-display font-black text-sm sm:text-base text-emerald-400">$2500</span>
+                        <span id="player-current-bet-tag" class="text-[11px] font-bold text-amber-300"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cartas UNO del Jugador Activo + Jugada Actual -->
+            <div class="glass-panel uno-gradient-border rounded-2xl px-3.5 py-2 flex items-center gap-3">
+                <div id="player-mini-cards" class="flex items-center gap-1.5"></div>
+                <div class="border-l border-white/15 pl-3">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Tu Jugada Actual</div>
+                    <div id="hand-eval-text" class="text-xs sm:text-sm font-extrabold text-amber-300">Esperando reparto...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLES DE APUESTA CON FICHAS VISUALES CLICABLES -->
+        <div id="action-controls" class="glass-panel rounded-2xl p-2.5 sm:p-3 w-full max-w-3xl flex flex-col gap-2.5 pointer-events-auto transition-all duration-200">
+            
+            <!-- Fila 1: Fichas Visuales para Sumar a la Subida -->
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950/60 rounded-xl px-3 py-2 border border-white/10">
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <span class="text-[11px] font-extrabold uppercase text-slate-400 mr-1">Añadir Ficha:</span>
+                    <button type="button" onclick="addChipToRaise(10)" class="chip-add-btn poker-chip-btn w-10 h-10 bg-slate-100 text-slate-950 border-slate-500 font-display font-black text-[11px] flex items-center justify-center">+10</button>
+                    <button type="button" onclick="addChipToRaise(50)" class="chip-add-btn poker-chip-btn w-10 h-10 bg-red-600 text-white border-white font-display font-black text-[11px] flex items-center justify-center">+50</button>
+                    <button type="button" onclick="addChipToRaise(100)" class="chip-add-btn poker-chip-btn w-10 h-10 bg-emerald-600 text-white border-white font-display font-black text-[10px] flex items-center justify-center">+100</button>
+                    <button type="button" onclick="addChipToRaise(500)" class="chip-add-btn poker-chip-btn w-10 h-10 bg-blue-600 text-white border-white font-display font-black text-[10px] flex items-center justify-center">+500</button>
+                    <button type="button" onclick="addChipToRaise(1000)" class="chip-add-btn poker-chip-btn w-10 h-10 bg-amber-400 text-slate-950 border-slate-950 font-display font-black text-[10px] flex items-center justify-center">+1K</button>
+                </div>
+
+                <div class="flex items-center gap-2 ml-auto">
+                    <button type="button" onclick="setQuickRaise('half')" class="chip-add-btn px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold text-slate-200">½ Pozo</button>
+                    <button type="button" onclick="setQuickRaise('pot')" class="chip-add-btn px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold text-slate-200">Pozo</button>
+                    <button type="button" onclick="resetRaiseAmount()" class="chip-add-btn px-2 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-[11px] font-bold text-rose-300">Reset</button>
+                    <div class="pl-2 border-l border-white/15 text-right">
+                        <div class="text-[9px] uppercase text-slate-400 font-bold">Total a Apostar</div>
+                        <div id="raise-amount-label" class="font-display font-black text-sm sm:text-base text-amber-400">$40</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 2: Botones Principales de Acción -->
+            <div class="grid grid-cols-4 gap-2">
+                <button id="btn-fold" onclick="playerAction('fold')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs sm:text-sm bg-rose-600/90 hover:bg-rose-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-lg transition active:scale-95">
+                    Retirarse
+                </button>
+                <button id="btn-call" onclick="playerAction('call')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs sm:text-sm bg-sky-600/90 hover:bg-sky-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-lg transition active:scale-95">
+                    Pasar
+                </button>
+                <button id="btn-raise" onclick="playerAction('raise')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs sm:text-sm bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:pointer-events-none text-slate-950 shadow-lg transition active:scale-95">
+                    Subir a $40
+                </button>
+                <button id="btn-allin" onclick="playerAction('allin')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs sm:text-sm bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-lg transition active:scale-95">
+                    ALL-IN
+                </button>
+            </div>
+        </div>
+
+        <!-- Botón Siguiente Mano -->
+        <div id="next-hand-container" class="hidden pointer-events-auto">
+            <button onclick="startNewHand()" class="animate-win px-8 py-3.5 rounded-2xl font-display font-black text-sm sm:text-base bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 text-slate-950 shadow-2xl hover:brightness-110 transition active:scale-95">
+                REPARTIR SIGUIENTE MANO ➔
+            </button>
+        </div>
+    </footer>
+
+    <!-- MODAL DE REGLAS Y VALOR DE FICHAS -->
+    <div id="rules-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel uno-gradient-border rounded-3xl max-w-xl w-full max-h-[85vh] overflow-y-auto p-5 sm:p-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-white/15 pb-3 mb-4">
+                <h2 class="font-display font-black text-lg sm:text-xl text-white flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded-lg bg-gradient-to-r from-red-500 via-yellow-400 to-blue-500 text-slate-950 text-xs">UNO</span>
+                    Reglas y Valor de Fichas
+                </h2>
+                <button onclick="toggleRulesModal(false)" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white font-bold">✕</button>
+            </div>
+
+            <div class="space-y-3 text-xs sm:text-sm text-slate-200">
+                <!-- Código de Colores de Fichas -->
+                <div class="p-3 rounded-2xl bg-white/5 border border-white/15">
+                    <p class="font-extrabold text-white mb-2">🪙 Código de Colores de las Fichas 3D:</p>
+                    <div class="grid grid-cols-5 gap-1.5 text-center font-display font-black text-xs">
+                        <div class="p-2 rounded-xl bg-slate-100 text-slate-950">⚪<br>$10</div>
+                        <div class="p-2 rounded-xl bg-red-600 text-white">🔴<br>$50</div>
+                        <div class="p-2 rounded-xl bg-emerald-600 text-white">🟢<br>$100</div>
+                        <div class="p-2 rounded-xl bg-blue-600 text-white">🔵<br>$500</div>
+                        <div class="p-2 rounded-xl bg-amber-400 text-slate-950">🟡<br>$1,000</div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-amber-500/15 border border-amber-400/30">
+                    <p class="font-bold text-amber-300 mb-1">🃏 Comodines Mágicos (Wild y +4)</p>
+                    <p class="text-slate-200 text-xs">Actúan como <strong>Jokers reales</strong>: adoptan automáticamente el color y número/símbolo que forme tu mejor jugada de 5 cartas (¡incluyendo Quintilla UNO!).</p>
+                </div>
+
+                <div class="space-y-1.5 text-xs">
+                    <div class="p-2 rounded-xl bg-white/5 flex justify-between"><span class="font-black text-amber-300">1. Quintilla UNO</span><span class="text-slate-400">5 iguales (con Wild/+4)</span></div>
+                    <div class="p-2 rounded-xl bg-white/5 flex justify-between"><span class="font-black text-amber-400">2. Escalera de Color UNO</span><span class="text-slate-400">5 consecutivas mismo color</span></div>
+                    <div class="p-2 rounded-xl bg-white/5 flex justify-between"><span class="font-black text-purple-400">3. Póker</span><span class="text-slate-400">4 cartas del mismo valor</span></div>
+                    <div class="p-2 rounded-xl bg-white/5 flex justify-between"><span class="font-black text-pink-400">4. Full House</span><span class="text-slate-400">Trío + Par</span></div>
+                    <div class="p-2 rounded-xl bg-white/5 flex justify-between"><span class="font-black text-cyan-400">5. Color UNO (Flush)</span><span class="text-slate-400">5 del mismo color UNO</span></div>
+                    <div class="p-2 rounded-xl bg-white/5 flex justify-between"><span class="font-black text-emerald-400">6. Escalera</span><span class="text-slate-400">5 valores consecutivos</span></div>
+                    <div class="p-2 rounded-xl bg-white/5 flex justify-between"><span class="font-black text-sky-400">7. Trío / 8. Doble Par / 9. Par</span><span class="text-slate-400">3 iguales / 2 pares / 1 par</span></div>
+                </div>
+            </div>
+
+            <button onclick="toggleRulesModal(false)" class="mt-5 w-full py-3 rounded-xl font-extrabold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition">
+                Volver a la Mesa
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * 1. SINTETIZADOR DE SONIDO WEB AUDIO API (CON MODO TRYHARD SIN SONIDO)
+         * ============================================================================
+         */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            playCardSlide() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * 0.08;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(1500, now);
+                filter.frequency.exponentialRampToValueAtTime(3200, now + 0.07);
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+            playChipClink() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [2300, 3550, 4900].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq + Math.random() * 140, now + idx * 0.02);
+                    gain.gain.setValueAtTime(0.08, now + idx * 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.02 + 0.07);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.02);
+                    osc.stop(now + idx * 0.02 + 0.08);
+                });
+            }
+            playWildAlert() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.05);
+                    gain.gain.setValueAtTime(0.12, now + i * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.22);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.05);
+                    osc.stop(now + i * 0.05 + 0.23);
+                });
+            }
+            playWinFanfare() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.07);
+                    gain.gain.setValueAtTime(0.14, now + i * 0.07);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.55);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.07);
+                    osc.stop(now + i * 0.07 + 0.56);
+                });
+            }
+            playFold() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(260, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.14);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.16);
+            }
+        }
+        const sfx = new SoundFX();
+
+        function toggleTryhardMode() {
+            sfx.enabled = !sfx.enabled;
+            const label = sfx.enabled ? '🔊 Con Sonido' : '🔇 Modo Tryhard (Mute)';
+            const setupTxt = document.getElementById('setup-mute-text');
+            if (setupTxt) setupTxt.textContent = label;
+            document.getElementById('hud-sound-icon').textContent = sfx.enabled ? '🔊' : '🔇';
+            document.getElementById('hud-sound-label').textContent = sfx.enabled ? 'Audio' : 'Tryhard';
+        }
+
+        /**
+         * ============================================================================
+         * 2. TEXTURAS DE FICHAS DE CASINO LEGIBLES Y CARTAS UNO EN CANVAS
+         * ============================================================================
+         */
+        const CHIP_DENOMS = [
+            { value: 1000, label: '1K', bg: '#f5b800', rim: '#111827', text: '#090d16' }, // Dorada/Negra $1,000
+            { value: 500,  label: '500', bg: '#1d4ed8', rim: '#ffffff', text: '#ffffff' }, // Azul $500
+            { value: 100,  label: '100', bg: '#059669', rim: '#ffffff', text: '#ffffff' }, // Verde $100
+            { value: 50,   label: '50',  bg: '#dc2626', rim: '#ffffff', text: '#ffffff' }, // Roja $50
+            { value: 10,   label: '10',  bg: '#f8fafc', rim: '#334155', text: '#0f172a' }  // Blanca $10
+        ];
+
+        const chipTextureCache = {};
+
+        function getChipTopTexture(denomObj) {
+            if (chipTextureCache[denomObj.value]) return chipTextureCache[denomObj.value];
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+
+            // Base de la ficha
+            ctx.fillStyle = denomObj.bg;
+            ctx.beginPath();
+            ctx.arc(128, 128, 126, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Franjas radiales estilo casino en el borde
+            ctx.save();
+            ctx.translate(128, 128);
+            ctx.fillStyle = denomObj.rim;
+            for (let i = 0; i < 8; i++) {
+                ctx.rotate((Math.PI * 2) / 8);
+                ctx.fillRect(-10, -126, 20, 24);
+            }
+            ctx.restore();
+
+            // Anillo interior punteado
+            ctx.strokeStyle = denomObj.rim;
+            ctx.lineWidth = 6;
+            ctx.setLineDash([14, 10]);
+            ctx.beginPath();
+            ctx.arc(128, 128, 92, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Círculo central de contraste para el número
+            ctx.fillStyle = denomObj.value === 10 ? '#e2e8f0' : 'rgba(0,0,0,0.28)';
+            ctx.beginPath();
+            ctx.arc(128, 128, 72, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Número de denominación ultra legible
+            ctx.fillStyle = denomObj.text;
+            ctx.font = '900 62px Orbitron, Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`$${denomObj.label}`, 128, 132);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.anisotropy = 8;
+            chipTextureCache[denomObj.value] = tex;
+            return tex;
+        }
+
+        function decomposeAmountToChips(amount) {
+            let rem = Math.max(0, Math.floor(amount));
+            const result = [];
+            for (const d of CHIP_DENOMS) {
+                while (rem >= d.value && result.length < 18) {
+                    result.push(d);
+                    rem -= d.value;
+                }
+            }
+            if (result.length === 0 && amount > 0) result.push(CHIP_DENOMS[4]);
+            return result;
+        }
+
+        // --- TEXTURAS CARTAS UNO ---
+        const UNO_COLORS = {
+            red:    { hex: '#e51c24', light: '#ff5252', name: 'Rojo' },
+            blue:   { hex: '#0066cc', light: '#29b6f6', name: 'Azul' },
+            green:  { hex: '#1b9e3e', light: '#4caf50', name: 'Verde' },
+            yellow: { hex: '#f5b800', light: '#ffee58', name: 'Amarillo' },
+            wild:   { hex: '#14171f', light: '#374151', name: 'Comodín' }
+        };
+
+        const textureCache = {};
+
+        function getCardBackTexture() {
+            if (textureCache['BACK']) return textureCache['BACK'];
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 768;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            roundRect(ctx, 0, 0, 512, 768, 42);
+            ctx.fill();
+
+            ctx.fillStyle = '#111319';
+            roundRect(ctx, 22, 22, 468, 724, 30);
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(256, 384);
+            ctx.rotate(-0.42);
+            const grad = ctx.createLinearGradient(-180, -250, 180, 250);
+            grad.addColorStop(0, '#ff2a38');
+            grad.addColorStop(1, '#b70916');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 185, 295, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#ffcc00';
+            ctx.stroke();
+
+            ctx.rotate(0.22);
+            ctx.font = '900 135px Orbitron, Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#000000';
+            ctx.fillText('UNO', 10, 14);
+            ctx.lineWidth = 12;
+            ctx.strokeStyle = '#000000';
+            ctx.strokeText('UNO', 0, 0);
+            ctx.fillStyle = '#ffd600';
+            ctx.fillText('UNO', 0, 0);
+            ctx.restore();
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.anisotropy = 8;
+            textureCache['BACK'] = tex;
+            return tex;
+        }
+
+        function getCardFrontTexture(card) {
+            const key = `${card.color}_${card.value}`;
+            if (textureCache[key]) return textureCache[key];
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 768;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            roundRect(ctx, 0, 0, 512, 768, 42);
+            ctx.fill();
+
+            const colInfo = UNO_COLORS[card.color];
+            if (card.color === 'wild') {
+                const bgGrad = ctx.createLinearGradient(22, 22, 490, 746);
+                bgGrad.addColorStop(0, '#1a1d29');
+                bgGrad.addColorStop(1, '#0c0e14');
+                ctx.fillStyle = bgGrad;
+            } else {
+                const bgGrad = ctx.createLinearGradient(22, 22, 490, 746);
+                bgGrad.addColorStop(0, colInfo.light);
+                bgGrad.addColorStop(0.5, colInfo.hex);
+                bgGrad.addColorStop(1, colInfo.hex);
+                ctx.fillStyle = bgGrad;
+            }
+            roundRect(ctx, 22, 22, 468, 724, 30);
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(256, 384);
+            ctx.rotate(-0.42);
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 182, 290, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (card.color === 'wild') {
+                const quadColors = ['#e51c24', '#0066cc', '#f5b800', '#1b9e3e'];
+                for (let i = 0; i < 4; i++) {
+                    ctx.fillStyle = quadColors[i];
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.ellipse(0, 0, 162, 265, 0, (i * Math.PI) / 2, ((i + 1) * Math.PI) / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+
+            const displaySymbol = getCardDisplaySymbol(card.value);
+
+            ctx.save();
+            ctx.translate(256, 384);
+            ctx.font = displaySymbol.length > 2 ? '900 130px Inter, sans-serif' : '900 195px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.fillStyle = '#000000';
+            ctx.fillText(displaySymbol, 10, 12);
+            ctx.lineWidth = 14;
+            ctx.strokeStyle = '#000000';
+            ctx.strokeText(displaySymbol, 0, 0);
+
+            ctx.fillStyle = card.color === 'wild' ? '#ffffff' : colInfo.hex;
+            ctx.fillText(displaySymbol, 0, 0);
+
+            if (card.value === '6' || card.value === '9') {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(-45, 108, 96, 16);
+                ctx.fillStyle = colInfo.hex;
+                ctx.fillRect(-48, 104, 96, 16);
+            }
+            ctx.restore();
+
+            drawCornerSymbol(ctx, displaySymbol, 68, 86, false);
+            drawCornerSymbol(ctx, displaySymbol, 444, 682, true);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.anisotropy = 8;
+            textureCache[key] = tex;
+            return tex;
+        }
+
+        function drawCornerSymbol(ctx, text, x, y, inverted) {
+            ctx.save();
+            ctx.translate(x, y);
+            if (inverted) ctx.rotate(Math.PI);
+            ctx.font = text.length > 2 ? '900 52px Inter, sans-serif' : '900 66px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#000000';
+            ctx.strokeText(text, 2, 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(text, 0, 0);
+            ctx.restore();
+        }
+
+        function getCardDisplaySymbol(val) {
+            if (val === 'skip') return '⊘';
+            if (val === 'reverse') return '⇄';
+            if (val === 'draw2') return '+2';
+            if (val === 'wild') return 'W';
+            if (val === 'wild4') return '+4';
+            return val;
+        }
+
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        /**
+         * ============================================================================
+         * 3. EVALUADOR DE MANOS UNO HOLD'EM (INCLUYE QUINTILLA UNO Y COMODINES)
+         * ============================================================================
+         */
+        const VALUE_RANK = {
+            '0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
+            '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+            'reverse': 10, 'skip': 11, 'draw2': 12,
+            'wild': 13, 'wild4': 14
+        };
+
+        const HAND_NAMES = [
+            'Carta Alta',
+            'Par',
+            'Doble Par',
+            'Trío',
+            'Escalera',
+            'Color UNO',
+            'Full House',
+            'Póker UNO',
+            'Escalera de Color UNO',
+            'Quintilla UNO'
+        ];
+
+        function createUnoDeck() {
+            const colors = ['red', 'blue', 'green', 'yellow'];
+            const deck = [];
+            colors.forEach(color => {
+                deck.push({ color, value: '0', rank: 0 });
+                for (let n = 1; n <= 9; n++) {
+                    deck.push({ color, value: String(n), rank: n });
+                    deck.push({ color, value: String(n), rank: n });
+                }
+                ['reverse', 'skip', 'draw2'].forEach(action => {
+                    deck.push({ color, value: action, rank: VALUE_RANK[action] });
+                    deck.push({ color, value: action, rank: VALUE_RANK[action] });
+                });
+            });
+            for (let i = 0; i < 4; i++) {
+                deck.push({ color: 'wild', value: 'wild', rank: 13 });
+                deck.push({ color: 'wild', value: 'wild4', rank: 14 });
+            }
+            return shuffle(deck);
+        }
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function evaluatePure5(cards) {
+            const ranks = cards.map(c => c.rank).sort((a, b) => b - a);
+            const colors = cards.map(c => c.color);
+            const isFlush = colors.every(c => c === colors[0]);
+
+            const uniqueRanks = [...new Set(ranks)];
+            let isStraight = false;
+            let straightHigh = ranks[0];
+            if (uniqueRanks.length === 5 && uniqueRanks[0] - uniqueRanks[4] === 4) {
+                isStraight = true;
+                straightHigh = uniqueRanks[0];
+            }
+
+            const counts = {};
+            ranks.forEach(r => counts[r] = (counts[r] || 0) + 1);
+            const groups = Object.entries(counts)
+                .map(([r, cnt]) => ({ rank: Number(r), count: cnt }))
+                .sort((a, b) => b.count - a.count || b.rank - a.rank);
+
+            let category = 0;
+            let tiebreakers = ranks;
+
+            if (groups[0].count === 5) {
+                category = 9; // Quintilla UNO
+                tiebreakers = [groups[0].rank];
+            } else if (isStraight && isFlush) {
+                category = 8; // Escalera de Color
+                tiebreakers = [straightHigh];
+            } else if (groups[0].count === 4) {
+                category = 7; // Póker
+                tiebreakers = [groups[0].rank, groups[1].rank];
+            } else if (groups[0].count === 3 && groups[1].count === 2) {
+                category = 6; // Full House
+                tiebreakers = [groups[0].rank, groups[1].rank];
+            } else if (isFlush) {
+                category = 5; // Color
+                tiebreakers = ranks;
+            } else if (isStraight) {
+                category = 4; // Escalera
+                tiebreakers = [straightHigh];
+            } else if (groups[0].count === 3) {
+                category = 3; // Trío
+                tiebreakers = [groups[0].rank, groups[1].rank, groups[2].rank];
+            } else if (groups[0].count === 2 && groups[1].count === 2) {
+                category = 2; // Doble Par
+                tiebreakers = [groups[0].rank, groups[1].rank, groups[2].rank];
+            } else if (groups[0].count === 2) {
+                category = 1; // Par
+                tiebreakers = [groups[0].rank, groups[1].rank, groups[2].rank, groups[3].rank];
+            }
+
+            let score = category * 1e10;
+            tiebreakers.forEach((val, idx) => {
+                score += val * Math.pow(16, 4 - idx);
+            });
+
+            const colorLabel = isFlush ? ` (${UNO_COLORS[colors[0]].name})` : '';
+            return { category, score, name: HAND_NAMES[category] + colorLabel };
+        }
+
+        function evaluateBestHand(allCards) {
+            if (!allCards || allCards.length === 0) return { category: -1, score: 0, name: 'Sin cartas' };
+
+            const wilds = allCards.filter(c => c.color === 'wild');
+            const normals = allCards.filter(c => c.color !== 'wild');
+
+            if (allCards.length < 5) {
+                if (wilds.length === 2) {
+                    return { category: 1, score: 1e10 + 14 * 65536, name: 'Par de Comodines (+4)' };
+                }
+                if (wilds.length === 1 && normals.length >= 1) {
+                    const top = [...normals].sort((a, b) => b.rank - a.rank)[0];
+                    return { category: 1, score: 1e10 + top.rank * 65536, name: `Par de ${formatRankName(top.rank)} (Comodín)` };
+                }
+                if (normals.length === 2 && normals[0].rank === normals[1].rank) {
+                    return { category: 1, score: 1e10 + normals[0].rank * 65536, name: `Par de ${formatRankName(normals[0].rank)}` };
+                }
+                const sorted = [...allCards].sort((a, b) => b.rank - a.rank);
+                return { category: 0, score: sorted[0].rank, name: `Carta Alta: ${formatRankName(sorted[0].rank)}` };
+            }
+
+            const combos5 = getCombinations(allCards, 5);
+            let best = { category: -1, score: -1, name: '' };
+
+            for (const combo of combos5) {
+                const comboWilds = combo.filter(c => c.color === 'wild');
+                const comboNormals = combo.filter(c => c.color !== 'wild');
+
+                if (comboWilds.length === 0) {
+                    const res = evaluatePure5(comboNormals);
+                    if (res.score > best.score) best = res;
+                } else {
+                    const targetColors = comboNormals.length > 0
+                        ? [...new Set(comboNormals.map(c => c.color))]
+                        : ['red'];
+
+                    const tryRanks = new Set([12, 9, 8, 7]);
+                    comboNormals.forEach(c => {
+                        tryRanks.add(c.rank);
+                        if (c.rank + 1 <= 12) tryRanks.add(c.rank + 1);
+                        if (c.rank - 1 >= 0) tryRanks.add(c.rank - 1);
+                        if (c.rank + 2 <= 12) tryRanks.add(c.rank + 2);
+                        if (c.rank - 2 >= 0) tryRanks.add(c.rank - 2);
+                    });
+                    const rankList = [...tryRanks];
+
+                    const assignWilds = (idx, currentCards) => {
+                        if (idx === comboWilds.length) {
+                            const res = evaluatePure5(currentCards);
+                            if (res.score > best.score) {
+                                best = { ...res, name: res.name + ' ✨' };
+                            }
+                            return;
+                        }
+                        for (const col of targetColors) {
+                            for (const rk of rankList) {
+                                currentCards.push({ color: col, rank: rk });
+                                assignWilds(idx + 1, currentCards);
+                                currentCards.pop();
+                            }
+                        }
+                    };
+                    assignWilds(0, [...comboNormals]);
+                }
+            }
+            return best;
+        }
+
+        function getCombinations(arr, k) {
+            const results = [];
+            function helper(start, combo) {
+                if (combo.length === k) {
+                    results.push([...combo]);
+                    return;
+                }
+                for (let i = start; i < arr.length; i++) {
+                    combo.push(arr[i]);
+                    helper(i + 1, combo);
+                    combo.pop();
+                }
+            }
+            helper(0, []);
+            return results;
+        }
+
+        function formatRankName(rank) {
+            const map = { 10: 'Reversa', 11: 'Bloqueo', 12: '+2', 13: 'Wild', 14: '+4' };
+            return map[rank] !== undefined ? map[rank] : String(rank);
+        }
+
+        /**
+         * ============================================================================
+         * 4. ESCENA 3D CON THREE.JS (MESA OVALADA PARA 8 JUGADORES + FICHAS LEGIBLES)
+         * ============================================================================
+         */
+        let scene, camera, renderer;
+        let tableGroup, cardsGroup, chipsGroup, ringsGroup;
+        let deckMesh;
+        const activeAnimations = [];
+        const cardMeshes = [];
+        const potChipMeshes = [];
+        const seatChipMeshes = {}; // Por índice de jugador
+        const seatRingMeshes = {};
+
+        const cameraTargetPos = new THREE.Vector3(0, 9.4, 11.2);
+        const cameraTargetLook = new THREE.Vector3(0, 0.2, 0.3);
+        const currentLookAt = new THREE.Vector3(0, 0.2, 0.3);
+        let camOrbitOffset = { x: 0, y: 0 };
+        let camZoomFactor = 1.0;
+        let isDraggingCam = false;
