@@ -4942,10 +4942,12 @@
             const pending = room.pendingLie;
             if (room.gameMode === 'liar') {
                 if (pending && pending.targetSeatIndex === mySeat.seatIndex) {
-                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 ¡CARTA BOCA ABAJO!</b><p class="text-xs text-zinc-300 mt-1">Declaró <b class="text-white">'+String(pending.declaredColor||room.liarRequiredColor||'color').toUpperCase()+'</b>. ¿Le creés o lo desafiás?</p></div><div class="flex gap-2"><button data-lie-action="accept" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black">CREER</button><button data-lie-action="challenge" class="rounded-xl bg-rose-600 px-4 py-2 text-xs font-black">¡DESAFIAR!</button></div></div>';
+                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 ¡CARTA BOCA ABAJO!</b><p class="text-xs text-zinc-300 mt-1">El rival declaró <b class="text-white">'+String(pending.declaredColor||room.liarRequiredColor||'color').toUpperCase()+'</b>. ¿Le creés o lo desafiás?</p><p class="text-[10px] text-zinc-400 mt-1">Si acertás, pierde una vida. Si fallás, la perdés vos.</p></div><div class="flex gap-2"><button data-lie-action="accept" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-xs font-black">🤝 CREER</button><button data-lie-action="challenge" class="rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-black">🔥 DESAFIAR</button></div></div>';
+                } else if (pending) {
+                    panel.innerHTML='<div class="flex items-center justify-between gap-3"><div><b class="text-violet-200">🎭 DECLARACIÓN EN REVISIÓN</b><p class="text-xs text-zinc-300 mt-1">Esperando que '+escapeLeaderboardText(room.seats[pending.targetSeatIndex]?.name||'el siguiente jugador')+' decida si cree o desafía.</p></div><span class="text-amber-200 text-xs font-bold animate-pulse">⏳ ESPERANDO</span></div>';
                 } else {
-                    const alive=room.seats.filter(s=>s&&s.id&&s.lives>0&&!s.finishRank);
-                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 UNO! MENTIROSO · '+alive.length+' EN JUEGO</b><p class="text-xs text-zinc-300 mt-1">Color obligatorio: <b class="text-white">'+String(room.liarRequiredColor||'green').toUpperCase()+'</b> · Colocá una carta boca abajo y declaralo.</p></div><div class="text-right"><b class="text-rose-300 text-lg">❤️ '+(mySeat.lives??3)+'/3</b><p class="text-[10px] text-zinc-500">TUS VIDAS</p></div></div>';
+                    const alive=room.seats.filter(s=>s&&s.id&&Number(s.lives)>0&&!s.finishRank);
+                    panel.innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-violet-200">🎭 UNO! MENTIROSO · '+alive.length+' EN JUEGO</b><p class="text-xs text-zinc-300 mt-1">Color obligatorio: <b class="text-white">'+String(room.liarRequiredColor||'green').toUpperCase()+'</b> · Jugá una carta boca abajo y declaralo. Después podrán creerte o desafiarte.</p></div><div class="text-right"><b class="text-rose-300 text-lg">❤️ '+(mySeat.lives??3)+'/3</b><p class="text-[10px] text-zinc-500">TUS VIDAS</p></div></div>';
                 }
             } else {
                 const abilities=[
@@ -5156,7 +5158,7 @@
                             ${renderCustomAvatarSVG(opp.avatar, 'w-9 h-9 sm:w-10 sm:h-10')}
                             <div class="text-left">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${escapeLeaderboardText(opp.name)}</span>${renderPlayerRankBadge(opp.id)}${room.gameMode === 'survival' ? `<span class="text-[9px] font-black text-rose-300">${'❤️'.repeat(Math.max(0, Math.min(3, Number(opp.lives) || 0)))}</span>` : ''}
+                                    <span class="text-xs font-extrabold text-white max-w-[82px] truncate">${escapeLeaderboardText(opp.name)}</span>${renderPlayerRankBadge(opp.id)}${['survival','liar'].includes(room.gameMode) ? `<span class="text-[9px] font-black text-rose-300">${'❤️'.repeat(Math.max(0, Math.min(3, Number(opp.lives) || 0)))}</span>` : ''}
                                     ${opp.finishRank ? `<span class="text-[10px] font-black text-amber-300">#${opp.finishRank}</span>` : ''}
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
@@ -5178,7 +5180,7 @@
             document.getElementById('localPlayerAvatar').innerHTML = renderCustomAvatarSVG(mySeat.avatar, 'w-9 h-9');
             document.getElementById('localPlayerName').textContent = mySeat.name;
             const localRankBadge=document.getElementById('localPlayerRankBadge');if(localRankBadge)localRankBadge.innerHTML=renderPlayerRankBadge(mySeat.id);
-            document.getElementById('localCardCountText').textContent = room.gameMode === 'survival'
+            document.getElementById('localCardCountText').textContent = ['survival','liar'].includes(room.gameMode)
                 ? `${mySeat.finishRank ? '🏅 Eliminado' : mySeat.hand.length + (mySeat.hand.length === 1 ? ' carta' : ' cartas')} • ${'❤️'.repeat(Math.max(0, Math.min(3, Number(mySeat.lives) || 0)))}`
                 : (mySeat.finishRank ? `🏅 Puesto #${mySeat.finishRank}` : `${mySeat.hand.length} ${mySeat.hand.length === 1 ? 'carta' : 'cartas'}`);
 
