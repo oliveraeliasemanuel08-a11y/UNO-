@@ -2206,18 +2206,18 @@
           if(competitiveQueueUnsub){competitiveQueueUnsub();competitiveQueueUnsub=null;}
           document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');
         }
-        function chooseCompetitiveBotCard(bot,room,playable){
-          const tier=Math.max(0,Math.min(19,Number(bot.competitiveAiTier??room.competitiveAiTier??0)));
-          if(tier<=4)return playable[0];
+        function chooseCompetitiveBotCard(bot,room,playable,difficultyOverride=null){
+          const tier=Math.max(0,Math.min(19,difficultyOverride===null?Number(bot.competitiveAiTier??room.competitiveAiTier??0):Number(difficultyOverride)));
+          if(tier<=2)return playable[0];
           const counts={red:0,yellow:0,green:0,blue:0};bot.hand.forEach(c=>{if(counts[c.color]!==undefined)counts[c.color]++;});
           const next=room.seats[(bot.seatIndex+room.direction+room.seats.length)%room.seats.length],danger=!!next&&next.hand&&next.hand.length<=2;
-          const score=card=>{let v=counts[card.color]!==undefined?counts[card.color]*2:0;const action=['skip','reverse','draw2','wild_draw4'].includes(card.value);if(action)v+=tier>=6?24:12;if(danger&&action)v+=tier*5;if(card.value==='wild_draw4')v+=tier>=7?8:-18;if(card.value==='wild')v+=tier>=7?-10:2;if(card.value==='draw2'&&danger)v+=18;if(card.value==='skip'&&danger)v+=14;return v;};
+          const score=card=>{let v=counts[card.color]!==undefined?counts[card.color]*4:0;const action=['skip','reverse','draw2','wild_draw4'].includes(card.value);if(action)v+=tier>=8?27:14;if(danger&&action)v+=tier*6;if(card.value==='wild_draw4')v+=tier>=7?12:-22;if(card.value==='wild')v+=tier>=7?-14:1;if(card.value==='draw2'&&danger)v+=22;if(card.value==='skip'&&danger)v+=18;if(card.value==='reverse'&&danger&&room.seats.length>2)v+=12;if(bot.hand.length<=2&&action)v+=18;if(card.color==='wild'&&tier>=8&&bot.hand.length>3)v-=10;return v;};
           return playable.slice().sort((a,b)=>score(b)-score(a))[0]||playable[0];
         }
         async function fillCompetitiveBotsAndStart(){
           const room=state.room;if(!room||!room.competitiveMode||room.status!=='lobby'||room.hostId!==currentUserId)return;
           const rank=getCompetitiveRank(),tier=UNO_COMPETITIVE_RANKS.indexOf(rank);room.competitiveAiTier=tier;room.competitiveRankName=rank.name;
-          room.seats.forEach((seat,index)=>{if(!seat.id){const p=BOT_PROFILES[index%BOT_PROFILES.length];room.seats[index]={...seat,id:'comp_ai_'+currentUserId+'_'+index+'_'+Date.now(),name:p.name+' · IA '+rank.name,avatar:p.avatar,isBot:true,competitiveAI:true,competitiveAiTier:tier,competitiveDifficulty:rank.name,team:room.teamMode?getCompetitiveTeam(index,room.maxSeats,room.competitiveFormat):null,hand:[],saidUno:false,finishRank:null};}});
+          room.seats.forEach((seat,index)=>{if(!seat.id){const p=createBotProfile(index);room.seats[index]={...seat,id:'comp_ai_'+currentUserId+'_'+index+'_'+Date.now(),name:p.name+' · IA '+rank.name,avatar:p.avatar,isBot:true,competitiveAI:true,competitiveAiTier:tier,competitiveDifficulty:rank.name,team:room.teamMode?getCompetitiveTeam(index,room.maxSeats,room.competitiveFormat):null,hand:[],saidUno:false,finishRank:null};}});
           closeCompetitiveSearch();await dealAndStartGame();
         }
         async function createCompetitiveRoom(isPublic){
@@ -2623,7 +2623,7 @@
         ];
         const AVATAR_HAIR_STYLES = ['Corto','Copete','Largo','Rizos','Mohicano','Calvo','Despeinado','Punk','Ondulado','Afro','Trenzas','Flequillo','Cresta','Raya','Doble moño','Rapado lateral','Cola alta','Cabello anime','Corte urbano','Rastas','Melena salvaje','Corte elegante'];
         const AVATAR_FACE_STYLES = ['Confiado','Sonriente','Pícaro','Sorpresa','Serio','Guiño','Furioso'];
-        const AVATAR_ACC_STYLES = ['Ninguno','Gafas VIP','Corona','Gorra UNO','Audífonos','Antifaz','Halo','Auriculares Neon','Pañuelo','Collar Dorado','Gorro','Visor futurista','Máscara neón','Sombrero vaquero','Diadema','Orejas de gato','Alas mini','Lentes pixel','Cuernos dorados','Aureola celestial','Máscara oni','Corona de fuego','Bufanda VIP','Auriculares gamer','Diadema estrella','Monóculo real'];
+        const AVATAR_ACC_STYLES = ['Ninguno','Gafas VIP','Corona','Gorra UNO','Audífonos','Antifaz','Halo','Auriculares Neon','Pañuelo','Collar Dorado','Gorro','Visor futurista','Máscara neón','Sombrero vaquero','Diadema','Orejas de gato','Alas mini','Lentes pixel','Cuernos dorados','Aureola celestial','Máscara oni','Corona de fuego','Bufanda VIP','Auriculares gamer','Diadema estrella','Monóculo real','Yelmo Eclipse','Alas Fénix','Máscara Dragón','Corona Galáctica'];
 
         function getDefaultAvatarConfig(seed = 0) {
             return {
@@ -2755,6 +2755,10 @@
             else if (accStyle === 'Orejas de gato') { accessorySVG = `<path d="M29 32 L25 10 L44 24 M56 24 L75 10 L71 32" fill="#f9a8d4" stroke="#fff" stroke-width="2"/>`; }
             else if (accStyle === 'Alas mini') { accessorySVG = `<path d="M27 59 Q5 40 18 30 Q35 34 39 51 M73 59 Q95 40 82 30 Q65 34 61 51" fill="#e0f2fe" stroke="#fff" stroke-width="2"/>`; }
             else if (accStyle === 'Lentes pixel') { accessorySVG = `<rect x="29" y="42" width="18" height="12" fill="#111827" stroke="#a3e635" stroke-width="2"/><rect x="53" y="42" width="18" height="12" fill="#111827" stroke="#a3e635" stroke-width="2"/>`; }
+            else if (accStyle === 'Yelmo Eclipse') { accessorySVG = `<path d="M25 39 Q25 8 50 8 Q75 8 75 39 L68 34 L64 24 L56 30 L50 17 L44 30 L36 24 L32 34 Z" fill="#111827" stroke="#c084fc" stroke-width="3"/><path d="M29 43 Q50 34 71 43 L66 54 Q50 60 34 54 Z" fill="#312e81" stroke="#e9d5ff" stroke-width="2"/><path d="M34 45 L47 43 L43 49 L34 50 M66 45 L53 43 L57 49 L66 50" fill="none" stroke="#67e8f9" stroke-width="2.5"/><circle cx="50" cy="12" r="4" fill="#fff" stroke="#c084fc" stroke-width="2"/>`; }
+            else if (accStyle === 'Alas Fénix') { accessorySVG = `<path d="M28 42 Q5 20 12 8 Q29 14 40 34 Q28 13 42 4 Q53 20 50 39 Q58 17 70 7 Q84 20 72 43 Q88 29 91 39 Q82 58 67 59 L50 50 L33 59 Q18 58 9 39 Q18 31 28 42Z" fill="#f97316" stroke="#fde68a" stroke-width="2.2"/><path d="M22 39 Q35 35 47 48 M78 39 Q65 35 53 48 M50 16 L50 42" fill="none" stroke="#fff7ed" stroke-width="2"/><path d="M45 48 L50 58 L55 48" fill="#facc15"/>`; }
+            else if (accStyle === 'Máscara Dragón') { accessorySVG = `<path d="M25 40 Q50 30 75 40 L70 61 Q60 70 50 65 Q40 70 30 61Z" fill="#14532d" stroke="#86efac" stroke-width="2.5"/><path d="M28 42 L19 30 L37 36 M72 42 L81 30 L63 36" fill="#16a34a" stroke="#bbf7d0" stroke-width="2"/><path d="M33 49 L46 47 L42 53 M67 49 L54 47 L58 53" fill="none" stroke="#fef08a" stroke-width="3"/><path d="M43 62 L50 69 L57 62" fill="#facc15" stroke="#fff" stroke-width="1"/><circle cx="50" cy="39" r="3" fill="#fff"/>`; }
+            else if (accStyle === 'Corona Galáctica') { accessorySVG = `<path d="M24 30 L30 12 L42 24 L50 5 L58 24 L70 12 L76 30 Q50 40 24 30Z" fill="#312e81" stroke="#c4b5fd" stroke-width="2.5"/><path d="M28 31 Q50 39 72 31 L69 37 Q50 44 31 37Z" fill="#7c3aed" stroke="#fff" stroke-width="1.5"/><circle cx="50" cy="17" r="5" fill="#67e8f9" stroke="#fff" stroke-width="1.5"/><circle cx="33" cy="26" r="2.5" fill="#f0abfc"/><circle cx="67" cy="26" r="2.5" fill="#f0abfc"/>`; }
 
             return `
                 <div class="${sizeClass} rounded-full p-0.5 shadow-lg shrink-0 ${frameIndex>=6?`vip-svg-frame vip-frame-${({6:"aurora",7:"aurora",8:"inferno",9:"cosmic",10:"dragon",11:"celestial",12:"cyber",13:"royal",14:"solar",15:"toxic",16:"abyss",17:"phantom"})[frameIndex]}`:"avatar-frame-legendary"}" style="position:relative;isolation:isolate;overflow:visible;background:${frameIndex>=6?"transparent":`linear-gradient(135deg, ${frame.hex}, #ffffff, ${frame.hex})`};">
@@ -2791,6 +2795,15 @@
             { name: 'Diego IA',   avatar: getDefaultAvatarConfig(6) },
             { name: 'Elena IA',   avatar: getDefaultAvatarConfig(7) }
         ];
+        const BOT_FIRST_NAMES=['Aitana','Thiago','Mía','Benjamín','Zoe','Dante','Alma','Gael','Luna','Bruno','Uma','Tiziano','Violeta','Iker','Abril','Enzo','Kiara','Bautista','Noa','Lautaro','Malena','Ian','Roma','Santino','Jazmín','Ciro','Olivia','Máximo','Lara','Tobías'];
+        const BOT_TAGS=['Nova','Pixel','Shadow','Turbo','Blitz','Nébula','Raptor','Frost','Kira','Onyx','Glitch','Vortex','Cosmo','Rogue','Spark'];
+        function createBotProfile(seed=0){
+          const used=new Set((state.room?.seats||[]).filter(x=>x?.isBot).map(x=>x.name));let name='',tries=0;
+          do{name=BOT_FIRST_NAMES[Math.floor(Math.random()*BOT_FIRST_NAMES.length)]+' '+BOT_TAGS[Math.floor(Math.random()*BOT_TAGS.length)];tries++;}while(used.has(name)&&tries<40);
+          const n=Math.floor(Math.random()*100000)+seed*37,cfg=getDefaultAvatarConfig(n);
+          cfg.skin=Math.floor(Math.random()*AVATAR_SKIN_PALETTE.length);cfg.hair=Math.floor(Math.random()*AVATAR_HAIR_STYLES.length);cfg.hairColor=Math.floor(Math.random()*AVATAR_HAIR_PALETTE.length);cfg.face=Math.floor(Math.random()*AVATAR_FACE_STYLES.length);cfg.acc=Math.floor(Math.random()*AVATAR_ACC_STYLES.length);cfg.frame=Math.floor(Math.random()*6);cfg.shirtColor=Math.floor(Math.random()*AVATAR_SHIRT_PALETTE.length);cfg.shirtStyle=Math.floor(Math.random()*6);cfg.beard=Math.floor(Math.random()*AVATAR_BEARD_STYLES.length);
+          return {name,avatar:cfg};
+        }
 
         // Genera exactamente las 108 cartas oficiales de UNO!
         function createOfficial108Deck() {
@@ -3676,7 +3689,7 @@
             } else if (!isOnlineMode) {
                 // Partida rápida vs 3 bots
                 for (let i = 1; i < 4; i++) {
-                    const prof = BOT_PROFILES[i - 1];
+                    const prof = createBotProfile(i);
                     state.room.seats[i] = {
                         ...state.room.seats[i],
                         id: `bot_${i}_${Date.now()}`,
@@ -4464,11 +4477,11 @@
 
                 const playable = bot.hand.filter(c => canPlayCard(c, r, null));
                 if (playable.length > 0) {
-                    const chosen = r.competitiveMode ? chooseCompetitiveBotCard(bot,r,playable) : playable[0];
+                    const chosen = r.competitiveMode ? chooseCompetitiveBotCard(bot,r,playable) : chooseCompetitiveBotCard(bot,r,playable,8);
                     // Elegir el color más abundante en su mano si es comodín
                     const counts = { red: 0, yellow: 0, green: 0, blue: 0 };
                     bot.hand.forEach(c => { if (counts[c.color] !== undefined) counts[c.color]++; });
-                    const bestColor = COLORS.sort((a, b) => counts[b] - counts[a])[0] || 'red';
+                    const bestColor = [...COLORS].sort((a, b) => counts[b] - counts[a])[0] || 'red';
                     await playCardFromHand(bot.seatIndex, chosen.id, bestColor);
                 } else {
                     const drawn = drawCardsFromDeck(r, 1);
@@ -4484,7 +4497,7 @@
                         if (canPlayCard(drawn[0], r, null)) {
                             const counts = { red: 0, yellow: 0, green: 0, blue: 0 };
                             bot.hand.forEach(c => { if (counts[c.color] !== undefined) counts[c.color]++; });
-                            const bestColor = COLORS.sort((a, b) => counts[b] - counts[a])[0] || 'red';
+                            const bestColor = [...COLORS].sort((a, b) => counts[b] - counts[a])[0] || 'red';
                             await playCardFromHand(bot.seatIndex, drawn[0].id, bestColor);
                             return;
                         }
@@ -5028,7 +5041,7 @@
             });
         }
 
-        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=getCompetitiveRating();const total=Number(room.maxSeats||room.seats?.length||4);let delta=entry.rank===1?({2:55,4:70,6:85,8:100}[total]||65):entry.rank===2?({2:-8,4:35,6:45,8:55}[total]||30):entry.rank===3?({2:-10,4:18,6:28,8:38}[total]||15):entry.rank===4?(total>=6?12:-8):-Math.min(22,5+Math.max(0,entry.rank-4)*3);const progressFactor=oldRating>=5500?0.12:oldRating>=3600?0.18:oldRating>=3300?0.22:oldRating>=2600?0.28:oldRating>=2000?0.36:oldRating>=1500?0.46:oldRating>=1000?0.58:1;if(delta>0&&oldRating<3600)delta=Math.max(1,Math.round(delta*progressFactor));const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));const reachedLegendary=recordLegendarySeasonPromotion(oldRating,nextRating);if(oldRating<5500&&nextRating>=5500)showChampionUnlock();if(oldRating<6000&&nextRating>=6000)showGrandChampionUnlock();if(oldRating<6500&&nextRating>=6500)showNemesisUnlock(false);if(oldRating<7000&&nextRating>=7000)showNemesisUnlock(true);const earnedRank=getCompetitiveRank(oldRating);const rankIndex=UNO_COMPETITIVE_RANKS.indexOf(earnedRank);const legendIndex=UNO_COMPETITIVE_RANKS.findIndex(r=>r.name.startsWith('Leyenda'));const rankBase=rankIndex>=legendIndex?50+Math.min(30,Math.floor((oldRating-2800)/200)*3):Math.max(2,Math.round(3+rankIndex*1.7));const placementFactor=entry.rank===1?1.25:entry.rank===2?1:entry.rank===3?.8:entry.rank<=5?.55:.35;const earnedPlus=rankIndex>=legendIndex?Math.max(8,Math.round((12+Math.min(8,Math.floor(Math.max(0,oldRating-3600)/500)))*placementFactor)):0;if(earnedPlus>0)addUnoPlus(earnedPlus);ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')'+(earnedPlus>0?' · 💎 +'+earnedPlus+' Plus':'');showCompetitiveResult(entry,delta,oldRating,nextRating,room);}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' UNOcoins'+ratingMsg,'success');updateClubWalletUI();updatePlusWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))}
+        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=getCompetitiveRating();const grandNemesisBonus=getCompetitiveRank(oldRating).name==='GRAN NEMESIS'?100:0;if(grandNemesisBonus){addUnoPlus(grandNemesisBonus);ratingMsg+=' · 🌑 GRAN NEMESIS: +100 diamantes';}const total=Number(room.maxSeats||room.seats?.length||4);let delta=entry.rank===1?({2:55,4:70,6:85,8:100}[total]||65):entry.rank===2?({2:-8,4:35,6:45,8:55}[total]||30):entry.rank===3?({2:-10,4:18,6:28,8:38}[total]||15):entry.rank===4?(total>=6?12:-8):-Math.min(22,5+Math.max(0,entry.rank-4)*3);const progressFactor=oldRating>=5500?0.12:oldRating>=3600?0.18:oldRating>=3300?0.22:oldRating>=2600?0.28:oldRating>=2000?0.36:oldRating>=1500?0.46:oldRating>=1000?0.58:1;if(delta>0&&oldRating<3600)delta=Math.max(1,Math.round(delta*progressFactor));const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));const reachedLegendary=recordLegendarySeasonPromotion(oldRating,nextRating);if(oldRating<5500&&nextRating>=5500)showChampionUnlock();if(oldRating<6000&&nextRating>=6000)showGrandChampionUnlock();if(oldRating<6500&&nextRating>=6500)showNemesisUnlock(false);if(oldRating<7000&&nextRating>=7000)showNemesisUnlock(true);const earnedRank=getCompetitiveRank(oldRating);const rankIndex=UNO_COMPETITIVE_RANKS.indexOf(earnedRank);const legendIndex=UNO_COMPETITIVE_RANKS.findIndex(r=>r.name.startsWith('Leyenda'));const rankBase=rankIndex>=legendIndex?50+Math.min(30,Math.floor((oldRating-2800)/200)*3):Math.max(2,Math.round(3+rankIndex*1.7));const placementFactor=entry.rank===1?1.25:entry.rank===2?1:entry.rank===3?.8:entry.rank<=5?.55:.35;const earnedPlus=rankIndex>=legendIndex?Math.max(8,Math.round((12+Math.min(8,Math.floor(Math.max(0,oldRating-3600)/500)))*placementFactor)):0;if(earnedPlus>0)addUnoPlus(earnedPlus);ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+')'+(earnedPlus>0?' · 💎 +'+earnedPlus+' Plus':'');showCompetitiveResult(entry,delta,oldRating,nextRating,room);}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' UNOcoins'+ratingMsg,'success');updateClubWalletUI();updatePlusWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))}
         function renderVictoryModal() {
             const room = state.room;
             const podium = room.podium || [];
@@ -5297,7 +5310,7 @@ if(r.name==='Campeón'){
 
         // PROGRESIÓN CLUB PASS. Los datos son locales a este navegador.
         const CLUB_SEASON_MAX_LEVEL=100, CLUB_SEASON_XP_PER_LEVEL=400;
-        const UNO_PLUS_ITEMS=[{id:'plus_wings',name:'Alas de diamante',emoji:'🪽',price:900,field:'acc',value:16,rarity:'Exclusivo Plus'},{id:'plus_crown',name:'Corona de campeón',emoji:'👑',price:1200,field:'acc',value:21,rarity:'Exclusivo Plus'},{id:'plus_aura',name:'Aura prismática',emoji:'💠',price:1500,field:'frame',value:6,rarity:'Exclusivo Plus'},{id:'plus_hair',name:'Cabello celestial',emoji:'💎',price:700,field:'hair',value:17,rarity:'Exclusivo Plus'},{id:'plus_frame_aurora',name:'Marco VIP Aurora',emoji:'🌌',price:1800,field:'frame',value:7,rarity:'Marco VIP Premium'},{id:'plus_frame_inferno',name:'Marco VIP Infernal',emoji:'🔥',price:2100,field:'frame',value:8,rarity:'Marco VIP Premium'},{id:'plus_frame_cosmic',name:'Marco VIP Cósmico',emoji:'🌠',price:2400,field:'frame',value:9,rarity:'Marco VIP Premium'},{id:'plus_neon_trail',name:'Estela de neón',emoji:'⚡',price:1300,field:'acc',value:22,rarity:'Exclusivo Plus'},{id:'plus_star_crown',name:'Corona estelar',emoji:'🌟',price:1900,field:'acc',value:23,rarity:'Exclusivo Plus'},{id:'plus_gamer_headset',name:'Auriculares gamer VIP',emoji:'🎧',price:1100,field:'acc',value:24,rarity:'Exclusivo Plus'},{id:'plus_royal_monocle',name:'Monóculo real',emoji:'🧐',price:1600,field:'acc',value:25,rarity:'Exclusivo Plus'},{id:'plus_frame_dragon',name:'Marco VIP Dragón',emoji:'🐉',price:2200,field:'frame',value:10,rarity:'Marco VIP SVG'},{id:'plus_frame_celestial',name:'Marco VIP Celestial',emoji:'✨',price:2400,field:'frame',value:11,rarity:'Marco VIP SVG'},{id:'plus_frame_cyber',name:'Marco VIP Cyber',emoji:'⚡',price:2600,field:'frame',value:12,rarity:'Marco VIP SVG'},{id:'plus_frame_royal',name:'Marco VIP Imperial',emoji:'👑',price:2900,field:'frame',value:13,rarity:'Marco VIP SVG'},{id:'plus_frame_solar',name:'Marco VIP Solar',emoji:'☀️',price:3100,field:'frame',value:14,rarity:'Marco VIP SVG'},{id:'plus_frame_toxic',name:'Marco VIP Tóxico',emoji:'☢️',price:3200,field:'frame',value:15,rarity:'Marco VIP SVG'},{id:'plus_frame_abyss',name:'Marco VIP Abismo',emoji:'🌊',price:3400,field:'frame',value:16,rarity:'Marco VIP SVG'},{id:'plus_frame_phantom',name:'Marco VIP Fantasma',emoji:'👻',price:3600,field:'frame',value:17,rarity:'Marco VIP SVG'}];
+        const UNO_PLUS_ITEMS=[{id:'plus_wings',name:'Alas de diamante',emoji:'🪽',price:900,field:'acc',value:16,rarity:'Exclusivo Plus'},{id:'plus_crown',name:'Corona de campeón',emoji:'👑',price:1200,field:'acc',value:21,rarity:'Exclusivo Plus'},{id:'plus_aura',name:'Aura prismática',emoji:'💠',price:1500,field:'frame',value:6,rarity:'Exclusivo Plus'},{id:'plus_hair',name:'Cabello celestial',emoji:'💎',price:700,field:'hair',value:17,rarity:'Exclusivo Plus'},{id:'plus_frame_aurora',name:'Marco VIP Aurora',emoji:'🌌',price:1800,field:'frame',value:7,rarity:'Marco VIP Premium'},{id:'plus_frame_inferno',name:'Marco VIP Infernal',emoji:'🔥',price:2100,field:'frame',value:8,rarity:'Marco VIP Premium'},{id:'plus_frame_cosmic',name:'Marco VIP Cósmico',emoji:'🌠',price:2400,field:'frame',value:9,rarity:'Marco VIP Premium'},{id:'plus_neon_trail',name:'Estela de neón',emoji:'⚡',price:1300,field:'acc',value:22,rarity:'Exclusivo Plus'},{id:'plus_star_crown',name:'Corona estelar',emoji:'🌟',price:1900,field:'acc',value:23,rarity:'Exclusivo Plus'},{id:'plus_gamer_headset',name:'Auriculares gamer VIP',emoji:'🎧',price:1100,field:'acc',value:24,rarity:'Exclusivo Plus'},{id:'plus_royal_monocle',name:'Monóculo real',emoji:'🧐',price:1600,field:'acc',value:25,rarity:'Exclusivo Plus'},{id:'plus_eclipse_helm',name:'Yelmo Eclipse',emoji:'🌘',price:3900,field:'acc',value:26,rarity:'Accesorio SVG Élite'},{id:'plus_phoenix_wings',name:'Alas Fénix',emoji:'🔥',price:4200,field:'acc',value:27,rarity:'Accesorio SVG Mítico'},{id:'plus_dragon_mask',name:'Máscara Dragón',emoji:'🐉',price:4500,field:'acc',value:28,rarity:'Accesorio SVG Mítico'},{id:'plus_galaxy_crown',name:'Corona Galáctica',emoji:'🌌',price:4800,field:'acc',value:29,rarity:'Accesorio SVG Legendario'},{id:'plus_frame_dragon',name:'Marco VIP Dragón',emoji:'🐉',price:2200,field:'frame',value:10,rarity:'Marco VIP SVG'},{id:'plus_frame_celestial',name:'Marco VIP Celestial',emoji:'✨',price:2400,field:'frame',value:11,rarity:'Marco VIP SVG'},{id:'plus_frame_cyber',name:'Marco VIP Cyber',emoji:'⚡',price:2600,field:'frame',value:12,rarity:'Marco VIP SVG'},{id:'plus_frame_royal',name:'Marco VIP Imperial',emoji:'👑',price:2900,field:'frame',value:13,rarity:'Marco VIP SVG'},{id:'plus_frame_solar',name:'Marco VIP Solar',emoji:'☀️',price:3100,field:'frame',value:14,rarity:'Marco VIP SVG'},{id:'plus_frame_toxic',name:'Marco VIP Tóxico',emoji:'☢️',price:3200,field:'frame',value:15,rarity:'Marco VIP SVG'},{id:'plus_frame_abyss',name:'Marco VIP Abismo',emoji:'🌊',price:3400,field:'frame',value:16,rarity:'Marco VIP SVG'},{id:'plus_frame_phantom',name:'Marco VIP Fantasma',emoji:'👻',price:3600,field:'frame',value:17,rarity:'Marco VIP SVG'}];
         let unoVipSvgSequence=0;
         function unoVipFrameSVG(frame,size=88){
           const specs={6:{c:'#67e8f9',g:'#6366f1',style:'aurora'},7:{c:'#a5f3fc',g:'#0284c7',style:'aurora'},8:{c:'#fb7185',g:'#ea580c',style:'inferno'},9:{c:'#c4b5fd',g:'#7c3aed',style:'cosmic'},10:{c:'#fb923c',g:'#dc2626',style:'dragon'},11:{c:'#ddd6fe',g:'#818cf8',style:'celestial'},12:{c:'#22d3ee',g:'#2563eb',style:'cyber'},13:{c:'#facc15',g:'#b45309',style:'royal'},14:{c:'#fde047',g:'#f97316',style:'solar'},15:{c:'#bef264',g:'#65a30d',style:'toxic'},16:{c:'#7dd3fc',g:'#1d4ed8',style:'abyss'},17:{c:'#e9d5ff',g:'#9333ea',style:'phantom'}};
@@ -6209,7 +6222,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             let botIdx = 0;
             state.room.seats.forEach((seat, idx) => {
                 if (!seat.id && botIdx < BOT_PROFILES.length) {
-                    const prof = BOT_PROFILES[botIdx++];
+                    const prof = createBotProfile(idx);
                     state.room.seats[idx] = {
                         ...seat,
                         id: `bot_${idx}_${Date.now()}`,
