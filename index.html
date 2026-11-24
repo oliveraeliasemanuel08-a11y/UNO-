@@ -2041,9 +2041,8 @@
           list.innerHTML=competitive.map(r=>{
             const host=(r.seats||[]).find(x=>x&&x.id===r.hostId)||(r.seats||[]).find(x=>x&&x.id);
             const format=r.competitiveFormat||((Number(r.maxSeats||2)===2)?'1v1':(Number(r.maxSeats||4)/2)+'v'+(Number(r.maxSeats||4)/2));
-            return '<div class="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-zinc-950/80 p-2"><div class="min-w-0"><div class="text-xs font-bold text-white truncate">'+escapeLeaderboardText(host?.name||'Anfitrión')+' · '+format+'</div><div class="text-[10px] text-zinc-400">'+(r.seats||[]).filter(x=>x&&x.id).length+'/'+(r.maxSeats||2)+' jugadores · '+escapeLeaderboardText(r.competitiveRankName||'Competitivo')+'</div></div><button type="button" data-join-comp-room="'+escapeLeaderboardText(r.code||'')+'" class="shrink-0 rounded-lg bg-emerald-400 px-3 py-2 text-[10px] font-black text-zinc-950">UNIRSE</button></div>';
+            return '<div class="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-zinc-950/80 p-2"><div class="min-w-0"><div class="text-xs font-bold text-white truncate">Sala de '+escapeLeaderboardText(host?.name||'Anfitrión')+' · '+format+'</div><div class="text-[10px] text-zinc-400">'+(r.seats||[]).filter(x=>x&&x.id).length+'/'+(r.maxSeats||2)+' jugadores · '+escapeLeaderboardText(r.competitiveRankName||'Competitivo')+'</div></div><div class="shrink-0 rounded-lg border border-amber-300/30 bg-amber-950/40 px-3 py-1.5 text-center"><span class="block text-[8px] uppercase text-amber-200/70">Código</span><b class="font-mono text-xs tracking-widest text-amber-200">'+escapeLeaderboardText(r.code||'')+'</b></div></div>';
           }).join('');
-          list.querySelectorAll('[data-join-comp-room]').forEach(btn=>btn.addEventListener('click',()=>{document.getElementById('competitiveMenuScreen')?.classList.add('hidden');joinExistingRoom(btn.dataset.joinCompRoom);}));
         }
         async function startCompetitiveSearch(){
           if(state.room){showToast('Primero salí de la sala actual para buscar una clasificatoria.','warn');return;}
