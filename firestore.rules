@@ -20,7 +20,7 @@ service cloud.firestore {
     }
 
     function isLiarRoomHost(appId, roomId) {
-      let room = get(liarRoomPath(roomId)).data;
+      let room = get(liarRoomPath(appId, roomId)).data;
       return isSignedIn()
         && room.gameType == 'liar3d'
         && room.hostId == request.auth.uid;
@@ -64,15 +64,15 @@ service cloud.firestore {
         && request.resource.data.cards is list
         && request.resource.data.cards.size() <= 28;
 
-      allow delete: if isLiarRoomHost(roomId);
+      allow delete: if isLiarRoomHost(appId, roomId);
     }
 
     // ACCIONES ENVIADAS POR JUGADORES A LA AUTORIDAD DE LA SALA
     // El cliente no modifica directamente el estado público de la partida.
     match /artifacts/{appId}/public/data/uno_liar_actions/{roomId}/actions/{actionId} {
-      allow read: if isLiarRoomMember(roomId);
+      allow read: if isLiarRoomMember(appId, roomId);
 
-      allow create: if isLiarRoomMember(roomId)
+      allow create: if isLiarRoomMember(appId, roomId)
         && request.resource.data.actorUid == request.auth.uid
         && request.resource.data.type in ['play', 'challenge', 'next_round']
         && request.resource.data.createdAt is number
@@ -83,9 +83,9 @@ service cloud.firestore {
               && request.resource.data.cardIds.size() <= 3
             : true
         )
-        && get(liarRoomPath(roomId)).data.gameState.turnUid == request.auth.uid;
+        && get(liarRoomPath(appId, roomId)).data.gameState.turnUid == request.auth.uid;
 
-      allow update, delete: if isLiarRoomHost(roomId);
+      allow update, delete: if isLiarRoomHost(appId, roomId);
     }
 
     // LEADERBOARD GLOBAL UNO! CLUB
