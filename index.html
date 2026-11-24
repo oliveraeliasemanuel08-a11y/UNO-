@@ -473,6 +473,14 @@
         .avatar-frame-legendary {
             animation: pulseRingGold 2.4s infinite;
         }
+        /* Marcos VIP vectoriales: SVG inline, sin imágenes externas */
+        .vip-svg-frame{position:relative;isolation:isolate;border-radius:999px}
+        .vip-svg-frame::after{content:"";position:absolute;inset:-5px;border-radius:inherit;pointer-events:none;z-index:3}
+        .vip-frame-dragon{box-shadow:0 0 0 3px #f97316,0 0 16px #dc2626, inset 0 0 12px #facc15}
+        .vip-frame-celestial{box-shadow:0 0 0 3px #c4b5fd,0 0 18px #818cf8, inset 0 0 12px #f0abfc}
+        .vip-frame-cyber{box-shadow:0 0 0 3px #22d3ee,0 0 18px #06b6d4, inset 0 0 12px #a3e635}
+        .vip-frame-royal{box-shadow:0 0 0 3px #facc15,0 0 20px #d97706, inset 0 0 14px #fef3c7}
+        .vip-svg-frame svg{position:absolute;inset:-9px;width:calc(100% + 18px);height:calc(100% + 18px);pointer-events:none;z-index:4;overflow:visible}
 
         /* Animación de Mezcla Riffle Shuffle en el centro de la mesa */
         @keyframes riffleLeft {
@@ -2297,25 +2305,21 @@
                 const modeTag = (r.teamMode ? `${r.teamCount} Equipos` : 'Individual') + ({chaos:' • 💥 UNO CAOS',survival:' • ❤️ Supervivencia',turbo:' • ⚡ Turbo',classic:' • UNO clásico'}[r.gameMode] || ' • UNO clásico');
                 const extras = [r.mirrorRule ? '🪞' : '', r.straightRule ? '🪜' : ''].filter(Boolean).join('');
                 return `
-                    <div class="flex items-center justify-between gap-2 bg-zinc-950/90 border border-white/10 hover:border-emerald-400/50 rounded-2xl px-3 py-2 transition-colors">
+                    <div class="flex items-center justify-between gap-3 bg-zinc-950/90 border border-white/10 hover:border-emerald-400/50 rounded-2xl px-3 py-2 transition-colors">
                         <div class="min-w-0">
-                            <div class="flex items-center gap-1.5">
-                                <span class="font-mono font-extrabold text-xs text-amber-300">${r.code}</span>
-                                <span class="text-xs font-bold text-white truncate">• Mesa de ${hostName}</span>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="text-xs font-bold text-white truncate">Sala de ${escapeLeaderboardText(hostName)}</span>
                                 ${extras ? `<span class="text-xs">${extras}</span>` : ''}
                             </div>
                             <div class="text-[11px] text-zinc-400">${modeTag} • ${r.occupied}/${r.maxSeats} jugadores</div>
                         </div>
-                        <button type="button" data-quick-join="${r.code}" class="quick-join-room-btn shrink-0 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-extrabold text-xs cursor-pointer">
-                            Unirse →
-                        </button>
+                        <div class="shrink-0 rounded-xl border border-amber-300/30 bg-amber-950/40 px-3 py-1.5 text-center">
+                            <span class="block text-[9px] uppercase tracking-wider text-amber-200/70">Código</span>
+                            <b class="font-mono text-sm tracking-[.16em] text-amber-200">${r.code}</b>
+                        </div>
                     </div>
                 `;
             }).join('');
-
-            listEl.querySelectorAll('.quick-join-room-btn').forEach(btn => {
-                btn.onclick = () => joinExistingRoom(btn.dataset.quickJoin);
-            });
         }
         initFirebase();
 
@@ -4761,7 +4765,7 @@
             });
         }
 
-        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const total=Number(room.maxSeats||room.seats?.length||4);const delta=entry.rank===1?({2:55,4:70,6:85,8:100}[total]||65):entry.rank===2?({2:-8,4:35,6:45,8:55}[total]||30):entry.rank===3?({2:-10,4:18,6:28,8:38}[total]||15):entry.rank===4?(total>=6?12:-8):-Math.min(22,5+Math.max(0,entry.rank-4)*3);const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));const plusBase=({2:4,4:5,6:7,8:8}[total]||4);const placeBonus=entry.rank===1?0:entry.rank===2?Math.max(1,Math.round(plusBase*.55)):entry.rank===3?Math.max(1,Math.round(plusBase*.3)):entry.rank<=5?1:0;const rankBonus=oldRating>=4000?1:oldRating>=2800?0.5:0;const earnedPlus=Math.max(0,Math.round((entry.rank===1?plusBase:placeBonus)+rankBonus));addUnoPlus(earnedPlus);ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+') · 💎 +'+earnedPlus+' Plus';showCompetitiveResult(entry,delta,oldRating,nextRating,room);}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' UNOcoins'+ratingMsg,'success');updateClubWalletUI();updatePlusWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))}
+        function awardMatchPointsIfNeeded(room,seat){if(!room||!room.podium?.length||!seat||seat.id!==currentUserId)return;const key='uno_rewarded_'+(room.matchId||room.code+'_'+room.updatedAt);if(localStorage.getItem(key))return;const entry=(room.podium||[]).find(p=>p.id===currentUserId);if(!entry)return;const reward=100+Math.max(0,(8-(entry.rank||1))*25);recordClubMatch(room,entry);localStorage.setItem('uno_club_points',String(Number(localStorage.getItem('uno_club_points')||0)+reward));let ratingMsg='';if(room.competitiveMode&&state.isOnline){const oldRating=Number(localStorage.getItem('uno_competitive_rating')||1000);const total=Number(room.maxSeats||room.seats?.length||4);const delta=entry.rank===1?({2:55,4:70,6:85,8:100}[total]||65):entry.rank===2?({2:-8,4:35,6:45,8:55}[total]||30):entry.rank===3?({2:-10,4:18,6:28,8:38}[total]||15):entry.rank===4?(total>=6?12:-8):-Math.min(22,5+Math.max(0,entry.rank-4)*3);const nextRating=Math.max(0,oldRating+delta);localStorage.setItem('uno_competitive_rating',String(nextRating));const earnedRank=getCompetitiveRank(oldRating);const rankIndex=UNO_COMPETITIVE_RANKS.indexOf(earnedRank);const legendIndex=UNO_COMPETITIVE_RANKS.findIndex(r=>r.name.startsWith('Leyenda'));const rankBase=rankIndex>=legendIndex?50+Math.min(30,Math.floor((oldRating-2800)/200)*3):Math.max(2,Math.round(3+rankIndex*1.7));const placementFactor=entry.rank===1?1.25:entry.rank===2?1:entry.rank===3?.8:entry.rank<=5?.55:.35;const earnedPlus=Math.max(rankIndex>=legendIndex?50:1,Math.round(rankBase*placementFactor));addUnoPlus(earnedPlus);ratingMsg=' · Rating '+(delta>0?'+':'')+delta+' ('+nextRating+') · 💎 +'+earnedPlus+' Plus';showCompetitiveResult(entry,delta,oldRating,nextRating,room);}localStorage.setItem(key,'1');showToast('🏆 +'+reward+' UNOcoins'+ratingMsg,'success');updateClubWalletUI();updatePlusWalletUI();renderCompetitiveRank();renderClubProgressHub();syncCompetitiveProfile().catch(err=>console.warn('Perfil competitivo:',err))}
         function renderVictoryModal() {
             const room = state.room;
             const podium = room.podium || [];
@@ -4951,7 +4955,11 @@
 
         // PROGRESIÓN CLUB PASS. Los datos son locales a este navegador.
         const CLUB_SEASON_MAX_LEVEL=30, CLUB_SEASON_XP_PER_LEVEL=300;
-        const UNO_PLUS_ITEMS=[{id:'plus_wings',name:'Alas de diamante',emoji:'🪽',price:900,field:'acc',value:16,rarity:'Exclusivo Plus'},{id:'plus_crown',name:'Corona de campeón',emoji:'👑',price:1200,field:'acc',value:21,rarity:'Exclusivo Plus'},{id:'plus_aura',name:'Aura prismática',emoji:'💠',price:1500,field:'frame',value:6,rarity:'Exclusivo Plus'},{id:'plus_hair',name:'Cabello celestial',emoji:'💎',price:700,field:'hair',value:17,rarity:'Exclusivo Plus'},{id:'plus_frame_aurora',name:'Marco VIP Aurora',emoji:'🌌',price:1800,field:'frame',value:7,rarity:'Marco VIP Premium'},{id:'plus_frame_inferno',name:'Marco VIP Infernal',emoji:'🔥',price:2100,field:'frame',value:8,rarity:'Marco VIP Premium'},{id:'plus_frame_cosmic',name:'Marco VIP Cósmico',emoji:'🌠',price:2400,field:'frame',value:9,rarity:'Marco VIP Premium'},{id:'plus_neon_trail',name:'Estela de neón',emoji:'⚡',price:1300,field:'acc',value:22,rarity:'Exclusivo Plus'},{id:'plus_star_crown',name:'Corona estelar',emoji:'🌟',price:1900,field:'acc',value:23,rarity:'Exclusivo Plus'},{id:'plus_gamer_headset',name:'Auriculares gamer VIP',emoji:'🎧',price:1100,field:'acc',value:24,rarity:'Exclusivo Plus'},{id:'plus_royal_monocle',name:'Monóculo real',emoji:'🧐',price:1600,field:'acc',value:25,rarity:'Exclusivo Plus'}];
+        const UNO_PLUS_ITEMS=[{id:'plus_wings',name:'Alas de diamante',emoji:'🪽',price:900,field:'acc',value:16,rarity:'Exclusivo Plus'},{id:'plus_crown',name:'Corona de campeón',emoji:'👑',price:1200,field:'acc',value:21,rarity:'Exclusivo Plus'},{id:'plus_aura',name:'Aura prismática',emoji:'💠',price:1500,field:'frame',value:6,rarity:'Exclusivo Plus'},{id:'plus_hair',name:'Cabello celestial',emoji:'💎',price:700,field:'hair',value:17,rarity:'Exclusivo Plus'},{id:'plus_frame_aurora',name:'Marco VIP Aurora',emoji:'🌌',price:1800,field:'frame',value:7,rarity:'Marco VIP Premium'},{id:'plus_frame_inferno',name:'Marco VIP Infernal',emoji:'🔥',price:2100,field:'frame',value:8,rarity:'Marco VIP Premium'},{id:'plus_frame_cosmic',name:'Marco VIP Cósmico',emoji:'🌠',price:2400,field:'frame',value:9,rarity:'Marco VIP Premium'},{id:'plus_neon_trail',name:'Estela de neón',emoji:'⚡',price:1300,field:'acc',value:22,rarity:'Exclusivo Plus'},{id:'plus_star_crown',name:'Corona estelar',emoji:'🌟',price:1900,field:'acc',value:23,rarity:'Exclusivo Plus'},{id:'plus_gamer_headset',name:'Auriculares gamer VIP',emoji:'🎧',price:1100,field:'acc',value:24,rarity:'Exclusivo Plus'},{id:'plus_royal_monocle',name:'Monóculo real',emoji:'🧐',price:1600,field:'acc',value:25,rarity:'Exclusivo Plus'},{id:'plus_frame_dragon',name:'Marco VIP Dragón',emoji:'🐉',price:2200,field:'frame',value:10,rarity:'Marco VIP SVG'},{id:'plus_frame_celestial',name:'Marco VIP Celestial',emoji:'✨',price:2400,field:'frame',value:11,rarity:'Marco VIP SVG'},{id:'plus_frame_cyber',name:'Marco VIP Cyber',emoji:'⚡',price:2600,field:'frame',value:12,rarity:'Marco VIP SVG'},{id:'plus_frame_royal',name:'Marco VIP Imperial',emoji:'👑',price:2900,field:'frame',value:13,rarity:'Marco VIP SVG'}];
+        function unoVipFrameSVG(frame,size=88){
+          const specs={10:{cls:'vip-frame-dragon',stroke:'#fb923c',path:'M8 45Q4 17 30 8L43 2 56 8Q84 17 80 45L70 68 44 84 18 68Z',detail:'M18 28 31 36 44 25 57 36 70 28M22 58 44 70 66 58'},11:{cls:'vip-frame-celestial',stroke:'#c4b5fd',path:'M44 2 53 24 78 16 66 40 86 54 61 58 58 84 42 65 22 82 25 56 2 46 25 34 18 10 39 24Z',detail:'M44 12V76M12 44H76'},12:{cls:'vip-frame-cyber',stroke:'#22d3ee',path:'M15 8H73L82 18V66L68 80H18L6 66V20Z',detail:'M20 18H68M14 64H74M20 28V56M68 28V56'},13:{cls:'vip-frame-royal',stroke:'#facc15',path:'M10 20 24 29 44 6 64 29 78 20 72 68 44 84 16 68Z',detail:'M20 55 44 68 68 55M28 37H60'}};
+          const q=specs[Number(frame)];if(!q)return '';return '<svg viewBox="0 0 88 88" aria-hidden="true" class="'+q.cls+'"><path d="'+q.path+'" fill="none" stroke="'+q.stroke+'" stroke-width="3.2" stroke-linejoin="round"/><path d="'+q.detail+'" fill="none" stroke="'+q.stroke+'" stroke-width="2" opacity=".72" stroke-linecap="round"/></svg>';
+        }
         function getUnoPlus(){return Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0))}
         function setUnoPlus(v){localStorage.setItem('uno_plus_balance',String(Math.max(0,Math.floor(Number(v)||0))));updatePlusWalletUI()}
         function addUnoPlus(v){setUnoPlus(getUnoPlus()+Math.max(0,Math.floor(Number(v)||0)))}
