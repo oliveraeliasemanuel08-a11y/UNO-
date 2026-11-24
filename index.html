@@ -1136,6 +1136,7 @@
                                 <span class="text-zinc-400 font-semibold">Camiseta</span>
                                 <div id="shirtColorPicker" class="flex items-center gap-1.5"></div>
                             </div>
+                            <div class="flex items-center justify-between gap-2 rounded-xl border border-white/5 bg-zinc-950/60 px-3 py-2"><span class="text-zinc-400 font-semibold">Estilo de remera</span><div class="flex items-center gap-1.5"><button type="button" data-trait="shirtStyle" data-dir="-1" class="trait-cycle h-7 w-7 rounded-lg bg-zinc-800 font-bold">‹</button><span id="shirtStyleLabel" class="w-24 truncate text-center font-bold text-white">Lisa</span><button type="button" data-trait="shirtStyle" data-dir="1" class="trait-cycle h-7 w-7 rounded-lg bg-zinc-800 font-bold">›</button></div></div>
                             <!-- Marco / Aura -->
                             <div class="flex items-center justify-between bg-zinc-950/60 px-3 py-2 rounded-xl border border-white/5">
                                 <span class="text-zinc-400 font-semibold">Marco VIP</span>
@@ -2292,6 +2293,7 @@
                 acc: (seed + 1) % AVATAR_ACC_STYLES.length,
                 frame: seed % AVATAR_FRAME_PALETTE.length,
                 shirtColor: seed % AVATAR_SHIRT_PALETTE.length,
+                shirtStyle: seed % 6,
                 beard: 0
             };
         }
@@ -4901,7 +4903,7 @@
         function claimClubSeasonReward(level){
           const data=getClubSeason(),n=Math.floor(Number(level)||0),xp=Math.max(0,Number(data.xp)||0),claimed=new Set(Array.isArray(data.claimed)?data.claimed:[]);
           if(n<1||n>CLUB_SEASON_MAX_LEVEL||xp<n*CLUB_SEASON_XP_PER_LEVEL||claimed.has(n))return;
-          const reward=50+n*5;claimed.add(n);data.claimed=[...claimed];saveClubSeason(data);
+          const reward=(100+n*25)+(n%5===0?250:0);claimed.add(n);data.claimed=[...claimed];saveClubSeason(data);
           localStorage.setItem('uno_club_points',String(Math.max(0,Number(localStorage.getItem('uno_club_points')||0))+reward));
           updateClubWalletUI();renderClubSeasonHub();showToast('🎁 Nivel '+n+': recibiste '+reward+' UNOcoins.','success');
         }
@@ -4958,6 +4960,7 @@
             document.getElementById('faceLabel').textContent = AVATAR_FACE_STYLES[cfg.face];
             document.getElementById('accLabel').textContent  = AVATAR_ACC_STYLES[cfg.acc];
             document.getElementById('beardLabel').textContent = AVATAR_BEARD_STYLES[cfg.beard || 0];
+            document.getElementById('shirtStyleLabel').textContent = ['Lisa','Rayas','Lunares','Cruzada','Cuadriculada','Relámpagos'][Number(cfg.shirtStyle)||0];
 
             const skinPicker = document.getElementById('skinColorPicker');
             skinPicker.innerHTML = AVATAR_SKIN_PALETTE.map((hex, idx) =>
@@ -5070,7 +5073,8 @@
                     hair: AVATAR_HAIR_STYLES.length,
                     face: AVATAR_FACE_STYLES.length,
                     acc:  AVATAR_ACC_STYLES.length,
-                    beard: AVATAR_BEARD_STYLES.length
+                    beard: AVATAR_BEARD_STYLES.length,
+                    shirtStyle: 6
                 };
                 const len = maxMap[trait];
                 state.playerAvatar[trait] = (state.playerAvatar[trait] + dir + len) % len;
@@ -5087,6 +5091,7 @@
                 acc: Math.floor(Math.random() * AVATAR_ACC_STYLES.length),
                 frame: Math.floor(Math.random() * AVATAR_FRAME_PALETTE.length),
                 shirtColor: Math.floor(Math.random() * AVATAR_SHIRT_PALETTE.length),
+                shirtStyle: Math.floor(Math.random() * 6),
                 beard: Math.floor(Math.random() * AVATAR_BEARD_STYLES.length)
             };
             saveAvatarCfg();
