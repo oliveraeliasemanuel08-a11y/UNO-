@@ -2562,7 +2562,7 @@
             listEl.innerHTML = rooms.map(r => {
                 const hostSeat = (r.seats || []).find(s => s && s.id === r.hostId) || (r.seats || []).find(s => s && s.id);
                 const hostName = hostSeat ? hostSeat.name : 'Anfitrión';
-                const modeTag = (r.teamMode ? `${r.teamCount} Equipos` : 'Individual') + ({chaos:' • 💥 UNO CAOS',survival:' • ❤️ Supervivencia',turbo:' • ⚡ Turbo',classic:' • UNO clásico'}[r.gameMode] || ' • UNO clásico');
+                const modeTag = (r.teamMode ? `${r.teamCount} Equipos` : 'Individual') + ({chaos:' • 💥 UNO CAOS',survival:' • ❤️ Supervivencia',turbo:' • ⚡ Turbo',liar:' • 🎭 Mentiroso',tactical:' • ⚔️ Táctico',classic:' • UNO clásico'}[r.gameMode] || ' • UNO clásico');
                 const extras = [r.mirrorRule ? '🪞' : '', r.straightRule ? '🪜' : ''].filter(Boolean).join('');
                 return `
                     <div class="flex items-center justify-between gap-3 bg-zinc-950/90 border border-white/10 hover:border-emerald-400/50 rounded-2xl px-3 py-2 transition-colors">
@@ -4583,7 +4583,7 @@
                     bot.saidUno = true;
                 }
 
-                const playable = bot.hand.filter(c => canPlayCard(c, r, null));
+                const playable = r.gameMode === 'liar' ? [...bot.hand] : bot.hand.filter(c => canPlayCard(c, r, null));
                 if (playable.length > 0) {
                     const chosen = r.competitiveMode ? chooseCompetitiveBotCard(bot,r,playable) : chooseCompetitiveBotCard(bot,r,playable,8);
                     // Elegir el color más abundante en su mano si es comodín
