@@ -2931,6 +2931,14 @@
         }
 
         function createCardHTML(card, extraClasses = '', styleAttr = '') {
+            if (card.faceDownDeclaration) return `
+                <div class="uno-card uno-card-back ${extraClasses}" style="${styleAttr}" data-card-id="${card.id}">
+                    <div class="uno-card-inner flex items-center justify-center overflow-hidden" style="background:radial-gradient(circle at 30% 20%,#7c3aed,#181025 72%);border:3px solid #c4b5fd;box-shadow:0 0 24px #8b5cf688,inset 0 0 16px #fff2">
+                        <div class="absolute inset-2 rounded-xl border-2 border-dashed border-violet-200/70"></div>
+                        <div class="relative z-10 w-12 h-16 rounded-xl border-2 border-amber-300 bg-gradient-to-br from-violet-700 via-fuchsia-700 to-indigo-950 flex items-center justify-center text-3xl shadow-xl">?</div>
+                        <span class="absolute bottom-2 text-[8px] font-black tracking-[.22em] text-violet-100">FAROL</span>
+                    </div>
+                </div>`;
             const meta = COLOR_META[card.color] || COLOR_META.wild;
             const centerColorClass = card.color === 'wild' ? 'text-zinc-900' : meta.text;
             const centerShadow = card.type === 'number' ? 'uno-text-shadow' : '';
@@ -4354,6 +4362,7 @@
                 showToast('🚨 ¡MENTIRA DESCUBIERTA! '+liar.name+' pierde una vida ('+liar.lives+'/3).','success');
                 vfx.showCinemaCallout('¡FAROL DESCUBIERTO!','from-rose-500 via-white to-amber-400');
             } else if (challenge && !lied) {
+                pending.declaredCard.faceDownDeclaration=false;
                 challenger.lives = Math.max(0,Number(challenger.lives??3)-1);
                 showToast('🛡️ ¡ERA VERDAD! '+challenger.name+' pierde una vida ('+challenger.lives+'/3).','danger');
                 vfx.showCinemaCallout('¡DESAFÍO FALLIDO!','from-amber-400 via-white to-rose-400');
@@ -4361,6 +4370,7 @@
                 await applyCardEffectAndAdvanceTurn(liar.seatIndex,pending.declaredCard,false,pending.declaredColor,pending.previousColor);
                 return;
             } else {
+                pending.declaredCard.faceDownDeclaration=false;
                 showToast('🤝 Declaración aceptada. La carta cuenta como jugada.','success');
                 if (liar.hand.length === 0) { await handlePlayerFinishedHand(liar.seatIndex); return; }
                 await applyCardEffectAndAdvanceTurn(liar.seatIndex,pending.declaredCard,false,pending.declaredColor,pending.previousColor);
