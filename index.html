@@ -2538,7 +2538,7 @@
             const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'uno_rooms');
             // Escuchar solo salas en lobby: Firestore las retira del resultado
             // en tiempo real cuando el anfitrión cambia su estado a "playing".
-            const publicLobbyQuery = query(roomsCol, where('status', '==', 'lobby'));
+            const publicLobbyQuery = query(roomsCol, where('status', '==', 'lobby'), where('isPublic', '==', true));
             unsubscribePublicRooms = onSnapshot(publicLobbyQuery, (snapshot) => {
                 const openRooms = [];
                 const now = Date.now();
@@ -3515,21 +3515,30 @@
         let lastReactionId = null;
 
         async function syncRoomToCloud() {
-            if (!state.room) return;
+            if (!state.room) return false;
             state.room.comboChain = state.comboChain || null;
             state.room.updatedAt = Date.now();
             renderCurrentView();
-            if (state.isOnline) {
-                const ready = await initFirebase();
-                if (!ready || !currentUser || !db || !state.roomCode) return;
-                try {
-                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'uno_rooms', state.roomCode);
-                    const cleanPayload = JSON.parse(JSON.stringify(state.room));
-                    await setDoc(roomRef, cleanPayload);
-                } catch (err) {
-                    console.error("Error sincronizando sala:", err);
-                    showToast("Error de red al sincronizar jugada.", "danger");
+            if (!state.isOnline) return true;
+
+            const ready = await initFirebase();
+            if (!ready || !currentUser || !db || !state.roomCode) {
+                showToast("Firebase no está disponible. No se guardó la sala online.", "danger");
+                return false;
+            }
+            try {
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'uno_rooms', state.roomCode);
+                const cleanPayload = JSON.parse(JSON.stringify(state.room));
+                await setDoc(roomRef, cleanPayload);
+                return true;
+            } catch (err) {
+                console.error("Error sincronizando sala:", err);
+                if (err?.code === 'resource-exhausted') {
+                    showToast("Firebase alcanzó su cuota de uso. La sala no se guardó; esperá al reinicio de cuota o revisá el plan/límites del proyecto.", "danger");
+                } else {
+                    showToast("Error de red al sincronizar la sala. No se guardó online.", "danger");
                 }
+                return false;
             }
         }
 
@@ -3703,7 +3712,16 @@
             };
 
             if (state.isOnline) {
-                await syncRoomToCloud();
+                const saved = await syncRoomToCloud();
+                if (!saved) {
+                    if (state.unsubscribeRoom) { state.unsubscribeRoom(); state.unsubscribeRoom = null; }
+                    state.room = null;
+                    state.roomCode = null;
+                    state.hostId = null;
+                    state.isOnline = false;
+                    renderCurrentView();
+                    return;
+                }
                 await subscribeToRoom(code);
                 showToast(`Sala online ${code} creada. ¡Comparte el código!`, "success");
             } else if (!isOnlineMode) {
