@@ -1509,8 +1509,8 @@
         <div id="arcadeModeMenu" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <article class="arcade-card p-5 flex flex-col">
             <div class="text-5xl mb-3">♠️</div><div class="text-[10px] font-black tracking-widest text-amber-300">TEXAS HOLD’EM 3D</div><h3 class="font-uno text-2xl mt-1">UNO HOLD'EM POKER 3D</h3>
-            <p class="text-sm text-zinc-400 mt-2 flex-1">Texas Hold’em clásico en una mesa 3D: baraja francesa de 52 cartas, dos cartas privadas, cinco comunitarias y showdown. La economía y las apuestas se ajustarán en una próxima actualización.</p>
-            <div class="flex items-center justify-between mt-5"><span class="text-xs text-amber-200">🪙 1.000 fichas iniciales</span><button data-standalone-game="uno_hold_em_poker_3d.html" data-standalone-title="UNO HOLD’EM POKER 3D" class="arcade-action border-amber-400/40 text-amber-200">Jugar juego original →</button></div>
+            <p class="text-sm text-zinc-400 mt-2 flex-1">Texas Hold’em clásico en mesa 3D: baraja de 52 cartas, dos cartas privadas, cinco comunitarias, apuestas por rondas y showdown. Jugá con fichas virtuales gratuitas, separadas de UNOcoins y UNOcoins PLUS.</p>
+            <div class="flex items-center justify-between mt-5"><span class="text-xs text-amber-200">🪙 1.000 fichas de Póker iniciales</span><button data-arcade-menu="poker" class="arcade-action border-amber-400/40 text-amber-200">Abrir mesa →</button></div>
           </article>
           <article class="arcade-card p-5 flex flex-col">
             <div class="text-5xl mb-3">⚔️</div><div class="text-[10px] font-black tracking-widest text-rose-300">COMBATE POR TURNOS</div><h3 class="font-uno text-2xl mt-1">UNO! BATALLA</h3>
@@ -1538,7 +1538,7 @@
           <div id="arcadeSetupEmoji" class="text-4xl">🎮</div>
           <h3 id="arcadeSetupTitle" class="font-uno text-2xl mt-2"></h3>
           <div id="arcadeSetupRules" class="text-sm text-zinc-300 mt-2"></div>
-          <div id="arcadePokerStakeBox" class="hidden mt-4 rounded-2xl border border-cyan-300/25 bg-cyan-950/25 p-4"><div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-sm text-cyan-100">💎 Entrada de UNOcoins PLUS</b><p class="text-[10px] text-zinc-400 mt-1">Cada jugador reserva esta cantidad al entrar. El ganador cobra el pozo.</p></div><div class="text-xs text-cyan-100">Tu saldo: <b id="arcadePokerWallet">0 ◆</b></div></div><select id="arcadePokerStake" class="mt-3 w-full rounded-xl border border-cyan-300/20 bg-zinc-950 px-3 py-3 text-sm font-black text-white"><option value="5">5 diamantes · principiante</option><option value="10" selected>10 diamantes · normal</option><option value="20">20 diamantes · competitivo</option><option value="50">50 diamantes · alto riesgo</option><option value="100">100 diamantes · mesa VIP</option></select><p class="text-[10px] text-amber-200 mt-2">🔒 Para apostar necesitás vincular Google. Si salís antes de empezar, recuperás tu entrada.</p></div>
+          <div id="arcadePokerStakeBox" class="hidden mt-4 rounded-2xl border border-cyan-300/25 bg-cyan-950/25 p-4"><div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-sm text-cyan-100">🪙 Entrada de fichas de Póker</b><p class="text-[10px] text-zinc-400 mt-1">Fichas virtuales gratuitas. No son UNOcoins ni UNOcoins PLUS.</p></div><div class="text-xs text-cyan-100">Tu saldo: <b id="arcadePokerWallet">1.000 fichas</b></div></div><select id="arcadePokerStake" class="mt-3 w-full rounded-xl border border-cyan-300/20 bg-zinc-950 px-3 py-3 text-sm font-black text-white"><option value="50">50 fichas · principiante</option><option value="100" selected>100 fichas · normal</option><option value="200">200 fichas · competitivo</option><option value="500">500 fichas · mesa alta</option></select><p class="text-[10px] text-amber-200 mt-2">🎟️ Cada jugador reserva su entrada al entrar. Si sale antes de empezar, recupera sus fichas.</p></div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5">
             <button id="arcadeSetupSolo" class="arcade-action border-amber-400/50 text-amber-100 flex-1">🤖 Jugar solo contra bots</button>
             <button id="arcadeSetupCreate" class="arcade-action border-emerald-400/40 text-emerald-200 flex-1">🌐 Crear sala online</button>
@@ -5953,7 +5953,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             const meta=(bet>0?'APUESTA '+currencyLabel+fmtPokerNumber(bet):'SIN APUESTA')+(p.allIn?' · ALL-IN':'');
             return '<div class="uno-holdem-seat '+(active?'is-turn ':'')+(folded?'is-folded':'')+'" data-seat="'+i+'"><div class="seat-name">'+arcadeEsc(p.name||('Jugador '+(i+1)))+(isHero?' · VOS':'')+'</div><div class="seat-stack">'+currencyLabel+fmtPokerNumber(stack)+'</div><div class="seat-meta">'+arcadeEsc(visible)+'</div><div class="seat-meta">'+arcadeEsc(meta)+'</div>'+(active?'<div class="seat-turn">● EN TURNO</div>':'')+'</div>';
           }).join('');
-          const stage='<div class="uno-holdem-stage"><div id="unoHoldem3DStage" aria-label="Mesa 3D de UNO HOLD&#39;EM"><div class="uno-holdem-stage-fallback"></div></div><div class="uno-holdem-stage-top"><strong>UNO HOLD&#39;EM POKER 3D</strong><span>VIP TABLE · '+stageName+'</span></div><div class="uno-holdem-pot"><small>'+(data.online?'POZO EN DIAMANTES':'POZO TOTAL')+'</small><b>'+currencyLabel+fmtPokerNumber(data.pot)+'</b></div>'+seats+'<div class="uno-holdem-stage-message">'+arcadeEsc(data.message||'Esperando jugada…')+'</div></div>';
+          const stage='<div class="uno-holdem-stage"><div id="unoHoldem3DStage" aria-label="Mesa 3D de UNO HOLD&#39;EM"><div class="uno-holdem-stage-fallback"></div></div><div class="uno-holdem-stage-top"><strong>UNO HOLD&#39;EM POKER 3D</strong><span>VIP TABLE · '+stageName+'</span></div><div class="uno-holdem-pot"><small>'+(data.online?'POZO '+(data.currencyName||'EN FICHAS'):'POZO TOTAL')+'</small><b>'+currencyLabel+fmtPokerNumber(data.pot)+'</b></div>'+seats+'<div class="uno-holdem-stage-message">'+arcadeEsc(data.message||'Esperando jugada…')+'</div></div>';
           const hand=(data.heroCards||[]).map(c=>'<div class="uno-holdem-mini-card '+arcadeEsc(c.color||c.suit||'wild')+'">'+arcadeEsc(pokerCardShort(c))+'</div>').join('');
           const panel='<div class="uno-holdem-actionbar"><div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-[9px] font-black tracking-[.2em] text-amber-200">TUS CARTAS PRIVADAS</div><div class="uno-holdem-mini-hand">'+hand+'</div></div><div class="text-right"><div class="text-[9px] font-black tracking-[.2em] text-emerald-200">TU JUGADA</div><div class="text-sm font-black text-white mt-2">'+arcadeEsc(data.handName||'Esperando acción')+'</div></div></div>'+controlsHtml+'</div>';
           return stage+panel;
@@ -6111,6 +6111,11 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         function arcadeOnlinePlayer(){return {id:currentUserId,name:state.playerName||'Jugador',avatar:state.playerAvatar?.avatar||'🙂'};}
         function arcadeOnlineOpen(){clearTimeout(arcade.timer);document.getElementById('homeScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');}
 
+        function getPokerChips(){try{const n=Number(localStorage.getItem('uno_pok_chips'));return Number.isFinite(n)&&n>=0?n:1000;}catch(_){return 1000;}}
+        function setPokerChips(value){const n=Math.max(0,Math.floor(Number(value)||0));try{localStorage.setItem('uno_pok_chips',String(n));}catch(_){}const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=n.toLocaleString('es-AR')+' fichas';}
+        async function refreshPokerWallet(){let balance=getPokerChips();if(currentUserId&&db){try{const snap=await getDoc(clubProfileRef(currentUserId));if(snap.exists()){const p=snap.data()||{};balance=Math.max(0,Number(p.pokerChips??p.localStorage?.uno_pok_chips??1000));setPokerChips(balance);}}catch(e){console.warn('Saldo de fichas de Póker:',e);}}const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=balance.toLocaleString('es-AR')+' fichas';}
+        async function reservePokerChips(tx,uid,amount){const ref=clubProfileRef(uid),snap=await tx.get(ref),profile=snap.exists()?snap.data():{};const balance=Math.max(0,Number(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000));if(balance<amount)throw new Error('POKER_CHIPS_LOW');const next=balance-amount;const localData={...(profile.localStorage||snapshotClubLocalStorage()),uno_pok_chips:String(next)};tx.set(ref,{uid,pokerChips:next,localStorage:localData,updatedAt:Date.now()},{merge:true});return next;}
+        async function settlePokerChips(room){if(!room||room.pokerCurrency!=='chips'||room.arcadeMode!=='poker'||room.status!=='finished'||!currentUser)return;const game=room.arcadeState,winners=Array.isArray(game?.winners)?game.winners:[],winnerIds=winners.map(i=>game.players?.[i]?.id).filter(Boolean);if(!winnerIds.includes(currentUserId))return;let newBalance=null,payoutPaid=0;try{await runTransaction(db,async tx=>{const roomRef=arcadeOnlineRef(room.code),profileRef=clubProfileRef(currentUserId),roomSnap=await tx.get(roomRef),profileSnap=await tx.get(profileRef);if(!roomSnap.exists()||!profileSnap.exists())return;const live=roomSnap.data(),g=live.arcadeState||{},ids=(g.winners||[]).map(i=>g.players?.[i]?.id).filter(Boolean),paid=Array.isArray(live.pokerPaidOutUids)?live.pokerPaidOutUids:[];if(live.status!=='finished'||live.pokerCurrency!=='chips'||!ids.includes(currentUserId)||paid.includes(currentUserId))return;const winnerPosition=ids.indexOf(currentUserId),total=Math.max(0,Number(live.pokerStake||0))*Math.max(0,(g.players||[]).length);payoutPaid=Math.floor(total/Math.max(1,ids.length))+(winnerPosition===0?total%Math.max(1,ids.length):0);const profile=profileSnap.data()||{},balance=Math.max(0,Number(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000));newBalance=balance+payoutPaid;const localData={...(profile.localStorage||{}),uno_pok_chips:String(newBalance)};tx.set(profileRef,{pokerChips:newBalance,localStorage:localData,updatedAt:Date.now()},{merge:true});tx.update(roomRef,{pokerPaidOutUids:[...paid,currentUserId],pokerPaidOutAt:Date.now()});});if(newBalance!==null){setPokerChips(newBalance);showToast('🏆 ¡Cobraste '+payoutPaid.toLocaleString('es-AR')+' fichas de Póker!','success');}}catch(err){console.warn('Pago de pozo de Póker:',err);}}
         function getClubDiamonds(){return typeof getUnoPlus==='function'?getUnoPlus():Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));}
         function setClubDiamonds(value){const n=Math.max(0,Math.floor(Number(value)||0));if(typeof setUnoPlus==='function')setUnoPlus(n);else localStorage.setItem('uno_plus_balance',String(n));const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=n.toLocaleString('es-AR')+' ◆';}
         async function reservePokerDiamonds(tx,uid,amount){
@@ -6152,20 +6157,20 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           try{
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
             const code=generateRoomCode(),player=arcadeOnlinePlayer(),roomRef=arcadeOnlineRef(code);
-            const pokerStake=mode==='poker'?Math.max(5,Number(document.getElementById('arcadePokerStake')?.value||10)):0;
-            if(mode==='poker'&&!isGoogleAccountLinked())throw new Error('Vinculá tu cuenta de Google para apostar diamantes.');
+            const pokerStake=mode==='poker'?Math.max(5,Number(document.getElementById('arcadePokerStake')?.value||100)):0;
+            
             const room={code,arcadeRoom:true,arcadeMode:mode,hostId:currentUserId,isPublic:false,status:'lobby',maxSeats:4,
               seats:[{...player,seatIndex:0},{id:null,name:'Asiento 2',avatar:'💺',seatIndex:1},{id:null,name:'Asiento 3',avatar:'💺',seatIndex:2},{id:null,name:'Asiento 4',avatar:'💺',seatIndex:3}],
-              arcadeState:null,pokerStake,pokerPaidUids:mode==='poker'?[currentUserId]:[],pokerPaidOutUids:[],createdAt:Date.now(),updatedAt:Date.now()};
+              arcadeState:null,pokerStake,pokerCurrency:mode==='poker'?'chips':null,pokerPaidUids:mode==='poker'?[currentUserId]:[],pokerPaidOutUids:[],createdAt:Date.now(),updatedAt:Date.now()};
             if(mode==='poker'){
-              await loadClubProfileCloud();let balanceAfter=null;
-              await runTransaction(db,async tx=>{balanceAfter=await reservePokerDiamonds(tx,currentUserId,pokerStake);tx.set(roomRef,room);});
-              setClubDiamonds(balanceAfter);
+              let balanceAfter=null;
+              await runTransaction(db,async tx=>{balanceAfter=await reservePokerChips(tx,currentUserId,pokerStake);tx.set(roomRef,room);});
+              setPokerChips(balanceAfter);
             }else await setDoc(roomRef,room);
             arcadeOnline.code=code;arcadeOnline.selectedCard=null;await arcadeOnlineSubscribe(code);
             document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');
             arcadeOnlineRender();
-          }catch(e){console.error('Arcade create:',e);showToast(e.message==='DIAMONDS_LOW'?'No tenés suficientes diamantes para esa entrada.':e.message||'No se pudo crear la sala online.','danger');}
+          }catch(e){console.error('Arcade create:',e);showToast(e.message==='POKER_CHIPS_LOW'?'No tenés suficientes fichas de Póker para esa entrada.':e.message||'No se pudo crear la sala online.','danger');}
           finally{arcadeOnline.busy=false;}
         }
         async function arcadeOnlineJoin(raw,expectedMode){
@@ -6181,17 +6186,17 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
               const seats=room.seats||[];if(seats.some(s=>s.id===currentUserId))return;
               const idx=seats.findIndex(s=>!s.id);if(idx<0)throw new Error('La sala está completa.');
               if(room.arcadeMode==='poker'){
-                if(!isGoogleAccountLinked())throw new Error('Vinculá Google para apostar diamantes.');
-                balanceAfter=await reservePokerDiamonds(tx,currentUserId,Math.max(5,Number(room.pokerStake||10)));
+                if(room.pokerCurrency!=='chips')throw new Error('Esta sala es de una versión anterior. Creá una mesa nueva para usar fichas de Póker.');
+                balanceAfter=await reservePokerChips(tx,currentUserId,Math.max(5,Number(room.pokerStake||100)));
               }
               seats[idx]={...seats[idx],...arcadeOnlinePlayer(),seatIndex:idx};
               const paid=[...(room.pokerPaidUids||[])];if(room.arcadeMode==='poker'&&!paid.includes(currentUserId))paid.push(currentUserId);
               tx.update(ref,{seats,pokerPaidUids:paid,updatedAt:Date.now()});
             });
-            if(balanceAfter!==null)setClubDiamonds(balanceAfter);
+            if(balanceAfter!==null)setPokerChips(balanceAfter);
             arcadeOnline.code=code;arcadeOnline.selectedCard=null;await arcadeOnlineSubscribe(code);
             document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');
-          }catch(e){console.error('Arcade join:',e);showToast(e.message==='DIAMONDS_LOW'?'No tenés suficientes diamantes para entrar a esa mesa.':e.message||'No se pudo entrar a la sala.','danger');}
+          }catch(e){console.error('Arcade join:',e);showToast(e.message==='POKER_CHIPS_LOW'?'No tenés suficientes fichas de Póker para entrar a esa mesa.':e.message||'No se pudo entrar a la sala.','danger');}
           finally{arcadeOnline.busy=false;}
         }
         async function arcadeOnlineSubscribe(code){
@@ -6202,21 +6207,28 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             const room=snap.data();
             if(!room.arcadeRoom||!(room.seats||[]).some(s=>s.id===currentUserId)){showToast('Ya no estás en esta sala.','warn');arcadeOnlineLeave(false);return;}
             arcadeOnline.room=room;arcadeOnlineRender();
-            if(room.arcadeMode==='poker'&&room.status==='finished')settlePokerDiamonds(room).catch(e=>console.warn("Pago UNO HOLD'EM:",e));
+            if(room.arcadeMode==='poker'&&room.status==='finished'){const settle=room.pokerCurrency==='chips'?settlePokerChips:settlePokerDiamonds;settle(room).catch(e=>console.warn("Pago UNO HOLD'EM:",e));}
           },err=>{console.error('Arcade listener:',err);showToast('Se perdió la conexión con la sala.','danger');});
         }
         async function arcadeOnlineLeave(goMenu=true){
           const code=arcadeOnline.code,room=arcadeOnline.room;
-          if(room?.arcadeMode==='poker'&&room.status==='finished')await settlePokerDiamonds(room);
+          if(room?.arcadeMode==='poker'&&room.status==='finished'){if(room.pokerCurrency==='chips')await settlePokerChips(room);else await settlePokerDiamonds(room);}
           if(arcadeOnline.unsubscribe){arcadeOnline.unsubscribe();arcadeOnline.unsubscribe=null;}
           arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.selectedCard=null;
           if(code&&room&&db&&currentUserId){try{const ref=arcadeOnlineRef(code);await runTransaction(db,async tx=>{
             const snap=await tx.get(ref);if(!snap.exists())return;const r=snap.data();
             if(r.arcadeMode==='poker'&&r.status==='lobby'&&(r.pokerPaidUids||[]).includes(currentUserId)){
               const profileRef=clubProfileRef(currentUserId),profileSnap=await tx.get(profileRef),profile=profileSnap.exists()?profileSnap.data():{};
-              const refund=Math.max(0,Number(r.pokerStake||0)),balance=Math.max(0,Number(profile.diamonds||0))+refund;
-              const localData={...(profile.localStorage||{}),uno_plus_balance:String(balance)};
-              tx.set(profileRef,{diamonds:balance,localStorage:localData,updatedAt:Date.now()},{merge:true});
+              const refund=Math.max(0,Number(r.pokerStake||0));
+              if(r.pokerCurrency==='chips'){
+                const balance=Math.max(0,Number(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000))+refund;
+                const localData={...(profile.localStorage||{}),uno_pok_chips:String(balance)};
+                tx.set(profileRef,{pokerChips:balance,localStorage:localData,updatedAt:Date.now()},{merge:true});
+              }else{
+                const balance=Math.max(0,Number(profile.diamonds||0))+refund;
+                const localData={...(profile.localStorage||{}),uno_plus_balance:String(balance)};
+                tx.set(profileRef,{diamonds:balance,localStorage:localData,updatedAt:Date.now()},{merge:true});
+              }
               r.pokerPaidUids=(r.pokerPaidUids||[]).filter(uid=>uid!==currentUserId);
             }
             if(r.status==='playing'&&r.arcadeState){
@@ -6242,7 +6254,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
             const humans=seats.filter(s=>s.id);if(!humans.length){tx.delete(ref);return;}
             const hostStill=humans.some(s=>s.id===r.hostId);tx.update(ref,{seats,hostId:hostStill?r.hostId:humans[0].id,arcadeState:r.arcadeState||null,status:r.status,pokerPaidUids:r.pokerPaidUids||[],updatedAt:Date.now()});
           });}catch(e){console.warn('Arcade leave:',e);}}
-          if(room?.arcadeMode==='poker'&&room.status==='lobby'&&isGoogleAccountLinked()){try{const walletSnap=await getDoc(clubProfileRef(currentUserId));if(walletSnap.exists())setClubDiamonds(walletSnap.data().diamonds||0);}catch(e){console.warn('Actualizar saldo tras reembolso:',e);}}
+          if(room?.arcadeMode==='poker'&&room.status==='lobby'&&currentUserId){try{const walletSnap=await getDoc(clubProfileRef(currentUserId));if(walletSnap.exists()){const profile=walletSnap.data()||{};if(room.pokerCurrency==='chips')setPokerChips(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000);else if(isGoogleAccountLinked())setClubDiamonds(profile.diamonds||0);}}catch(e){console.warn('Actualizar saldo tras reembolso:',e);}}
           if(goMenu){document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}
         }
         function arcadeOnlineRender(){
@@ -6257,7 +6269,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         function arcadeOnlineRenderLobby(r){
           const host=r.hostId===currentUserId,seats=r.seats||[];
           const players=seats.map(s=>'<div class="arcade-seat flex items-center gap-2"><span class="text-2xl">'+arcadeEsc(s.avatar||'🙂')+'</span><div class="min-w-0 flex-1"><b class="text-sm">'+arcadeEsc(s.name)+'</b><div class="text-[10px] text-zinc-500">'+(s.id?(s.id===r.hostId?'👑 Anfitrión':'Conectado'):'Esperando jugador')+'</div></div><span>'+(s.id?'🟢':'⚪')+'</span></div>').join('');
-          arcadeRender('<div class="text-center rounded-2xl bg-black/30 border border-emerald-400/20 p-4"><div class="text-xs text-zinc-400">COMPARTÍ ESTE CÓDIGO</div><div class="font-uno text-4xl sm:text-5xl tracking-[.2em] text-amber-300 mt-2">'+r.code+'</div><button data-aonline-copy class="arcade-action mt-3">📋 Copiar código</button><div class="text-xs text-zinc-400 mt-2">Los demás jugadores entran desde el menú de '+metaTitle(r.arcadeMode)+'.</div>'+(r.arcadeMode==='poker'?'<div class="mt-3 rounded-xl border border-cyan-300/20 bg-cyan-950/30 p-2 text-xs text-cyan-100">💎 Entrada: '+Number(r.pokerStake||0)+' diamantes por jugador · pozo reservado: '+(Number(r.pokerStake||0)*seats.filter(s=>s.id).length)+' ◆</div>':'')+'</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">'+players+'</div><div class="flex flex-wrap justify-center gap-2 mt-5">'+(host?'<button data-aonline-start class="arcade-action border-emerald-400/40 text-emerald-200" '+(seats.filter(s=>s.id).length<2?'disabled':'')+'>🚀 Iniciar partida</button>':'<span class="text-sm text-zinc-400">⏳ Esperando que el anfitrión inicie...</span>')+'<button data-aonline-leave class="arcade-action">Salir de la sala</button></div><p class="text-center text-[11px] text-zinc-500 mt-3">Se necesitan al menos 2 jugadores. Máximo 4.</p>');
+          arcadeRender('<div class="text-center rounded-2xl bg-black/30 border border-emerald-400/20 p-4"><div class="text-xs text-zinc-400">COMPARTÍ ESTE CÓDIGO</div><div class="font-uno text-4xl sm:text-5xl tracking-[.2em] text-amber-300 mt-2">'+r.code+'</div><button data-aonline-copy class="arcade-action mt-3">📋 Copiar código</button><div class="text-xs text-zinc-400 mt-2">Los demás jugadores entran desde el menú de '+metaTitle(r.arcadeMode)+'.</div>'+(r.arcadeMode==='poker'?'<div class="mt-3 rounded-xl border border-cyan-300/20 bg-cyan-950/30 p-2 text-xs text-cyan-100">'+(r.pokerCurrency==='chips'?'🪙 Entrada: '+Number(r.pokerStake||0)+' fichas por jugador · pozo reservado: '+(Number(r.pokerStake||0)*seats.filter(s=>s.id).length)+' fichas':'💎 Entrada antigua: '+Number(r.pokerStake||0)+' diamantes por jugador')+'</div>':'')+'</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">'+players+'</div><div class="flex flex-wrap justify-center gap-2 mt-5">'+(host?'<button data-aonline-start class="arcade-action border-emerald-400/40 text-emerald-200" '+(seats.filter(s=>s.id).length<2?'disabled':'')+'>🚀 Iniciar partida</button>':'<span class="text-sm text-zinc-400">⏳ Esperando que el anfitrión inicie...</span>')+'<button data-aonline-leave class="arcade-action">Salir de la sala</button></div><p class="text-center text-[11px] text-zinc-500 mt-3">Se necesitan al menos 2 jugadores. Máximo 4.</p>');
         }
         function metaTitle(mode){return arcadeModeMeta[mode]?.title||'este modo';}
         function arcadeOnlineRenderGame(r){
@@ -6271,7 +6283,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           const players=r.seats.filter(s=>s.id);if(players.length<2){showToast('Se necesitan al menos 2 jugadores.','warn');return;}
           let game;
           if(r.arcadeMode==='poker'){
-            const deck=pokerDeck(),buyIn=Math.max(5,Number(r.pokerStake||10));const ps=players.map(s=>({...s,stack:buyIn,hand:[deck.pop(),deck.pop()],folded:false,bet:0,acted:false}));
+            const deck=pokerDeck(),buyIn=Math.max(5,Number(r.pokerStake||100));const ps=players.map(s=>({...s,stack:buyIn,hand:[deck.pop(),deck.pop()],folded:false,bet:0,acted:false}));
             const small=Math.min(1,buyIn),big=Math.min(2,buyIn);ps[0].stack-=small;ps[0].bet=small;ps[1].stack-=big;ps[1].bet=big;
             game={players:ps,deck,community:[],pot:small+big,currentBet:big,stage:0,turn:players.length>2?2:0,over:false,buyIn,winners:[],message:'Preflop: igualá, subí o retirate.'};
           }else if(r.arcadeMode==='battle'){
@@ -6329,9 +6341,9 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
            const meIndex=g.players.findIndex(p=>p.id===currentUserId),me=g.players[meIndex],can=me&&!g.over&&g.players[g.turn]?.id===currentUserId;
            const due=Math.max(0,g.currentBet-(me?.bet||0)),raiseBy=Math.max(1,Math.ceil((g.buyIn||100)/10));
            const controls=can?'<div class="flex flex-wrap justify-center gap-2 mt-4"><button data-aonline-poker="fold" class="arcade-action text-rose-200">Retirarme</button><button data-aonline-poker="call" class="arcade-action text-emerald-200">Igualar ◆ '+due+'</button><button data-aonline-poker="raise" class="arcade-action text-amber-100 border-amber-300/40">Subir +'+raiseBy+'</button></div>':'<div class="text-center text-xs text-zinc-300 mt-4">'+(g.over?'🏆 Mano finalizada':'Turno de '+arcadeEsc(g.players[g.turn]?.name||'…'))+'</div>';
-           const payout=g.over?'<div class="text-center text-xs text-cyan-100 mt-3">Entrada: '+Number(r.pokerStake||0)+' ◆ · pozo de entrada: '+(Number(r.pokerStake||0)*(g.players||[]).length)+' ◆. El premio se acredita a la cuenta Google del ganador.</div>':'';
+           const payout=g.over?'<div class="text-center text-xs text-cyan-100 mt-3">'+(r.pokerCurrency==='chips'?'Entrada: '+Number(r.pokerStake||0)+' fichas · pozo: '+(Number(r.pokerStake||0)*(g.players||[]).length)+' fichas. Premio en tu billetera de Póker.':'Entrada antigua: '+Number(r.pokerStake||0)+' diamantes · liquidación heredada.')+'</div>':'';
            const best=me&&!me.folded?pokerBest([...me.hand,...g.community]):null;
-           pokerMountStage({players:g.players,community:g.community,pot:g.pot,stage:g.stage,turnIndex:g.turn,heroIndex:Math.max(0,meIndex),over:g.over,message:g.message,heroCards:me?.hand||[],handName:best?pokerRankNames[best.score[0]]:'Retirado',online:true},controls+payout,'◆ ');
+           pokerMountStage({players:g.players,community:g.community,pot:g.pot,stage:g.stage,turnIndex:g.turn,heroIndex:Math.max(0,meIndex),over:g.over,message:g.message,heroCards:me?.hand||[],handName:best?pokerRankNames[best.score[0]]:'Retirado',online:true,currencyName:r.pokerCurrency==='chips'?'EN FICHAS':'EN DIAMANTES'},controls+payout,r.pokerCurrency==='chips'?'🪙 ':'◆ ');
          }
 async function arcadeOnlineBattlePlay(cardId){
           await arcadeOnlineMutate((r,g)=>{
@@ -6387,7 +6399,7 @@ async function arcadeOnlineBattlePlay(cardId){
           document.getElementById('arcadeSetupRules').innerHTML=({poker:'<div class="arcade-rules-panel"><h4>♠ REGLAS DE UNO HOLD&#39;EM POKER 3D</h4><ol><li>Cada jugador recibe 2 cartas privadas. En la mesa se revelan 5 cartas comunitarias: 3 en el flop, 1 en el turn y 1 en el river.</li><li>Combiná tus 2 cartas con las comunitarias para formar la mejor mano de póker de 5 cartas.</li><li>En tu turno podés <b>Igualar</b> la apuesta actual, <b>Subir +20</b> fichas o <b>Retirarte</b>.</li><li>Si todos se retiran menos uno, esa persona gana el pozo. Si llegan al final, gana la mejor combinación.</li><li>Empezás con 1000 fichas virtuales. Ciegas iniciales: 10 y 20. No hay dinero real.</li></ol></div>',battle:'<div class="arcade-rules-panel"><h4>⚔️ REGLAS DE UNO! BATALLA</h4><ol><li>Todos comienzan con <b>100 puntos de vida</b> y 7 cartas UNO.</li><li>En tu turno elegí una carta de tu mano para atacar al siguiente rival que siga vivo.</li><li>Las cartas numéricas hacen daño según su valor. Las cartas especiales tienen efectos: <b>Salto</b> causa 16 de daño y <b>Reversa</b> te da 18 puntos de escudo.</li><li>Las cartas verdes normales te curan. La vida nunca supera los 100 puntos; el escudo absorbe daño antes que la vida.</li><li>Si te quedás sin cartas, recibís hasta 4 nuevas. También podés robar una carta y pasar el turno.</li><li>Cuando tu vida llega a 0 quedás eliminado. Gana el último jugador que permanezca en pie.</li></ol></div>',robado:'<div class="arcade-rules-panel"><h4>🏠 REGLAS DE UNO! ROBADO</h4><ol><li>Cada jugador recibe 3 cartas y se colocan 4 cartas boca arriba en el centro.</li><li>Elegí una carta de tu mano. Si coincide en valor con una carta del centro, tocá esa carta para llevarte ambas a tu casita.</li><li>También podés robar la casita de otro jugador: tu carta debe coincidir con la carta que está arriba de su pila. Te llevás toda su casita.</li><li>Si no hay ninguna coincidencia, podés dejar tu carta en el centro para que otro jugador intente capturarla.</li><li>Cuando te quedás sin cartas, recibís hasta 3 nuevas si todavía queda mazo.</li><li>Cuando se termina el mazo y todos vacían su mano, gana quien haya juntado más cartas en su casita.</li></ol></div>'})[mode];
           document.getElementById('arcadeJoinCode').value='';
           const stakeBox=document.getElementById('arcadePokerStakeBox');if(stakeBox)stakeBox.classList.toggle('hidden',mode!=='poker');
-          const wallet=document.getElementById('arcadePokerWallet');if(wallet)wallet.textContent=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0)).toLocaleString('es-AR')+' ◆';
+          refreshPokerWallet();
         }
         document.querySelectorAll('[data-arcade-menu]').forEach(b=>b.addEventListener('click',()=>arcadeShowModeSetup(b.dataset.arcadeMenu)));
 function arcadeOpenStandalone(path,title){
