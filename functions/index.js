@@ -247,7 +247,7 @@ exports.actPoker = onCall({region:REGION,maxInstances:50}, async req=>{
           const hands=handSnaps.map(h=>h.exists?h.data().cards:[]);
           if(hands.some(h=>h.length!==2))fail("internal","No se pudieron recuperar todas las manos.");
           settleShowdown(g,hands);
-        } else if(result==="next"&&g.players.filter(pl=>!pl.folded&&pl.stack>0).length===0){
+        } else if(result==="next"&&g.players.filter(pl=>!pl.folded&&pl.stack>0).length<=1){
           while(g.stage<3){if(g.stage===0)g.community.push(deck.pop(),deck.pop(),deck.pop());else g.community.push(deck.pop());g.stage++;}
           const handSnaps=await Promise.all(g.players.map(pl=>tx.get(handRef(appId,code,pl.id))));
           const hands=handSnaps.map(h=>h.exists?h.data().cards:[]);
