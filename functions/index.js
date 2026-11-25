@@ -134,7 +134,7 @@ async function finishGame(tx, appId, room, g, hands) {
   await creditStacks(tx,appId,g);
   room.status="finished";room.arcadeState=g;room.pokerPaidOutUids=g.players.map(p=>p.id);room.updatedAt=Date.now();
 }
-function progressRound(g) {
+function progressRound(g, deck) {
   const alive=activeIndexes(g.players);
   if(alive.length===1){awardUncontested(g,alive[0]);return "uncontested";}
   const canStillAct=alive.filter(i=>g.players[i].stack>0);
@@ -142,9 +142,9 @@ function progressRound(g) {
   if(!allMatched)return "continue";
   g.players.forEach(p=>{p.bet=0;p.acted=false;});
   g.currentBet=0;
-  if(g.stage===0){g.community.push(g.deck.pop(),g.deck.pop(),g.deck.pop());g.stage=1;g.message="Flop · nueva ronda de apuestas.";}
-  else if(g.stage===1){g.community.push(g.deck.pop());g.stage=2;g.message="Turn · nueva ronda de apuestas.";}
-  else if(g.stage===2){g.community.push(g.deck.pop());g.stage=3;g.message="River · última ronda de apuestas.";}
+  if(g.stage===0){g.community.push(deck.pop(),deck.pop(),deck.pop());g.stage=1;g.message="Flop · nueva ronda de apuestas.";}
+  else if(g.stage===1){g.community.push(deck.pop());g.stage=2;g.message="Turn · nueva ronda de apuestas.";}
+  else if(g.stage===2){g.community.push(deck.pop());g.stage=3;g.message="River · última ronda de apuestas.";}
   else return "showdown";
   return "next";
 }
@@ -199,10 +199,12 @@ exports.startPokerHand = onCall({region:REGION,maxInstances:30}, async req=>{
     const buyIn=Math.floor(Number(room.pokerStake||100)),deck=shuffledDeck();
     const players=seats.map(s=>({id:s.id,name:cleanName(s.name),avatar:s.avatar||"🙂",seatIndex:s.seatIndex,stack:buyIn,bet:0,totalBet:0,folded:false,acted:false,allIn:false}));
     const hands=players.map(()=>[deck.pop(),deck.pop()]);
+    const privateStateRef=db.doc(`artifacts/${appId}/public/data/uno_poker_private/${code}/server/state`);
     const small=Math.min(1,buyIn),big=Math.min(2,buyIn);
     players[0].stack-=small;players[0].bet=small;players[0].totalBet=small;
     players[1].stack-=big;players[1].bet=big;players[1].totalBet=big;
-    const g={players,deck,community:[],pot:small+big,currentBet:big,stage:0,turn:players.length>2?2:0,over:false,buyIn,winners:[],message:"Preflop: igualá, subí o retirate."};
+    const g={players,community:[],pot:small+big,currentBet:big,stage:0,turn:players.length>2?2:0,over:false,buyIn,winners:[],message:"Preflop: igualá, subí o retirate."};
+    tx.create(privateStateRef,{deck,updatedAt:Date.now()});
     for(let i=0;i<players.length;i++)tx.create(handRef(appId,code,players[i].id),{uid:players[i].id,cards:hands[i],updatedAt:Date.now()});
     tx.update(ref,{status:"playing",arcadeState:g,updatedAt:Date.now()});
   });
@@ -216,6 +218,9 @@ exports.actPoker = onCall({region:REGION,maxInstances:50}, async req=>{
     const snap=await tx.get(ref);if(!snap.exists)fail("not-found","La sala ya no existe.");
     const room=snap.data(),g=room.arcadeState;
     if(room.arcadeMode!=="poker"||room.status!=="playing"||!g||g.over)fail("failed-precondition","La partida no está activa.");
+    const privateStateRef=db.doc(`artifacts/${appId}/public/data/uno_poker_private/${code}/server/state`);
+    const privateStateSnap=await tx.get(privateStateRef);if(!privateStateSnap.exists)fail("failed-precondition","No se encontró el mazo privado de esta mano.");
+    const deck=privateStateSnap.data().deck||[];
     const i=g.players.findIndex(p=>p.id===uid);if(i<0||g.turn!==i)fail("permission-denied","No es tu turno.");
     const p=g.players[i],due=Math.max(0,g.currentBet-p.bet),raiseBy=Math.max(1,Math.ceil((g.buyIn||100)/10));
     if(p.folded||p.stack<=0)fail("failed-precondition","No podés jugar en este turno.");
@@ -236,14 +241,14 @@ exports.actPoker = onCall({region:REGION,maxInstances:50}, async req=>{
       const canAct=alive.filter(j=>g.players[j].stack>0);
       const roundDone=canAct.every(j=>g.players[j].acted&&g.players[j].bet===g.currentBet);
       if(roundDone){
-        const result=progressRound(g);
+        const result=progressRound(g,deck);
         if(result==="showdown"){
           const handSnaps=await Promise.all(g.players.map(pl=>tx.get(handRef(appId,code,pl.id))));
           const hands=handSnaps.map(h=>h.exists?h.data().cards:[]);
           if(hands.some(h=>h.length!==2))fail("internal","No se pudieron recuperar todas las manos.");
           settleShowdown(g,hands);
         } else if(result==="next"&&g.players.filter(pl=>!pl.folded&&pl.stack>0).length===0){
-          while(g.stage<3){if(g.stage===0)g.community.push(g.deck.pop(),g.deck.pop(),g.deck.pop());else g.community.push(g.deck.pop());g.stage++;}
+          while(g.stage<3){if(g.stage===0)g.community.push(deck.pop(),deck.pop(),deck.pop());else g.community.push(deck.pop());g.stage++;}
           const handSnaps=await Promise.all(g.players.map(pl=>tx.get(handRef(appId,code,pl.id))));
           const hands=handSnaps.map(h=>h.exists?h.data().cards:[]);
           settleShowdown(g,hands);
@@ -257,8 +262,8 @@ exports.actPoker = onCall({region:REGION,maxInstances:50}, async req=>{
       const hands=handSnaps.map(h=>h.exists?h.data().cards:[]);
       g.players.forEach((pl,j)=>{if(hands[j]?.length===2)pl.hand=hands[j];});
       await creditStacks(tx,appId,g);
-      room.status="finished";room.pokerPaidOutUids=g.players.map(pl=>pl.id);
-    }
+      room.status="finished";room.pokerPaidOutUids=g.players.map(pl=>pl.id);tx.delete(privateStateRef);
+    } else {tx.set(privateStateRef,{deck,updatedAt:Date.now()});}
     tx.update(ref,{status:room.status,arcadeState:g,pokerPaidOutUids:room.pokerPaidOutUids||[],updatedAt:Date.now()});
   });
   return {ok:true};
