@@ -6059,7 +6059,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         // =========================================================
         // ARCADE MULTIJUGADOR FIREBASE — salas independientes
         // =========================================================
-        const arcadeOnline = { code:null, room:null, unsubscribe:null, privateHandUnsubscribe:null, privateHand:[], selectedCard:null, busy:false };
+        const arcadeOnline = { code:null, room:null, unsubscribe:null, privateHandUnsubscribe:null, privateHand:[], selectedCard:null, busy:false, leaving:false };
         const arcadeModeMeta = {
           poker:{title:'UNO HOLD’EM POKER',label:'Texas Hold’em · Online',emoji:'♠️'},
           poker3d:{title:'POKER 3D',label:'Texas Hold’em · Mesa 3D',emoji:'♠️'},
@@ -6194,8 +6194,9 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           },err=>{console.error('Arcade listener:',err);showToast('Se perdió la conexión con la sala.','danger');});
         }
         async function arcadeOnlineLeave(goMenu=true){
+          if(arcadeOnline.leaving)return;
           const code=arcadeOnline.code,room=arcadeOnline.room;
-          if(room?.arcadeMode==='poker'&&code){try{await callPokerFunction('leavePokerRoom',{code});}catch(e){console.warn('Salida Póker:',e);}if(arcadeOnline.unsubscribe){arcadeOnline.unsubscribe();arcadeOnline.unsubscribe=null;}if(arcadeOnline.privateHandUnsubscribe){arcadeOnline.privateHandUnsubscribe();arcadeOnline.privateHandUnsubscribe=null;}arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.privateHand=[];if(currentUserId)refreshPokerWallet().catch(()=>{});if(goMenu){document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}return;}
+          if(room?.arcadeMode==='poker'&&code){arcadeOnline.leaving=true;try{await callPokerFunction('leavePokerRoom',{code});}catch(e){console.warn('Salida Póker:',e);}if(arcadeOnline.unsubscribe){arcadeOnline.unsubscribe();arcadeOnline.unsubscribe=null;}if(arcadeOnline.privateHandUnsubscribe){arcadeOnline.privateHandUnsubscribe();arcadeOnline.privateHandUnsubscribe=null;}arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.privateHand=[];arcadeOnline.leaving=false;if(currentUserId)refreshPokerWallet().catch(()=>{});if(goMenu){document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}return;}
           if(room?.arcadeMode==='poker'&&room.status==='finished'){if(room.pokerCurrency==='chips')await settlePokerChips(room);else await settlePokerDiamonds(room);}
           if(arcadeOnline.unsubscribe){arcadeOnline.unsubscribe();arcadeOnline.unsubscribe=null;}
           arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.selectedCard=null;
