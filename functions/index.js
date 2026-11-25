@@ -125,7 +125,7 @@ async function creditStacks(tx, appId, g) {
     const localStorage={...(profile.localStorage||{}),uno_pok_chips:String(balance)};
     tx.set(ref,{uid:p.id,pokerChips:balance,localStorage,updatedAt:Date.now()},{merge:true});
   });
-  g.players.forEach(p=>{p.paidOut=true;p.stack=0;});
+  g.players.forEach(p=>{p.paidOut=true;});
 }
 async function finishGame(tx, appId, room, g, hands) {
   if(g.over)return;
@@ -154,6 +154,7 @@ exports.createPokerRoom = onCall({region:REGION, maxInstances:30}, async req => 
   if(!Number.isSafeInteger(stake)||stake<5||stake>50000)fail("invalid-argument","La entrada debe estar entre 5 y 50.000 fichas.");
   const profile=profileRef(appId,uid), profileSnap=await profile.get(), data=profileSnap.exists?profileSnap.data():{};
   const balance=getBalance(data); if(balance<stake)fail("failed-precondition","POKER_CHIPS_LOW");
+  let balanceAfter=balance-stake;
   let code, ref;
   for(let tries=0;tries<8;tries++){code=crypto.randomBytes(3).toString("hex").toUpperCase();ref=roomRef(appId,code);if(!(await ref.get()).exists)break;ref=null;}
   if(!ref)fail("resource-exhausted","No se pudo generar un código. Intentá otra vez.");
@@ -163,10 +164,11 @@ exports.createPokerRoom = onCall({region:REGION, maxInstances:30}, async req => 
   await db.runTransaction(async tx=>{
     const fresh=await tx.get(profile);const current=fresh.exists?fresh.data():{};const currentBalance=getBalance(current);
     if(currentBalance<stake)fail("failed-precondition","POKER_CHIPS_LOW");
-    tx.set(profile,{uid,pokerChips:currentBalance-stake,localStorage:{...(current.localStorage||{}),uno_pok_chips:String(currentBalance-stake)},updatedAt:Date.now()},{merge:true});
+    balanceAfter=currentBalance-stake;
+    tx.set(profile,{uid,pokerChips:balanceAfter,localStorage:{...(current.localStorage||{}),uno_pok_chips:String(balanceAfter)},updatedAt:Date.now()},{merge:true});
     tx.create(ref,{code,arcadeRoom:true,arcadeMode:"poker",hostId:uid,isPublic:false,status:"lobby",maxSeats:MAX_SEATS,seats,memberUids:[uid],pokerStake:stake,pokerCurrency:"chips",createdAt:Date.now(),updatedAt:Date.now()});
   });
-  return {code,balance:next};
+  return {code,balance:balanceAfter};
 });
 
 exports.joinPokerRoom = onCall({region:REGION,maxInstances:30}, async req=>{
@@ -279,7 +281,9 @@ exports.leavePokerRoom = onCall({region:REGION,maxInstances:30}, async req=>{
       const pSnap=await tx.get(profile),pData=pSnap.exists?pSnap.data():{},balance=getBalance(pData)+Math.floor(Number(room.pokerStake||0));
       const seats=room.seats.slice();seats[index]={id:null,name:"Asiento "+(index+1),avatar:"💺",seatIndex:index};
       tx.set(profile,{uid,pokerChips:balance,localStorage:{...(pData.localStorage||{}),uno_pok_chips:String(balance)},updatedAt:Date.now()},{merge:true});
-      tx.update(ref,{seats,memberUids:(room.memberUids||[]).filter(x=>x!==uid),updatedAt:Date.now()});
+      const remaining=seats.filter(seat=>seat.id);
+      if(room.hostId===uid&&!remaining.length){tx.delete(ref);}
+      else {const nextHost=room.hostId===uid?remaining[0].id:room.hostId;tx.update(ref,{seats,hostId:nextHost,memberUids:(room.memberUids||[]).filter(x=>x!==uid),updatedAt:Date.now()});}
     } else if(room.status==="playing"&&room.arcadeState&&!room.arcadeState.over){
       const g=room.arcadeState,i=g.players.findIndex(p=>p.id===uid);
       if(i>=0&&!g.players[i].folded){
@@ -289,7 +293,7 @@ exports.leavePokerRoom = onCall({region:REGION,maxInstances:30}, async req=>{
           awardUncontested(g,alive[0]);
           const snaps=await Promise.all(g.players.map(p=>tx.get(profileRef(appId,p.id))));
           snaps.forEach((ps,j)=>{const data=ps.exists?ps.data():{},balance=getBalance(data)+Math.max(0,Math.floor(g.players[j].stack||0));tx.set(profileRef(appId,g.players[j].id),{uid:g.players[j].id,pokerChips:balance,localStorage:{...(data.localStorage||{}),uno_pok_chips:String(balance)},updatedAt:Date.now()},{merge:true});g.players[j].stack=0;});
-          g.players.forEach(p=>p.paidOut=true);room.status="finished";room.pokerPaidOutUids=g.players.map(p=>p.id);
+          g.players.forEach(p=>p.paidOut=true);room.status="finished";room.pokerPaidOutUids=g.players.map(p=>p.id);tx.delete(db.doc(`artifacts/${appId}/public/data/uno_poker_private/${code}/server/state`));
         } else if(g.turn===i)g.turn=nextActor(g.players,i);
         room.arcadeState=g;tx.update(ref,{status:room.status,arcadeState:g,pokerPaidOutUids:room.pokerPaidOutUids||[],updatedAt:Date.now()});
       }
