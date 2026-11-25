@@ -187,6 +187,12 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+
+    // Mazo no repartido: solo Cloud Functions puede leerlo o modificarlo.
+    match /artifacts/{appId}/public/data/uno_poker_private/{roomId}/server/{stateId} {
+      allow read, write: if false;
+    }
+
     // LEADERBOARD GLOBAL UNO! CLUB.
     match /artifacts/{appId}/public/data/uno_leaderboard/{userId} {
       allow read: if true;
