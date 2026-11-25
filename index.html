@@ -6027,7 +6027,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
 
         function getPokerChips(){try{const raw=localStorage.getItem('uno_pok_chips');if(raw===null)return 1000;const n=Number(raw);return Number.isFinite(n)&&n>=0?n:1000;}catch(_){return 1000;}}
         function setPokerChips(value){const n=Math.max(0,Math.floor(Number(value)||0));try{localStorage.setItem('uno_pok_chips',String(n));}catch(_){}const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=n.toLocaleString('es-AR')+' fichas';}
-        async function refreshPokerWallet(){let balance=getPokerChips();if(currentUserId&&db){try{const snap=await getDoc(clubProfileRef(currentUserId));if(snap.exists()){const p=snap.data()||{};balance=Math.max(0,Number(p.pokerChips??p.localStorage?.uno_pok_chips??1000));setPokerChips(balance);}}catch(e){console.warn('Saldo de fichas de Póker:',e);}}const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=balance.toLocaleString('es-AR')+' fichas';}
+        function refreshPokerWallet(){const balance=getPokerChips();const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=balance.toLocaleString('es-AR')+' fichas';return balance;}
         async function reservePokerChips(tx,uid,amount){const ref=clubProfileRef(uid),snap=await tx.get(ref),profile=snap.exists()?snap.data():{};const balance=Math.max(0,Number(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000));if(balance<amount)throw new Error('POKER_CHIPS_LOW');const next=balance-amount;const localData={...(profile.localStorage||snapshotClubLocalStorage()),uno_pok_chips:String(next)};tx.set(ref,{uid,pokerChips:next,localStorage:localData,updatedAt:Date.now()},{merge:true});return next;}
         async function settlePokerChips(room){if(!room||room.pokerCurrency!=='chips'||room.arcadeMode!=='poker'||room.status!=='finished'||!currentUser)return;let newBalance=null,payoutPaid=0;try{await runTransaction(db,async tx=>{const roomRef=arcadeOnlineRef(room.code),profileRef=clubProfileRef(currentUserId),roomSnap=await tx.get(roomRef),profileSnap=await tx.get(profileRef);if(!roomSnap.exists()||!profileSnap.exists())return;const live=roomSnap.data(),g=live.arcadeState||{},player=(g.players||[]).find(p=>p.id===currentUserId),paid=Array.isArray(live.pokerPaidOutUids)?live.pokerPaidOutUids:[];if(live.status!=='finished'||live.pokerCurrency!=='chips'||!player||paid.includes(currentUserId))return;payoutPaid=Math.max(0,Math.floor(Number(player.stack)||0));const profile=profileSnap.data()||{},balance=Math.max(0,Number(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000));newBalance=balance+payoutPaid;const localData={...(profile.localStorage||{}),uno_pok_chips:String(newBalance)};tx.set(profileRef,{pokerChips:newBalance,localStorage:localData,updatedAt:Date.now()},{merge:true});tx.update(roomRef,{pokerPaidOutUids:[...paid,currentUserId],pokerPaidOutAt:Date.now()});});if(newBalance!==null){setPokerChips(newBalance);showToast('🪙 Recuperaste '+payoutPaid.toLocaleString('es-AR')+' fichas de Póker.','success');}}catch(err){console.warn('Liquidación de fichas de Póker:',err);}}
         function getClubDiamonds(){return typeof getUnoPlus==='function'?getUnoPlus():Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));}
@@ -6067,6 +6067,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         }
 
         async function arcadeOnlineCreate(mode){
+          showToast('Los modos Arcade son offline. Para jugar online, entrá en Rankeds.','info');return;
           if(arcadeOnline.busy)return;arcadeOnline.busy=true;
           try{
             if(mode==='poker3d'){
@@ -6098,6 +6099,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           finally{arcadeOnline.busy=false;}
         }
         async function arcadeOnlineJoin(raw,expectedMode){
+          showToast('Los modos Arcade son offline. Para jugar online, entrá en Rankeds.','info');return;
           if(arcadeOnline.busy)return;arcadeOnline.busy=true;
           try{
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
@@ -6216,6 +6218,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           else arcadeOnlineRenderRobado(r,g);
         }
         async function arcadeOnlineStart(){
+          showToast('Las partidas del Arcade son locales y contra bots.','info');return;
           const r=arcadeOnline.room;if(!r||r.hostId!==currentUserId||r.status!=='lobby')return;
           const players=r.seats.filter(s=>s.id);if(players.length<2){showToast('Se necesitan al menos 2 jugadores.','warn');return;}
           let game;
@@ -6912,6 +6915,7 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           },err=>{console.error(err);tcgOnlineSetStatus('Error de conexión');showToast('Error escuchando la sala TCG. Revisá las reglas de Firestore.','warn');});
         }
         async function tcgOnlineCreate(){
+          showToast('TCG funciona offline contra la IA.','info');return;
           if(!firebaseReady||!db||!currentUser){showToast('Esperá a que Firebase termine de conectar.','warn');return;}
           if(tcgDeck.length!==60){tcgStarterDeck();}
           try{
@@ -6927,6 +6931,7 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           }catch(e){console.error(e);tcgOnline=null;showToast(e.message||'No se pudo crear la sala.','warn');}
         }
         async function tcgOnlineJoin(){
+          showToast('TCG funciona offline contra la IA.','info');return;
           if(!firebaseReady||!db||!currentUser){showToast('Esperá a que Firebase termine de conectar.','warn');return;}
           if(tcgDeck.length!==60){tcgStarterDeck();}
           const code=(document.getElementById('tcgJoinCode').value||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){showToast('Ingresá un código de 6 caracteres.','warn');return;}
