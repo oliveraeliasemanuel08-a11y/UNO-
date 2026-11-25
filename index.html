@@ -1962,7 +1962,7 @@
                 <p><strong class="text-white">Regla de Reversa en 2 Jugadores:</strong> Cuando quedan solo 2 jugadores en la mesa, la carta <span class="text-amber-300 font-semibold">Reversa</span> actúa exactamente como un <span class="text-amber-300 font-semibold">Salta</span> (vuelve a jugar quien la lanzó).</p>
                 <p><strong class="text-white">Grito de ¡UNO! y Penalización:</strong> Cuando te queda 1 carta (o justo antes de soltar tu penúltima), pulsa el botón <span class="text-rose-400 font-bold">¡UNO!</span>. Si otro jugador pulsa <em>"¡No dijo UNO!"</em> antes que tú, robas 2 cartas de penalización.</p>
                 <p><strong class="text-white">Defensa acumulativa (+2 y +4):</strong> Si recibes un +2, puedes responder con otro +2 y pasar la suma al siguiente. Si recibes un +4, puedes responder con otro +4 o bloquearlo con un número del color que eligió quien lanzó el +4. Si no puedes defenderte, aceptas y robas toda la penalización acumulada.</p>
-                <p><strong class="text-fuchsia-300">UNO CAOS (solo online):</strong> El mazo se genera por lotes automáticamente y nunca se termina. Incluye +10, +20, +99 ultra rara (1 posibilidad entre 5.000 por carta generada), bloqueo doble, cambio de manos, todos +5, robo de 2, reversa global y escudo para defender penalizaciones.</p>
+                <p><strong class="text-fuchsia-300">UNO CAOS (offline y competitivo):</strong> El mazo se genera por lotes automáticamente y nunca se termina. Incluye +10, +20, +99 ultra rara (1 posibilidad entre 5.000 por carta generada), bloqueo doble, cambio de manos, todos +5, robo de 2, reversa global y escudo para defender penalizaciones.</p>
                 <p><strong class="text-white">Modo por Equipos (2 a 4 Equipos):</strong> Los compañeros se sientan intercalados alrededor de la mesa. Cuando cualquier integrante de un equipo se queda sin cartas, ¡todo su equipo gana la ronda!</p>
             </div>
         </div>
@@ -3748,6 +3748,7 @@
                     }
                     const roomData = snap.data();
                     if (roomData.arcadeRoom) throw new Error('ARCADE_ROOM');
+                    if (!roomData.competitiveMode) throw new Error('CASUAL_OFFLINE');
                     const alreadyIn = (roomData.seats || []).find(s => s.id === currentUserId);
 
                     if (alreadyIn) {
@@ -3806,7 +3807,9 @@
                 } else if (err.message === "ROOM_FULL") {
                     showToast("La sala está completa.", "danger");
                 } else if (err.message === "ARCADE_ROOM") {
-                    showToast("Ese código es de UNO HOLD'EM POKER 3D, BATALLA o ROBADO. Entrá desde 🎮 Modos.", "warn");
+                    showToast("Ese código es de un modo Arcade. Los modos casuales son offline.", "warn");
+                } else if (err.message === "CASUAL_OFFLINE") {
+                    showToast("Los modos casuales ahora son offline. Para jugar online, usá Rankeds.", "warn");
                 } else {
                     showToast("No se pudo entrar a la sala. Verifica el código.", "danger");
                 }
@@ -3890,7 +3893,7 @@
             }
 
             room.matchId='match_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
-            const deck = room.gameMode === 'chaos' && state.isOnline ? createChaosDeckBatch(360) : shuffleArray(createOfficial108Deck());
+            const deck = room.gameMode === 'chaos' ? createChaosDeckBatch(360) : shuffleArray(createOfficial108Deck());
             room.pendingStack = null;
             room.pendingLie = null;
             room.comboChain = null;
@@ -4813,7 +4816,7 @@
 
             const competitiveBtn = document.getElementById('competitiveModeBtn');
             if (competitiveBtn) { const eligible = state.isOnline && !room.teamMode; competitiveBtn.disabled = !isHost || !eligible; competitiveBtn.textContent = room.competitiveMode ? '🏆 Competitivo ACTIVADO' : 'Activar competitivo'; competitiveBtn.className = 'rounded-xl border px-3 py-2 text-xs font-extrabold ' + (room.competitiveMode ? 'border-amber-300 bg-amber-400 text-zinc-950' : 'border-zinc-700 bg-zinc-900 text-zinc-300') + (!isHost || !eligible ? ' opacity-40 cursor-not-allowed' : ' cursor-pointer'); competitiveBtn.title = !state.isOnline ? 'Disponible solo online' : (room.teamMode ? 'El competitivo es individual' : 'Activar o desactivar ranking'); }
-            // Modo CAOS solo online y seleccionable por el anfitrión.
+            // Todos los modos casuales, incluido CAOS, se pueden jugar en salas locales.
             const modeButtons = { classic:'gameModeClassicBtn', chaos:'gameModeChaosBtn', survival:'gameModeSurvivalBtn', turbo:'gameModeTurboBtn', liar:'gameModeLiarBtn', tactical:'gameModeTacticalBtn' };
             const modeColors = { classic:'bg-emerald-600 border-emerald-400', chaos:'bg-fuchsia-600 border-fuchsia-300', survival:'bg-rose-600 border-rose-300', turbo:'bg-cyan-600 border-cyan-300', liar:'bg-violet-600 border-violet-300', tactical:'bg-amber-500 border-amber-300' };
             Object.entries(modeButtons).forEach(([mode,id]) => {
