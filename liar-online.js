@@ -17,9 +17,10 @@
   }
   function clearSession(){S.unsubs.forEach(fn=>{try{fn();}catch(e){}});S.unsubs=[];S.processed.clear();S.privateSub=false;S.privateHand=[];S.members=[];S.lastSnapshot=null;S.actionPending=false;S.online=false;S.isHost=false;S.roomId=null;S.roomRef=null;}
   function code6(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=chars[Math.floor(Math.random()*chars.length)];return s;}
-  function profile(){return {uid:S.uid,name:S.name.slice(0,16)||'Jugador',avatar:'😎',joinedAt:Date.now()};}
+  function cleanName(value){return String(value||'Jugador').replace(/[<>]/g,'').replace(/[\u0000-\u001f]/g,'').replace(/\s+/g,' ').trim().slice(0,16)||'Jugador';}
+  function profile(){return {uid:S.uid,name:cleanName(S.name),avatar:'😎',joinedAt:Date.now()};}
   async function createRoom(){
-    try{clearSession();await loadFirebase();S.name=($('liar-online-name')?.value||'Jugador').trim().slice(0,16)||'Jugador';let code=code6();let ref=S.sdk.doc(S.db,root()+'/uno_rooms/'+code);
+    try{clearSession();await loadFirebase();S.name=cleanName($('liar-online-name')?.value||'Jugador');let code=code6();let ref=S.sdk.doc(S.db,root()+'/uno_rooms/'+code);
       for(let i=0;i<5&&(await S.sdk.getDoc(ref)).exists();i++){code=code6();ref=S.sdk.doc(S.db,root()+'/uno_rooms/'+code);}
       S.roomId=code;S.roomRef=ref;S.isHost=true;S.online=true;S.members=[profile()];
       await S.sdk.setDoc(ref,{code:code,gameType:'liar3d',hostId:S.uid,hostName:S.name,memberUids:[S.uid],members:S.members,status:'waiting',maxPlayers:6,createdAt:S.sdk.serverTimestamp(),updatedAt:Date.now()});
