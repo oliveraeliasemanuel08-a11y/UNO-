@@ -233,8 +233,15 @@
                 <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-black text-xs">❤️❤️❤️</span>
             </div>
 
-            <div class="rounded-2xl border border-emerald-400/25 bg-emerald-400/5 p-3 text-xs text-emerald-100/80">
-                🤖 Modo offline: configurá la mesa y jugá contra rivales controlados por la IA. No usa Firebase.
+            <div class="rounded-2xl border border-cyan-400/25 bg-cyan-400/5 p-3 space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                    <div><div class="font-display text-xs font-black tracking-wider text-cyan-300">🌐 MODO ONLINE</div><p class="text-[10px] text-slate-400 mt-0.5">Crea una sala o entra con el código de tus amigos</p></div>
+                    <span class="rounded-lg bg-cyan-400/10 px-2 py-1 text-[10px] font-black text-cyan-200">2–6 JUGADORES</span>
+                </div>
+                <input id="liar-online-name" maxlength="16" value="Jugador" placeholder="Tu nombre" class="w-full rounded-xl border border-white/15 bg-slate-950/80 px-3 py-2 text-sm font-bold text-white outline-none focus:border-cyan-300">
+                <button id="liar-online-create" type="button" class="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 py-2.5 text-xs font-display font-black text-slate-950 shadow-lg hover:brightness-110">✨ CREAR PARTIDA ONLINE</button>
+                <div class="flex gap-2"><input id="liar-join-code" maxlength="6" placeholder="CÓDIGO DE SALA" class="min-w-0 flex-1 rounded-xl border border-white/15 bg-slate-950/80 px-3 py-2 text-center font-display text-sm font-black uppercase tracking-[0.25em] text-white outline-none focus:border-amber-300"><button id="liar-online-join" type="button" class="rounded-xl border border-amber-300/40 bg-amber-400/15 px-4 text-xs font-black text-amber-200 hover:bg-amber-400/25">UNIRME</button></div>
+                <p id="liar-online-status" class="text-[11px] text-slate-400">Online con Firebase. La partida local con IA sigue disponible abajo.</p>
             </div>
 
             <!-- Selector de cantidad de asientos -->
@@ -259,6 +266,18 @@
         </div>
     </div>
 
+    <!-- Lobby online del Mentiroso 3D -->
+    <div id="liar-online-lobby" class="hidden fixed inset-0 z-[70] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel uno-border w-full max-w-md rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between"><div><p class="font-display text-xs font-black tracking-widest text-cyan-300">UNO! CLUB ONLINE</p><h2 class="mt-1 font-display text-lg font-black text-white">SALA DEL MENTIROSO</h2></div><span class="text-3xl">🎭</span></div>
+            <div class="rounded-2xl border border-cyan-300/30 bg-cyan-400/10 p-4 text-center"><p class="text-[10px] font-black tracking-widest text-cyan-200">CÓDIGO PARA INVITAR</p><div id="liar-room-code" class="my-1 font-display text-3xl font-black tracking-[0.25em] text-white">------</div><button id="liar-lobby-copy" class="rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-black text-white">COPIAR CÓDIGO</button></div>
+            <div class="flex items-center justify-between"><span class="text-xs font-black uppercase tracking-wider text-slate-300">Jugadores conectados</span><span id="liar-lobby-count" class="text-xs font-black text-emerald-300">1/6 JUGADORES</span></div>
+            <div id="liar-lobby-players" class="space-y-2"></div>
+            <p id="liar-lobby-status" class="text-center text-xs text-slate-300">Esperando jugadores…</p>
+            <button id="liar-host-start" class="hidden w-full rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 py-3 font-display text-xs font-black text-slate-950 disabled:opacity-40" disabled>INICIAR PARTIDA</button>
+            <button id="liar-lobby-back" class="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 text-xs font-bold text-slate-300 hover:bg-white/10">VOLVER</button>
+        </div>
+    </div>
 
     <!-- Modal de Reglas -->
     <div id="rules-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -2328,6 +2347,6 @@
             animate();
         };
     </script>
-    <!-- Mentiroso funciona en modo local; no carga adaptadores Firebase. -->
+    <script src="./liar-online.js"></script>
 </body>
 </html>
