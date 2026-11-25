@@ -2272,38 +2272,37 @@
           const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
           set('competitiveSearchTitle','Buscando jugadores...');set('competitiveSearchStatus','Buscando rivales con rating parecido.');set('competitiveSearchCountdown','25');set('competitiveSearchFound','Buscando jugadores reales antes de completar con IA...');
           const bar=document.getElementById('competitiveSearchProgress');if(bar)bar.style.width='0%';
-          let matchInProgress=false,lastScanAt=0;
-          const scanCompetitiveQueue=async()=>{
+          let matchInProgress=false;
+          // Procesa directamente los documentos entregados por el listener.
+          // No ejecuta getDocs() adicional ni vuelve a consultar la cola cada segundo.
+          const scanCompetitiveQueue=(snapshot)=>{
             if(matchInProgress)return;
             const own=state.room;if(!own||!own.competitiveMode||own.status!=='lobby')return;
             const humans=(own.seats||[]).filter(x=>x&&x.id&&!x.isBot);
             if(humans.length>=Number(own.maxSeats||2)){set('competitiveSearchTitle','¡Mesa completa!');set('competitiveSearchStatus','La partida está comenzando.');set('competitiveSearchFound',humans.length+' jugadores reales encontrados.');closeCompetitiveSearch();return;}
-            try{
-              const roomsRef=collection(db,'artifacts',appId,'public','data','uno_rooms');
-              const snapshot=await getDocs(query(roomsRef,where('status','==','lobby')));
-              const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),band=competitiveSearchBand(elapsed),candidates=[];
-              snapshot.forEach(d=>{
-                const r=d.data(),host=String(r?.hostId||'');
-                if(d.id===own.code||!r||!r.competitiveMode||r.status!=='lobby'||!host)return;
-                // Regla determinista: el UID mayor se une a la sala del UID menor.
-                // Así ambos clientes no intentan intercambiarse de sala al mismo tiempo.
-                if(host.localeCompare(String(currentUserId))>=0)return;
-                if(Date.now()-Number(r.updatedAt||Date.now())>90000)return;
-                const seats=r.seats||[],occupied=seats.filter(x=>x&&x.id&&!x.isBot).length;
-                if(r.competitiveQueue===true&&occupied>0&&occupied<Number(r.maxSeats||2)&&Number(r.maxSeats||2)===Number(own.maxSeats||2)&&String(r.competitiveFormat||'')===String(own.competitiveFormat||'')&&!!r.teamMode===!!own.teamMode&&Math.abs(Number(r.competitiveRating??0)-getCompetitiveRating())<=band.radius){
-                  candidates.push({...r,code:d.id,realPlayers:occupied});
-                }
-              });
-              if(candidates.length&&humans.length===1){
-                candidates.sort((a,b)=>Number(b.realPlayers||0)-Number(a.realPlayers||0)||String(a.hostId).localeCompare(String(b.hostId)));
-                const target=candidates[0];matchInProgress=true;
-                set('competitiveSearchTitle','¡Rival encontrado!');set('competitiveSearchStatus','Conectando con '+(target.seats.find(x=>x&&x.id&&!x.isBot)?.name||'otro jugador')+'...');
-                set('competitiveSearchFound','Entrando a la misma mesa.');closeCompetitiveSearch();
+            const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),band=competitiveSearchBand(elapsed),candidates=[];
+            snapshot.forEach(d=>{
+              const r=d.data(),host=String(r?.hostId||'');
+              if(d.id===own.code||!r||!r.competitiveMode||r.status!=='lobby'||!host)return;
+              // Regla determinista: el UID mayor se une a la sala del UID menor.
+              if(host.localeCompare(String(currentUserId))>=0)return;
+              if(Date.now()-Number(r.updatedAt||Date.now())>90000)return;
+              const seats=r.seats||[],occupied=seats.filter(x=>x&&x.id&&!x.isBot).length;
+              if(r.competitiveQueue===true&&occupied>0&&occupied<Number(r.maxSeats||2)&&Number(r.maxSeats||2)===Number(own.maxSeats||2)&&String(r.competitiveFormat||'')===String(own.competitiveFormat||'')&&!!r.teamMode===!!own.teamMode&&Math.abs(Number(r.competitiveRating??0)-getCompetitiveRating())<=band.radius){
+                candidates.push({...r,code:d.id,realPlayers:occupied});
+              }
+            });
+            if(candidates.length&&humans.length===1){
+              candidates.sort((a,b)=>Number(b.realPlayers||0)-Number(a.realPlayers||0)||String(a.hostId).localeCompare(String(b.hostId)));
+              const target=candidates[0];matchInProgress=true;
+              set('competitiveSearchTitle','¡Rival encontrado!');set('competitiveSearchStatus','Conectando con '+(target.seats.find(x=>x&&x.id&&!x.isBot)?.name||'otro jugador')+'...');
+              set('competitiveSearchFound','Entrando a la misma mesa.');closeCompetitiveSearch();
+              (async()=>{
                 try{
                   await leaveRoomToHome(false);
                   await joinExistingRoom(target.code);
                   if(state.room?.code===target.code){document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');showToast('¡Emparejamiento competitivo encontrado!','success');}
-                  else{throw new Error('No se pudo confirmar la entrada a la sala rival.');}
+                  else throw new Error('No se pudo confirmar la entrada a la sala rival.');
                 }catch(e){
                   console.warn('No se pudo completar el emparejamiento:',e);
                   document.getElementById('competitiveSearchOverlay')?.classList.add('hidden');
@@ -2311,25 +2310,23 @@
                   matchInProgress=false;
                   if(!state.room)setTimeout(()=>startCompetitiveSearch(),1200);
                 }
-              }
-            }catch(e){
-              console.error('Error consultando la cola competitiva:',e);
-              set('competitiveSearchStatus','No se pudo leer la cola de partidas. Revisá permisos de lectura de Firestore.');
+              })();
             }
           };
           try{
             await createNewRoom(true,true,false,true);
             if(!state.room||!state.room.competitiveMode||!state.isOnline)throw new Error('No se pudo publicar tu sala de búsqueda en Firestore.');
-            // Listener en tiempo real + consulta periódica de respaldo para no depender de un único snapshot.
             const roomsRef=collection(db,'artifacts',appId,'public','data','uno_rooms');
-            competitiveQueueUnsub=onSnapshot(query(roomsRef,where('status','==','lobby')),()=>scanCompetitiveQueue(),err=>{
+            competitiveQueueUnsub=onSnapshot(query(roomsRef,where('status','==','lobby')),snapshot=>{
+              scanCompetitiveQueue(snapshot);
+            },err=>{
               console.error('Listener de cola competitiva:',err);
               set('competitiveSearchStatus','Error leyendo salas online: '+(err.code||err.message||'Firestore'));
             });
+            // Este intervalo solo actualiza el contador local; no realiza lecturas de Firestore.
             competitiveSearchInterval=setInterval(()=>{
               const elapsed=Math.floor((Date.now()-competitiveSearchStartedAt)/1000),left=Math.max(0,25-elapsed);
               set('competitiveSearchCountdown',String(left));if(bar)bar.style.width=Math.min(100,elapsed/25*100)+'%';
-              if(Date.now()-lastScanAt>=1000){lastScanAt=Date.now();scanCompetitiveQueue();}
               if(left===0){
                 if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}
                 if(state.room?.competitiveMode&&state.room.status==='lobby'&&state.room.hostId===currentUserId){
@@ -2337,8 +2334,7 @@
                   if(realPlayers.length<Number(state.room.maxSeats||2))fillCompetitiveBotsAndStart().catch(e=>{console.error(e);showToast('No se pudo iniciar la partida competitiva.','danger');});
                 }
               }
-            },250);
-            lastScanAt=Date.now();await scanCompetitiveQueue();
+            },1000);
           }catch(e){
             console.error('Matchmaking competitivo:',e);closeCompetitiveSearch();
             showToast('No se pudo publicar o consultar tu cola. Revisá las reglas de lectura y escritura de Firestore.','danger');
