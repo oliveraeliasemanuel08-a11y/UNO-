@@ -1512,6 +1512,11 @@
             <p class="text-sm text-zinc-400 mt-2 flex-1">El juego original completo integrado en UNO! CLUB: mesa 3D, de 2 a 8 jugadores, rivales IA, Pasa y Juega, fichas animadas y configuración propia.</p>
             <div class="flex items-center justify-between mt-5"><span class="text-xs text-amber-200">🎲 Original completo · 3D</span><button id="btnLaunchPoker3D" class="arcade-action border-amber-400/40 text-amber-200">Entrar a Poker 3D →</button></div>
           </article>
+          <article class="arcade-card p-5 flex flex-col border-emerald-300/30">
+            <div class="text-5xl mb-3">🂡</div><div class="text-[10px] font-black tracking-widest text-emerald-300">TEXAS HOLD’EM · ONLINE SEGURO</div><h3 class="font-uno text-2xl mt-1">UNO HOLD’EM ONLINE</h3>
+            <p class="text-sm text-zinc-400 mt-2 flex-1">Mesas privadas de 2 a 4 jugadores, fichas virtuales, cartas privadas y apuestas validadas en el servidor.</p>
+            <div class="flex items-center justify-between mt-5"><span class="text-xs text-emerald-200">🔒 Cartas privadas · tiempo real</span><button data-arcade-menu="poker" class="arcade-action border-emerald-400/40 text-emerald-200">Jugar online →</button></div>
+          </article>
           <article class="arcade-card p-5 flex flex-col">
             <div class="text-5xl mb-3">⚔️</div><div class="text-[10px] font-black tracking-widest text-rose-300">COMBATE POR TURNOS</div><h3 class="font-uno text-2xl mt-1">UNO! BATALLA</h3>
             <p class="text-sm text-zinc-400 mt-2 flex-1">Cuatro combatientes, 100 de vida, ataques con cartas UNO, escudos, curación y habilidades especiales. Sobreviví hasta el final.</p>
@@ -2017,6 +2022,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, linkWithPopup, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, runTransaction, serverTimestamp, getDocs, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
         import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
         // =========================================================
@@ -2198,6 +2204,7 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'uno-club-official';
         let db = null;
         let auth = null;
+        let functionsClient = null;
         let currentUser = null;
         let currentUserId = 'local-' + Math.random().toString(36).substring(2, 10);
         let firebaseReady = false;
@@ -2409,6 +2416,7 @@
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
+            functionsClient = getFunctions(app, 'us-central1');
 
             // Esperar a que Firebase restaure la sesión guardada antes de autenticar.
             // Si ya existe una sesión anónima, reutilizarla: crear otra cambia el UID
@@ -2450,6 +2458,7 @@
         // El progreso se sincroniza en la nube solo cuando la sesión está vinculada a Google.
         function isGoogleAccountLinked(){return !!currentUser?.providerData?.some(p=>p.providerId==='google.com');}
         function clubProfileRef(uid=currentUserId){return doc(db,'artifacts',appId,'users',uid);}
+        async function callPokerFunction(name,payload={}){if(!functionsClient)throw new Error('No se pudo conectar con el servidor de Póker.');const call=httpsCallable(functionsClient,name);const result=await call({appId,...payload});return result.data||{};}
         function snapshotClubLocalStorage(){
           const data={};
           for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key||key.startsWith('firebase:')||key.startsWith('google:'))continue;data[key]=localStorage.getItem(key);}
@@ -2457,8 +2466,8 @@
         }
         async function saveClubProfileCloud(){
           if(!db||!currentUser||!isGoogleAccountLinked()||clubProfileApplyingCloud)return false;
-          try{const localData=snapshotClubLocalStorage();const diamonds=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));const pokerChips=Math.max(0,Number(localStorage.getItem('uno_pok_chips')??1000));
-            await setDoc(clubProfileRef(),{uid:currentUser.uid,diamonds,pokerChips,localStorage:localData,updatedAt:Date.now()},{merge:true});return true;
+          try{const localData=snapshotClubLocalStorage();const diamonds=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));
+            await setDoc(clubProfileRef(),{uid:currentUser.uid,diamonds,localStorage:localData,updatedAt:Date.now()},{merge:true});return true;
           }catch(err){console.warn('Sincronización de perfil:',err);return false;}
         }
         async function loadClubProfileCloud(){
@@ -6050,8 +6059,9 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         // =========================================================
         // ARCADE MULTIJUGADOR FIREBASE — salas independientes
         // =========================================================
-        const arcadeOnline = { code:null, room:null, unsubscribe:null, selectedCard:null, busy:false };
+        const arcadeOnline = { code:null, room:null, unsubscribe:null, privateHandUnsubscribe:null, privateHand:[], selectedCard:null, busy:false, leaving:false };
         const arcadeModeMeta = {
+          poker:{title:'UNO HOLD’EM POKER',label:'Texas Hold’em · Online',emoji:'♠️'},
           poker3d:{title:'POKER 3D',label:'Texas Hold’em · Mesa 3D',emoji:'♠️'},
           battle:{title:'UNO! BATALLA',label:'Combate por turnos',emoji:'⚔️'},
           robado:{title:'UNO! ROBADO',label:'Casita Robada con cartas UNO',emoji:'🏠'}
@@ -6063,7 +6073,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
 
         function getPokerChips(){try{const raw=localStorage.getItem('uno_pok_chips');if(raw===null)return 1000;const n=Number(raw);return Number.isFinite(n)&&n>=0?n:1000;}catch(_){return 1000;}}
         function setPokerChips(value){const n=Math.max(0,Math.floor(Number(value)||0));try{localStorage.setItem('uno_pok_chips',String(n));}catch(_){}const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=n.toLocaleString('es-AR')+' fichas';}
-        async function refreshPokerWallet(){let balance=getPokerChips();if(currentUserId&&db){try{const snap=await getDoc(clubProfileRef(currentUserId));if(snap.exists()){const p=snap.data()||{};balance=Math.max(0,Number(p.pokerChips??p.localStorage?.uno_pok_chips??1000));setPokerChips(balance);}}catch(e){console.warn('Saldo de fichas de Póker:',e);}}const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=balance.toLocaleString('es-AR')+' fichas';}
+        async function refreshPokerWallet(){let balance=getPokerChips();if(currentUserId&&db){try{const snap=await getDoc(clubProfileRef(currentUserId));if(snap.exists()){const p=snap.data()||{};balance=Math.max(0,Number(p.pokerChips??1000));setPokerChips(balance);}}catch(e){console.warn('Saldo de fichas de Póker:',e);}}const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=balance.toLocaleString('es-AR')+' fichas';}
         async function reservePokerChips(tx,uid,amount){const ref=clubProfileRef(uid),snap=await tx.get(ref),profile=snap.exists()?snap.data():{};const balance=Math.max(0,Number(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000));if(balance<amount)throw new Error('POKER_CHIPS_LOW');const next=balance-amount;const localData={...(profile.localStorage||snapshotClubLocalStorage()),uno_pok_chips:String(next)};tx.set(ref,{uid,pokerChips:next,localStorage:localData,updatedAt:Date.now()},{merge:true});return next;}
         async function settlePokerChips(room){if(!room||room.pokerCurrency!=='chips'||room.arcadeMode!=='poker'||room.status!=='finished'||!currentUser)return;let newBalance=null,payoutPaid=0;try{await runTransaction(db,async tx=>{const roomRef=arcadeOnlineRef(room.code),profileRef=clubProfileRef(currentUserId),roomSnap=await tx.get(roomRef),profileSnap=await tx.get(profileRef);if(!roomSnap.exists()||!profileSnap.exists())return;const live=roomSnap.data(),g=live.arcadeState||{},player=(g.players||[]).find(p=>p.id===currentUserId),paid=Array.isArray(live.pokerPaidOutUids)?live.pokerPaidOutUids:[];if(live.status!=='finished'||live.pokerCurrency!=='chips'||!player||paid.includes(currentUserId))return;payoutPaid=Math.max(0,Math.floor(Number(player.stack)||0));const profile=profileSnap.data()||{},balance=Math.max(0,Number(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000));newBalance=balance+payoutPaid;const localData={...(profile.localStorage||{}),uno_pok_chips:String(newBalance)};tx.set(profileRef,{pokerChips:newBalance,localStorage:localData,updatedAt:Date.now()},{merge:true});tx.update(roomRef,{pokerPaidOutUids:[...paid,currentUserId],pokerPaidOutAt:Date.now()});});if(newBalance!==null){setPokerChips(newBalance);showToast('🪙 Recuperaste '+payoutPaid.toLocaleString('es-AR')+' fichas de Póker.','success');}}catch(err){console.warn('Liquidación de fichas de Póker:',err);}}
         function getClubDiamonds(){return typeof getUnoPlus==='function'?getUnoPlus():Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));}
@@ -6115,6 +6125,13 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
               document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');
               arcadeOnlineRender();return;
             }
+            if(mode==='poker'){
+              const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
+              const stake=Math.max(5,Number(document.getElementById('arcadePokerStake')?.value||100));
+              const result=await callPokerFunction('createPokerRoom',{stake,name:arcadeOnlinePlayer().name,avatar:arcadeOnlinePlayer().avatar});
+              setPokerChips(result.balance);arcadeOnline.code=result.code;arcadeOnline.privateHand=[];await arcadeOnlineSubscribe(result.code);
+              document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');arcadeOnlineRender();return;
+            }
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
             const code=generateRoomCode(),player=arcadeOnlinePlayer(),roomRef=arcadeOnlineRef(code);
             const pokerStake=mode==='poker'?Math.max(5,Number(document.getElementById('arcadePokerStake')?.value||100)):0;
@@ -6138,6 +6155,11 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           try{
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
             const code=String(raw||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))throw new Error('Ingresá un código válido de 6 caracteres.');
+            if(expectedMode==='poker'){
+              const result=await callPokerFunction('joinPokerRoom',{code,name:arcadeOnlinePlayer().name,avatar:arcadeOnlinePlayer().avatar});if(result.balance!==null&&result.balance!==undefined)setPokerChips(result.balance);
+              arcadeOnline.code=code;arcadeOnline.privateHand=[];await arcadeOnlineSubscribe(code);
+              document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');arcadeOnlineRender();return;
+            }
             const ref=arcadeOnlineRef(code);let balanceAfter=null;
             await runTransaction(db,async tx=>{
               const snap=await tx.get(ref);if(!snap.exists())throw new Error('No existe esa sala.');
@@ -6161,17 +6183,20 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         }
         async function arcadeOnlineSubscribe(code){
           if(arcadeOnline.unsubscribe)arcadeOnline.unsubscribe();
+          if(arcadeOnline.privateHandUnsubscribe){arcadeOnline.privateHandUnsubscribe();arcadeOnline.privateHandUnsubscribe=null;}
           const ready=await initFirebase();if(!ready)return;
           arcadeOnline.unsubscribe=onSnapshot(arcadeOnlineRef(code),snap=>{
             if(!snap.exists()){showToast('La sala fue cerrada.','warn');arcadeOnlineLeave(false);return;}
             const room=snap.data();
             if(!room.arcadeRoom||!(room.seats||[]).some(s=>s.id===currentUserId)){showToast('Ya no estás en esta sala.','warn');arcadeOnlineLeave(false);return;}
             arcadeOnline.room=room;arcadeOnlineRender();
-            if(room.arcadeMode==='poker'&&room.status==='finished'){const settle=room.pokerCurrency==='chips'?settlePokerChips:settlePokerDiamonds;settle(room).catch(e=>console.warn("Pago UNO HOLD'EM:",e));}
+            if(room.arcadeMode==='poker'&&currentUserId&&!arcadeOnline.privateHandUnsubscribe){const handDoc=doc(db,'artifacts',appId,'public','data','uno_poker_private',code,'hands',currentUserId);arcadeOnline.privateHandUnsubscribe=onSnapshot(handDoc,handSnap=>{arcadeOnline.privateHand=handSnap.exists()?(handSnap.data().cards||[]):[];if(arcadeOnline.room?.arcadeMode==='poker')arcadeOnlineRender();},()=>{arcadeOnline.privateHand=[];});}
           },err=>{console.error('Arcade listener:',err);showToast('Se perdió la conexión con la sala.','danger');});
         }
         async function arcadeOnlineLeave(goMenu=true){
+          if(arcadeOnline.leaving)return;
           const code=arcadeOnline.code,room=arcadeOnline.room;
+          if(room?.arcadeMode==='poker'&&code){arcadeOnline.leaving=true;try{await callPokerFunction('leavePokerRoom',{code});}catch(e){console.warn('Salida Póker:',e);}if(arcadeOnline.unsubscribe){arcadeOnline.unsubscribe();arcadeOnline.unsubscribe=null;}if(arcadeOnline.privateHandUnsubscribe){arcadeOnline.privateHandUnsubscribe();arcadeOnline.privateHandUnsubscribe=null;}arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.privateHand=[];arcadeOnline.leaving=false;if(currentUserId)refreshPokerWallet().catch(()=>{});if(goMenu){document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}return;}
           if(room?.arcadeMode==='poker'&&room.status==='finished'){if(room.pokerCurrency==='chips')await settlePokerChips(room);else await settlePokerDiamonds(room);}
           if(arcadeOnline.unsubscribe){arcadeOnline.unsubscribe();arcadeOnline.unsubscribe=null;}
           arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.selectedCard=null;
@@ -6253,6 +6278,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         }
         async function arcadeOnlineStart(){
           const r=arcadeOnline.room;if(!r||r.hostId!==currentUserId||r.status!=='lobby')return;
+          if(r.arcadeMode==='poker'){try{await callPokerFunction('startPokerHand',{code:r.code});}catch(e){showToast(e.message||'No se pudo iniciar el Póker.','danger');}return;}
           const players=r.seats.filter(s=>s.id);if(players.length<2){showToast('Se necesitan al menos 2 jugadores.','warn');return;}
           let game;
           if(r.arcadeMode==='poker'){
@@ -6296,7 +6322,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           g.turn=alive[0];
         }
         async function arcadeOnlinePokerAction(action){
-          const uid=currentUserId;
+          const uid=currentUserId,r=arcadeOnline.room;if(r?.arcadeMode==='poker'){try{await callPokerFunction('actPoker',{code:r.code,action});}catch(e){showToast(e.message||'No se pudo registrar la jugada.','warn');}return;}
           await arcadeOnlineMutate((r,g)=>{
             const i=g.players.findIndex(p=>p.id===uid);if(i<0||g.over||g.turn!==i)return false;const p=g.players[i],due=g.currentBet-p.bet,raiseBy=Math.max(1,Math.ceil((g.buyIn||100)/10));
             if(action==='fold'){p.folded=true;p.acted=true;}
@@ -6311,12 +6337,13 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           });
         }
          function arcadeOnlineRenderPoker(r,g){
-           const meIndex=g.players.findIndex(p=>p.id===currentUserId),me=g.players[meIndex],can=me&&!g.over&&g.players[g.turn]?.id===currentUserId;
+           const viewPlayers=g.players.map(p=>p.id===currentUserId?{...p,hand:g.over?(p.hand||arcadeOnline.privateHand):(arcadeOnline.privateHand||[])}:p);
+           const meIndex=viewPlayers.findIndex(p=>p.id===currentUserId),me=viewPlayers[meIndex],can=me&&!g.over&&viewPlayers[g.turn]?.id===currentUserId;
            const due=Math.max(0,g.currentBet-(me?.bet||0)),raiseBy=Math.max(1,Math.ceil((g.buyIn||100)/10));
            const controls=can?'<div class="flex flex-wrap justify-center gap-2 mt-4"><button data-aonline-poker="fold" class="arcade-action text-rose-200">Retirarme</button><button data-aonline-poker="call" class="arcade-action text-emerald-200">Igualar ◆ '+due+'</button><button data-aonline-poker="raise" class="arcade-action text-amber-100 border-amber-300/40">Subir +'+raiseBy+'</button></div>':'<div class="text-center text-xs text-zinc-300 mt-4">'+(g.over?'🏆 Mano finalizada':'Turno de '+arcadeEsc(g.players[g.turn]?.name||'…'))+'</div>';
            const payout=g.over?'<div class="text-center text-xs text-cyan-100 mt-3">'+(r.pokerCurrency==='chips'?'Entrada: '+Number(r.pokerStake||0)+' fichas · pozo: '+(Number(r.pokerStake||0)*(g.players||[]).length)+' fichas. Premio en tu billetera de Póker.':'Entrada antigua: '+Number(r.pokerStake||0)+' diamantes · liquidación heredada.')+'</div>':'';
            const best=me&&!me.folded?pokerBest([...me.hand,...g.community]):null;
-           pokerMountStage({players:g.players,community:g.community,pot:g.pot,stage:g.stage,turnIndex:g.turn,heroIndex:Math.max(0,meIndex),over:g.over,message:g.message,heroCards:me?.hand||[],handName:best?pokerRankNames[best.score[0]]:'Retirado',online:true,currencyName:r.pokerCurrency==='chips'?'EN FICHAS':'EN DIAMANTES'},controls+payout,r.pokerCurrency==='chips'?'🪙 ':'◆ ');
+           pokerMountStage({players:viewPlayers,community:g.community,pot:g.pot,stage:g.stage,turnIndex:g.turn,heroIndex:Math.max(0,meIndex),over:g.over,message:g.message,heroCards:me?.hand||[],handName:best?pokerRankNames[best.score[0]]:'Retirado',online:true,currencyName:r.pokerCurrency==='chips'?'EN FICHAS':'EN DIAMANTES'},controls+payout,r.pokerCurrency==='chips'?'🪙 ':'◆ ');
          }
 async function arcadeOnlineBattlePlay(cardId){
           await arcadeOnlineMutate((r,g)=>{
@@ -6370,6 +6397,7 @@ async function arcadeOnlineBattlePlay(cardId){
           document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.remove('hidden');
           document.getElementById('arcadeSetupEmoji').textContent=meta.emoji;document.getElementById('arcadeSetupTitle').textContent=meta.title;
           document.getElementById('arcadeSetupRules').innerHTML=({poker3d:'<div class="arcade-rules-panel"><h4>♠ POKER 3D ONLINE</h4><ol><li>Creá una sala privada y compartí el código con tus amigos.</li><li>Se pueden reunir de 2 a 8 jugadores en la misma mesa.</li><li>Esta primera etapa habilita las salas y la conexión en tiempo real; las apuestas están desactivadas.</li><li>Las fichas de prueba no afectan tu billetera UNOcoins PLUS.</li></ol></div>',poker:'<div class="arcade-rules-panel"><h4>♠ REGLAS DE UNO HOLD&#39;EM POKER 3D</h4><ol><li>Cada jugador recibe 2 cartas privadas. En la mesa se revelan 5 cartas comunitarias: 3 en el flop, 1 en el turn y 1 en el river.</li><li>Combiná tus 2 cartas con las comunitarias para formar la mejor mano de póker de 5 cartas.</li><li>En tu turno podés <b>Igualar</b> la apuesta actual, <b>Subir +20</b> fichas o <b>Retirarte</b>.</li><li>Si todos se retiran menos uno, esa persona gana el pozo. Si llegan al final, gana la mejor combinación.</li><li>Empezás con 1000 fichas virtuales. Ciegas iniciales: 10 y 20. No hay dinero real.</li></ol></div>',battle:'<div class="arcade-rules-panel"><h4>⚔️ REGLAS DE UNO! BATALLA</h4><ol><li>Todos comienzan con <b>100 puntos de vida</b> y 7 cartas UNO.</li><li>En tu turno elegí una carta de tu mano para atacar al siguiente rival que siga vivo.</li><li>Las cartas numéricas hacen daño según su valor. Las cartas especiales tienen efectos: <b>Salto</b> causa 16 de daño y <b>Reversa</b> te da 18 puntos de escudo.</li><li>Las cartas verdes normales te curan. La vida nunca supera los 100 puntos; el escudo absorbe daño antes que la vida.</li><li>Si te quedás sin cartas, recibís hasta 4 nuevas. También podés robar una carta y pasar el turno.</li><li>Cuando tu vida llega a 0 quedás eliminado. Gana el último jugador que permanezca en pie.</li></ol></div>',robado:'<div class="arcade-rules-panel"><h4>🏠 REGLAS DE UNO! ROBADO</h4><ol><li>Cada jugador recibe 3 cartas y se colocan 4 cartas boca arriba en el centro.</li><li>Elegí una carta de tu mano. Si coincide en valor con una carta del centro, tocá esa carta para llevarte ambas a tu casita.</li><li>También podés robar la casita de otro jugador: tu carta debe coincidir con la carta que está arriba de su pila. Te llevás toda su casita.</li><li>Si no hay ninguna coincidencia, podés dejar tu carta en el centro para que otro jugador intente capturarla.</li><li>Cuando te quedás sin cartas, recibís hasta 3 nuevas si todavía queda mazo.</li><li>Cuando se termina el mazo y todos vacían su mano, gana quien haya juntado más cartas en su casita.</li></ol></div>'})[mode];
+          if(mode==='poker'){document.getElementById('arcadeSetupRules').insertAdjacentHTML('beforeend','<div class="arcade-rules-panel"><h4>🪙 ENTRADA DE LA MESA</h4><label class="text-xs text-zinc-300" for="arcadePokerStake">Buy-in por jugador</label><select id="arcadePokerStake" class="mt-2 w-full rounded-xl bg-slate-950 border border-emerald-300/30 p-3 text-white"><option value="100">100 fichas · Casual</option><option value="250" selected>250 fichas · Estándar</option><option value="500">500 fichas · Pro</option><option value="1000">1.000 fichas · High Roller</option></select><p class="text-[11px] text-zinc-400 mt-2">Las fichas son virtuales y no tienen valor monetario real.</p></div>');}
           document.getElementById('arcadeJoinCode').value='';
           
         }

@@ -37,13 +37,18 @@ service cloud.firestore {
         && request.resource.data.joinedAt is number;
     }
 
+    function isPokerRoomMember(appId, roomId, uid) {
+      let room = get(/databases/$(database)/documents/artifacts/$(appId)/public/data/uno_rooms/$(roomId)).data;
+      return isSignedIn() && room.arcadeMode == 'poker' && room.memberUids is list && room.memberUids.hasAny([uid]);
+    }
+
     // SALAS UNO, TCG Y ARCADE.
-    // Se conserva el comportamiento anterior de los modos existentes.
     match /artifacts/{appId}/public/data/uno_rooms/{roomId} {
       allow read: if isSignedIn();
 
       allow create: if isSignedIn()
         && request.resource.data.hostId == request.auth.uid
+        && (!request.resource.data.keys().hasAny(['arcadeMode']) || request.resource.data.arcadeMode != 'poker')
         && (
           request.resource.data.code == roomId
           || roomId == 'TCG-' + request.resource.data.code
@@ -52,6 +57,7 @@ service cloud.firestore {
       // En Mentiroso 3D el anfitrión es la autoridad de la partida.
       // Los invitados solo pueden reservar/liberar su propio asiento mientras espera la sala.
       allow update: if isSignedIn()
+        && (!resource.data.keys().hasAny(['arcadeMode']) || resource.data.arcadeMode != 'poker')
         && request.resource.data.hostId == resource.data.hostId
         && (
           resource.data.gameType == 'liar3d'
@@ -84,6 +90,7 @@ service cloud.firestore {
         );
 
       allow delete: if isSignedIn()
+        && (!resource.data.keys().hasAny(['arcadeMode']) || resource.data.arcadeMode != 'poker')
         && resource.data.hostId == request.auth.uid;
     }
 
@@ -170,6 +177,22 @@ service cloud.firestore {
       allow update, delete: if isLiarRoomHost(appId, roomId);
     }
 
+
+    // MANOS DE UNO HOLD'EM: cada jugador solo puede leer sus propias cartas.
+    // Las escrituras se realizan exclusivamente desde Cloud Functions (Admin SDK).
+    match /artifacts/{appId}/public/data/uno_poker_private/{roomId}/hands/{uid} {
+      allow read: if isSignedIn()
+        && request.auth.uid == uid
+        && isPokerRoomMember(appId, roomId, uid);
+      allow create, update, delete: if false;
+    }
+
+
+    // Mazo no repartido: solo Cloud Functions puede leerlo o modificarlo.
+    match /artifacts/{appId}/public/data/uno_poker_private/{roomId}/server/{stateId} {
+      allow read, write: if false;
+    }
+
     // LEADERBOARD GLOBAL UNO! CLUB.
     match /artifacts/{appId}/public/data/uno_leaderboard/{userId} {
       allow read: if true;
@@ -205,8 +228,13 @@ service cloud.firestore {
 
     // PERFILES Y PROGRESO SINCRONIZADOS.
     match /artifacts/{appId}/users/{uid} {
-      allow read, write: if isSignedIn()
-        && request.auth.uid == uid;
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      // El saldo de Póker solo puede cambiarlo Cloud Functions.
+      allow create: if isSignedIn() && request.auth.uid == uid
+        && !request.resource.data.keys().hasAny(['pokerChips']);
+      allow update: if isSignedIn() && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['pokerChips']);
+      allow delete: if false;
     }
   }
 }
