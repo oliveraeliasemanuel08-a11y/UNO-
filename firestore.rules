@@ -48,7 +48,7 @@ service cloud.firestore {
 
       allow create: if isSignedIn()
         && request.resource.data.hostId == request.auth.uid
-        && request.resource.data.arcadeMode != 'poker'
+        && (!request.resource.data.keys().hasAny(['arcadeMode']) || request.(!resource.data.keys().hasAny(['arcadeMode']) || resource.data.arcadeMode != 'poker'))
         && (
           request.resource.data.code == roomId
           || roomId == 'TCG-' + request.resource.data.code
@@ -57,7 +57,7 @@ service cloud.firestore {
       // En Mentiroso 3D el anfitrión es la autoridad de la partida.
       // Los invitados solo pueden reservar/liberar su propio asiento mientras espera la sala.
       allow update: if isSignedIn()
-        && resource.data.arcadeMode != 'poker'
+        && (!resource.data.keys().hasAny(['arcadeMode']) || resource.data.arcadeMode != 'poker')
         && request.resource.data.hostId == resource.data.hostId
         && (
           resource.data.gameType == 'liar3d'
@@ -90,7 +90,7 @@ service cloud.firestore {
         );
 
       allow delete: if isSignedIn()
-        && resource.data.arcadeMode != 'poker'
+        && (!resource.data.keys().hasAny(['arcadeMode']) || resource.data.arcadeMode != 'poker')
         && resource.data.hostId == request.auth.uid;
     }
 
