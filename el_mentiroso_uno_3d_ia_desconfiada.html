@@ -233,6 +233,17 @@
                 <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-black text-xs">❤️❤️❤️</span>
             </div>
 
+            <div class="rounded-2xl border border-cyan-400/25 bg-cyan-400/5 p-3 space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                    <div><div class="font-display text-xs font-black tracking-wider text-cyan-300">🌐 MODO ONLINE</div><p class="text-[10px] text-slate-400 mt-0.5">Crea una sala o entra con el código de tus amigos</p></div>
+                    <span class="rounded-lg bg-cyan-400/10 px-2 py-1 text-[10px] font-black text-cyan-200">2–6 JUGADORES</span>
+                </div>
+                <input id="liar-online-name" maxlength="16" value="Jugador" placeholder="Tu nombre" class="w-full rounded-xl border border-white/15 bg-slate-950/80 px-3 py-2 text-sm font-bold text-white outline-none focus:border-cyan-300">
+                <button id="liar-online-create" type="button" class="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 py-2.5 text-xs font-display font-black text-slate-950 shadow-lg hover:brightness-110">✨ CREAR PARTIDA ONLINE</button>
+                <div class="flex gap-2"><input id="liar-join-code" maxlength="6" placeholder="CÓDIGO DE SALA" class="min-w-0 flex-1 rounded-xl border border-white/15 bg-slate-950/80 px-3 py-2 text-center font-display text-sm font-black uppercase tracking-[0.25em] text-white outline-none focus:border-amber-300"><button id="liar-online-join" type="button" class="rounded-xl border border-amber-300/40 bg-amber-400/15 px-4 text-xs font-black text-amber-200 hover:bg-amber-400/25">UNIRME</button></div>
+                <p id="liar-online-status" class="text-[11px] text-slate-400">Online con Firebase. La partida local con IA sigue disponible abajo.</p>
+            </div>
+
             <!-- Selector de cantidad de asientos -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Cantidad de Jugadores en Mesa</label>
@@ -255,6 +266,19 @@
         </div>
     </div>
 
+    <!-- Lobby online del Mentiroso 3D -->
+    <div id="liar-online-lobby" class="hidden fixed inset-0 z-[70] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel uno-border w-full max-w-md rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between"><div><p class="font-display text-xs font-black tracking-widest text-cyan-300">UNO! CLUB ONLINE</p><h2 class="mt-1 font-display text-lg font-black text-white">SALA DEL MENTIROSO</h2></div><span class="text-3xl">🎭</span></div>
+            <div class="rounded-2xl border border-cyan-300/30 bg-cyan-400/10 p-4 text-center"><p class="text-[10px] font-black tracking-widest text-cyan-200">CÓDIGO PARA INVITAR</p><div id="liar-room-code" class="my-1 font-display text-3xl font-black tracking-[0.25em] text-white">------</div><button id="liar-lobby-copy" class="rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-black text-white">COPIAR CÓDIGO</button></div>
+            <div class="flex items-center justify-between"><span class="text-xs font-black uppercase tracking-wider text-slate-300">Jugadores conectados</span><span id="liar-lobby-count" class="text-xs font-black text-emerald-300">1/6 JUGADORES</span></div>
+            <div id="liar-lobby-players" class="space-y-2"></div>
+            <p id="liar-lobby-status" class="text-center text-xs text-slate-300">Esperando jugadores…</p>
+            <button id="liar-host-start" class="hidden w-full rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 py-3 font-display text-xs font-black text-slate-950 disabled:opacity-40" disabled>INICIAR PARTIDA</button>
+            <button id="liar-lobby-back" class="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 text-xs font-bold text-slate-300 hover:bg-white/10">VOLVER</button>
+        </div>
+    </div>
+
     <!-- Modal de Reglas -->
     <div id="rules-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
         <div class="glass-panel uno-border rounded-3xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-5 sm:p-6 shadow-2xl space-y-4">
@@ -266,7 +290,7 @@
             <div class="space-y-3 text-xs sm:text-sm text-slate-200">
                 <div class="p-3 rounded-2xl bg-indigo-500/15 border border-indigo-400/30">
                     <p class="font-bold text-indigo-300 mb-1">🎯 1. La Carta Objetivo y el Mazo (28 cartas)</p>
-                    <p class="text-xs text-slate-300">El mazo tiene 6 copias de <strong>7 Rojo</strong>, 6 de <strong>5 Azul</strong>, 6 de <strong>9 Verde</strong>, 6 de <strong>+2 Amarillo</strong> y 4 comodines <strong>Wild</strong>. Al iniciar cada ronda se sortea una <strong>Carta Objetivo</strong> y cada jugador recibe 5 cartas.</p>
+                    <p class="text-xs text-slate-300">El mazo tiene 6 copias de <strong>7 Rojo</strong>, 6 de <strong>5 Azul</strong>, 6 de <strong>9 Verde</strong>, 6 de <strong>+2 Amarillo</strong> y 4 comodines <strong>Wild</strong>. Al iniciar cada ronda se sortea una <strong>Carta Objetivo</strong>. Cada jugador recibe 5 cartas; con 6 jugadores, recibe 4 para respetar las 28 cartas del mazo.</p>
                 </div>
 
                 <div class="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-400/30">
@@ -1551,16 +1575,22 @@
             badge.textContent = game.targetCard.value;
             document.getElementById('target-name-text').textContent = game.targetCard.label;
 
-            // Repartir 5 cartas a cada jugador vivo
+            // Reparto equilibrado: el mazo original tiene 28 cartas.
+            // Con 6 jugadores se reparten 4 por persona; con 2–5, 5 por persona.
             const deck = createLiarDeck();
+            deck.forEach((card, index) => { card.instanceId = "r" + game.round + "_c" + index; });
+            const activeCount = game.players.filter(p => !p.eliminated).length;
+            const cardsPerPlayer = Math.min(5, Math.floor(deck.length / Math.max(1, activeCount)));
             game.players.forEach(p => {
                 p.hand = [];
                 if (!p.eliminated) {
-                    for (let i = 0; i < 5; i++) {
-                        p.hand.push(deck.pop());
+                    for (let i = 0; i < cardsPerPlayer; i++) {
+                        const card = deck.pop();
+                        if (card) p.hand.push(card);
                     }
                 }
             });
+            if (activeCount === 6) showBanner('🎴 MESA COMPLETA', 'Con 6 jugadores se reparten 4 cartas por persona para respetar el mazo original de 28 cartas.');
 
             // Elegir primer jugador vivo
             while (game.players[game.turnIndex].eliminated) {
@@ -2209,11 +2239,114 @@
             renderer.render(scene, camera);
         }
 
+        // Puente acotado para que el adaptador online controle el motor original sin reescribirlo.
+        window.Liar3DBridge = {
+            get game() { return game; },
+            startOnlineMatch(players) {
+                sfx.init(); game.round = 1; game.turnIndex = 0; game.lastClaim = null; game.selectedIndices = [];
+                game.players = players.map((p, idx) => ({ id: idx, uid: p.uid, name: p.name, avatar: p.avatar || "😎", isHuman: !!p.isHuman, style: p.style || "balanced", lives: 3, hand: [], eliminated: false }));
+                document.getElementById("setup-modal").classList.add("hidden");
+                build3DSeatsAndCrystals(); startNewRound();
+            },
+            playCards(player, cards) { playCardsToCenter(player, cards); },
+            challenge(player) { resolveLiarChallenge(player); },
+            nextRound() { handleNextRoundClick(); },
+            prepareHumanTurn(player) { prepareHumanTurn(player); },
+            hideLocalControls(message) {
+                handRigGroup.visible = false; disableHumanControls();
+                document.getElementById("player-action-bar").classList.remove("hidden");
+                document.getElementById("bot-turn-status").classList.remove("hidden");
+                document.getElementById("bot-turn-status").textContent = message || "Esperando turno…";
+            },
+            tablePileCount() { return tableCardMeshes.length; },
+            gameOver(winner) { triggerGameOver(winner); },
+            remotePileCount: null,
+            remoteRound: null,
+            remotePhase: null,
+            setOnlinePublisher(fn) { this.publishOnline = fn; },
+            applyRemoteState(gs, privateCards) {
+                const local = window.LiarOnline?.getSession?.() || {};
+                const oldLives = game.players.map(p => p.lives);
+                const oldRemotePhase = this.remotePhase;
+                const needsBuild = game.players.length !== gs.players.length || !game.players.length || game.players.some((p, idx) => p.uid !== gs.players[idx]?.uid) || (oldRemotePhase === "GAME_OVER" && gs.phase === "TURN");
+                if (needsBuild) {
+                    this.remotePileCount = null; this.remoteRound = null; this.remotePhase = null;
+                    tableCardMeshes.forEach(m => tableObjectsGroup.remove(m)); tableCardMeshes.length = 0; activeAnimations.length = 0;
+                    game.players = gs.players.map((p, idx) => ({ id: idx, uid: p.uid, name: p.name, avatar: p.avatar || "😎", isHuman: p.uid === local.uid, style: "balanced", lives: p.lives, hand: [], eliminated: !!p.eliminated }));
+                    build3DSeatsAndCrystals();
+                }
+                game.round = gs.round; game.turnIndex = gs.turnIndex; game.phase = gs.phase;
+                game.players = gs.players.map((p, idx) => {
+                    const previous = game.players[idx] || {};
+                    const hand = p.uid === local.uid ? (privateCards || []) : Array.from({ length: p.handCount || 0 }, (_, n) => ({ id: "hidden", color: "red", value: "?", label: "Carta oculta", instanceId: "hidden_" + n }));
+                    return Object.assign(previous, { id: idx, uid: p.uid, name: p.name, avatar: p.avatar || "😎", isHuman: p.uid === local.uid, lives: p.lives, hand, eliminated: !!p.eliminated });
+                });
+                const target = CARD_TYPES.find(c => c.id === gs.targetCardId) || CARD_TYPES[0]; game.targetCard = target;
+                neonRingMat.color.setHex(target.neon); neonSpotLight.color.setHex(target.neon); targetCenterMesh.material[2].map = getCardFrontTexture(target); targetCenterMesh.material[2].needsUpdate = true;
+                document.getElementById("round-label").textContent = "RONDA " + game.round;
+                const badge = document.getElementById("target-mini-badge"); badge.className = "w-7 h-9 rounded-lg border-2 border-white flex items-center justify-center font-black text-sm shadow " + target.badgeClass; badge.textContent = target.value;
+                document.getElementById("target-name-text").textContent = target.label;
+                const claimIndex = gs.lastClaim ? gs.players.findIndex(p => p.uid === gs.lastClaim.playerUid) : -1;
+                game.lastClaim = claimIndex >= 0 ? { playerIndex: claimIndex, cards: gs.revealedCards || [], meshes: [], count: gs.lastClaim.count } : null;
+                const pileCount = gs.pileCount || 0;
+                const revealed = (gs.phase === "RESOLVING" || gs.phase === "ROUND_END" || gs.phase === "GAME_OVER") && Array.isArray(gs.revealedCards) ? gs.revealedCards : [];
+                const revealTransition =
+                    (gs.phase === "RESOLVING" && oldRemotePhase !== "RESOLVING") ||
+                    (gs.phase === "ROUND_END" && !["RESOLVING", "ROUND_END"].includes(oldRemotePhase)) ||
+                    (gs.phase === "GAME_OVER" && !["RESOLVING", "ROUND_END", "GAME_OVER"].includes(oldRemotePhase));
+                const rebuildPile = this.remoteRound !== gs.round || this.remotePileCount === null || pileCount < this.remotePileCount || revealTransition;
+                if (rebuildPile) {
+                    tableCardMeshes.forEach(m => tableObjectsGroup.remove(m)); tableCardMeshes.length = 0; activeAnimations.length = 0;
+                    const hiddenCount = Math.max(0, pileCount - revealed.length);
+                    for (let i = 0; i < hiddenCount; i++) { const mesh = createCard3D(target, false, new THREE.Vector3(((i % 7) - 3) * 0.16, 0.18 + i * 0.006, 0.1 + (i % 3) * 0.05)); mesh.rotation.y = (i % 5) * 0.08; }
+                    revealed.forEach((card, i) => {
+                        const type = CARD_TYPES.find(c => c.id === card.id) || WILD_TYPE;
+                        const position = new THREE.Vector3((i - (revealed.length - 1) / 2) * 0.85, 0.48, 0.2);
+                        const mesh = createCard3D(type, false, position);
+                        animateMeshTo(mesh, position, new THREE.Vector3(0, 0, 0), true, 0.12 + i * 0.16, 0.48);
+                    });
+                } else if (pileCount > (this.remotePileCount || 0)) {
+                    const addCount = pileCount - this.remotePileCount;
+                    const actorIndex = claimIndex >= 0 ? claimIndex : Math.max(0, gs.turnIndex - 1);
+                    const origin = game.seatPositions[actorIndex]?.pos.clone().setY(0.8) || new THREE.Vector3(0, 1.35, 3.2);
+                    for (let i = 0; i < addCount; i++) {
+                        const stackIndex = this.remotePileCount + i;
+                        const mesh = createCard3D(target, false, origin);
+                        const targetPos = new THREE.Vector3(((stackIndex % 7) - 3) * 0.16, 0.18 + stackIndex * 0.006, 0.1 + (stackIndex % 3) * 0.05);
+                        animateMeshTo(mesh, targetPos, new THREE.Vector3(0, (i - (addCount - 1) / 2) * 0.08, 0), false, i * 0.08, 0.42);
+                    }
+                    sfx.playCardSlap();
+                }
+                this.remotePileCount = pileCount; this.remoteRound = gs.round; this.remotePhase = gs.phase;
+                game.players.forEach((p, idx) => {
+                    if (typeof oldLives[idx] === "number" && p.lives < oldLives[idx]) {
+                        const crystal = game.crystalMeshes[idx]?.[p.lives];
+                        if (crystal) spawnLifeShatterParticles(crystal.position, 0xff2a55);
+                        sfx.playLifeLost(); triggerCharacterReaction(idx, "hit", 1.8);
+                    }
+                    if (p.eliminated) {
+                        const rig = characterRigs[idx];
+                        if (rig) { rig.root.rotation.x = -0.35; rig.root.position.y = -0.35; }
+                    }
+                });
+                game.crystalMeshes.forEach((arr, idx) => arr.forEach((mesh, n) => { const alive = n < (game.players[idx]?.lives || 0); mesh.visible = alive; }));
+                updateAllSeatsUI();
+                const claimText = document.getElementById("last-claim-text");
+                if (claimText) claimText.textContent = game.lastClaim ? (game.players[game.lastClaim.playerIndex].name + ': "Juego ' + game.lastClaim.count + ' carta(s) de ' + target.label + '"') : 'Mesa vacía — Inicia la ronda';
+                if (gs.phase === "TURN") { document.getElementById("round-next-bar").classList.add("hidden"); document.getElementById("player-action-bar").classList.remove("hidden"); window.beginTurn(); }
+                else { handRigGroup.visible = false; disableHumanControls(); document.getElementById("player-action-bar").classList.add("hidden"); }
+                if (gs.phase === "RESOLVING") { if (oldRemotePhase !== "RESOLVING") { sfx.playLiarAlarm(); setCameraView("center"); if (claimIndex >= 0) triggerCharacterReaction(claimIndex, "sweat", 1.8); triggerCharacterReaction(gs.turnIndex, "accuse", 1.8); } showBanner("🚨 ¡DESAFÍO EN CURSO!", "Revelando las cartas de la última jugada…", true); }
+                if (gs.phase === "ROUND_END") { document.getElementById("round-next-bar").classList.remove("hidden"); const nextBtn = document.getElementById("btn-next-round"); nextBtn.textContent = "INICIAR RONDA " + (game.round + 1) + " ➔"; nextBtn.disabled = game.players[game.turnIndex]?.uid !== local.uid; showBanner("⚖️ DESAFÍO RESUELTO", "Las vidas y el turno se han actualizado."); }
+                if (gs.phase === "GAME_OVER") { const winner = game.players.find(p => !p.eliminated); if (winner && oldRemotePhase !== "GAME_OVER") triggerGameOver(winner); document.getElementById("btn-next-round").disabled = true; }
+            }
+        };
+
         window.onload = function () {
             initThreeJS();
             renderSetupSeats();
             animate();
         };
     </script>
+    <script src="./liar-online.js"></script>
 </body>
 </html>
