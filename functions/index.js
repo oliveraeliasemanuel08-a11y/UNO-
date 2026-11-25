@@ -292,7 +292,7 @@ exports.leavePokerRoom = onCall({region:REGION,maxInstances:30}, async req=>{
         if(alive.length===1){
           awardUncontested(g,alive[0]);
           const snaps=await Promise.all(g.players.map(p=>tx.get(profileRef(appId,p.id))));
-          snaps.forEach((ps,j)=>{const data=ps.exists?ps.data():{},balance=getBalance(data)+Math.max(0,Math.floor(g.players[j].stack||0));tx.set(profileRef(appId,g.players[j].id),{uid:g.players[j].id,pokerChips:balance,localStorage:{...(data.localStorage||{}),uno_pok_chips:String(balance)},updatedAt:Date.now()},{merge:true});g.players[j].stack=0;});
+          snaps.forEach((ps,j)=>{const data=ps.exists?ps.data():{},balance=getBalance(data)+Math.max(0,Math.floor(g.players[j].stack||0));tx.set(profileRef(appId,g.players[j].id),{uid:g.players[j].id,pokerChips:balance,localStorage:{...(data.localStorage||{}),uno_pok_chips:String(balance)},updatedAt:Date.now()},{merge:true});});
           g.players.forEach(p=>p.paidOut=true);room.status="finished";room.pokerPaidOutUids=g.players.map(p=>p.id);tx.delete(db.doc(`artifacts/${appId}/public/data/uno_poker_private/${code}/server/state`));
         } else if(g.turn===i){
           const next=nextActor(g.players,i);
