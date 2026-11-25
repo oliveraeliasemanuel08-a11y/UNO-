@@ -1186,7 +1186,7 @@
                     </div>
                     <div>
                         <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-[11px] font-bold uppercase tracking-wider">
-                            ★ Club Oficial • 108 Cartas • Online & Equipos
+                            ★ Club Oficial • 108 Cartas • Offline & Rankeds
                         </div>
                         <h1 class="text-xl sm:text-2xl font-extrabold text-white mt-1">Mesa Realista Multijugador</h1>
                         <p class="text-xs text-zinc-400">Personaliza tu avatar, mezcla el mazo y desafía hasta 8 jugadores en vivo.</p>
@@ -1204,9 +1204,9 @@
                         📜 Reglas
                     </button>
                     <button id="btnChangeDeviceMode" class="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-zinc-200">🖥️/📱</button>
-                    <span id="onlineStatusBadge" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/70 border border-emerald-500/30 text-xs font-semibold text-emerald-300">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>En Línea</span>
+                    <span id="onlineStatusBadge" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-950/70 border border-sky-500/30 text-xs font-semibold text-sky-300">
+                        <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                        <span>Modo local</span>
                     </span>
                 </div>
             </div>
@@ -1395,50 +1395,18 @@
                             </span>
                             <span class="text-xs sm:text-sm bg-black/30 px-3.5 py-1.5 rounded-xl font-extrabold">JUGAR →</span>
                         </button>
-
-                        <!-- Botón Crear Sala Online / Equipos -->
-                        <button id="btnCreateOnline" class="btn-shimmer relative overflow-hidden w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold shadow-xl shadow-rose-950/70 border border-amber-300/40 flex items-center justify-between transition-all hover:-translate-y-0.5 active:scale-[0.99] cursor-pointer">
-                            <span class="flex items-center gap-4">
-                                <span class="w-12 h-12 rounded-2xl bg-black/25 flex items-center justify-center text-2xl shadow-inner">🌐</span>
-                                <span class="text-left">
-                                    <span class="block text-base sm:text-lg font-extrabold leading-tight">Crear Sala Online / Equipos</span>
-                                    <span class="block text-xs font-medium text-amber-100/90 mt-0.5">2 a 8 jugadores • Individual o hasta 4 Equipos</span>
-                                </span>
-                            </span>
-                            <span class="text-xs sm:text-sm bg-black/30 px-3.5 py-1.5 rounded-xl font-extrabold">CREAR →</span>
-                        </button>
+                        <div class="rounded-3xl border border-sky-300/25 bg-sky-950/35 p-4 sm:p-5 flex items-center gap-4">
+                            <span class="w-12 h-12 shrink-0 rounded-2xl bg-sky-400/15 flex items-center justify-center text-2xl">🎮</span>
+                            <span><b class="block text-base sm:text-lg text-sky-100">Modos casuales 100% Offline</b><span class="block text-xs text-sky-100/70 mt-0.5">Jugá contra bots o en local. Rankeds es el único modo online.</span></span>
+                        </div>
                         <button id="btnOpenCompetitive" type="button" class="btn-shimmer relative overflow-hidden w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-600 text-zinc-950 font-bold shadow-xl border border-yellow-200/60 flex items-center justify-between transition-all hover:-translate-y-0.5 active:scale-[0.99]">
                           <span class="flex items-center gap-4"><span class="w-12 h-12 rounded-2xl bg-black/15 flex items-center justify-center text-2xl">🏆</span><span class="text-left"><span class="block text-base sm:text-lg font-extrabold">COMPETITIVO</span><span class="block text-xs font-semibold text-amber-950/80 mt-0.5">Rangos, clasificatorias y leaderboard</span></span></span><span class="text-xs bg-black/15 px-3.5 py-1.5 rounded-xl font-extrabold">ENTRAR →</span>
                         </button>
                         <button id="btnOpenArcade" type="button" class="w-full rounded-2xl border border-emerald-400/30 bg-emerald-950/60 px-4 py-3 text-left text-sm font-extrabold text-emerald-200 hover:bg-emerald-900/70">🎮 MODOS DE JUEGO · POKER 3D / BATALLA / ROBADO</button>
                     </div>
 
-                    <!-- Unirse con código -->
-                    <div class="bg-zinc-900/80 border border-white/10 rounded-3xl p-4 sm:p-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="text-xs font-extrabold uppercase tracking-wider text-amber-300">🔑 Unirse por Código</label>
-                            <span class="text-[11px] text-zinc-500">Acceso Directo</span>
-                        </div>
-                        <div class="flex flex-col gap-2.5">
-                            <input id="joinCodeInput" type="text" maxlength="6" placeholder="CÓDIGO (EJ: K8M2P9)" class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-400 rounded-2xl px-4 py-3 text-center font-mono text-base font-extrabold tracking-widest uppercase text-amber-300 placeholder:text-zinc-600 focus:outline-none">
-                            <button id="btnJoinRoom" class="w-full px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 hover:from-amber-200 hover:to-yellow-300 text-zinc-950 font-extrabold text-sm shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer">
-                                ENTRAR A LA SALA →
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Explorador de Salas Públicas en Vivo -->
-                    <div class="bg-zinc-900/80 border border-white/10 rounded-3xl p-4">
-                        <div class="flex items-center justify-between mb-2.5">
-                            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                                Salas Públicas en Vivo
-                            </span>
-                            <span id="publicRoomsCount" class="text-[11px] text-zinc-400 font-semibold">Buscando...</span>
-                        </div>
-                        <div id="publicRoomsList" class="space-y-2 max-h-32 overflow-y-auto pr-1">
-                            <div class="text-xs text-zinc-500 text-center py-3 italic">No hay salas públicas abiertas ahora. ¡Crea una!</div>
-                        </div>
+                    <div class="rounded-2xl border border-white/10 bg-zinc-900/70 p-4 text-xs text-zinc-400">
+                        🔒 Las salas con código y las partidas públicas están desactivadas en los modos casuales. Para jugar online, entrá en <b class="text-amber-200">COMPETITIVO / RANKEDS</b>.
                     </div>
 
                     <!-- Mini tarjetas de características -->
@@ -1449,7 +1417,7 @@
                         </div>
                         <div class="bg-zinc-900/60 border border-white/5 rounded-2xl p-2.5">
                             <div class="text-base font-black text-rose-400 font-uno">2 - 8</div>
-                            <div class="text-[10px] text-zinc-400 font-semibold">Jugadores en Vivo</div>
+                            <div class="text-[10px] text-zinc-400 font-semibold">Jugadores Locales</div>
                         </div>
                         <div class="bg-zinc-900/60 border border-white/5 rounded-2xl p-2.5">
                             <div class="text-base font-black text-emerald-400 font-uno">4 EQ.</div>
@@ -1476,7 +1444,7 @@
                     <button id="btnHomePlusLearn" type="button" class="mt-3 w-full rounded-xl border border-fuchsia-300/25 bg-fuchsia-500/10 px-3 py-2.5 text-xs font-bold text-fuchsia-100">Ver tienda y objetos Plus</button>
                   </section>
                   <section class="rounded-3xl border border-emerald-300/20 bg-zinc-950/70 p-5">
-                    <div class="text-[10px] font-black tracking-[.2em] text-emerald-300">🎮 CLUB EN VIVO</div><h3 class="mt-1 font-uno text-xl text-white">Elegí cómo jugar</h3><p class="mt-2 text-xs leading-relaxed text-zinc-400">Partidas rápidas contra IA, salas online, partidas públicas y clasificatorias. ¡Sumá victorias y conseguí recompensas!</p><div class="mt-3 grid grid-cols-2 gap-2"><div class="rounded-xl bg-black/30 p-3"><b class="block text-lg text-emerald-300">2–8</b><span class="text-[10px] text-zinc-500">Jugadores</span></div><div class="rounded-xl bg-black/30 p-3"><b class="block text-lg text-amber-300">4v4</b><span class="text-[10px] text-zinc-500">Equipos</span></div></div>
+                    <div class="text-[10px] font-black tracking-[.2em] text-emerald-300">🎮 CLUB EN VIVO</div><h3 class="mt-1 font-uno text-xl text-white">Elegí cómo jugar</h3><p class="mt-2 text-xs leading-relaxed text-zinc-400">Partidas rápidas contra IA, modos especiales y Rankeds online. ¡Sumá victorias y conseguí recompensas!</p><div class="mt-3 grid grid-cols-2 gap-2"><div class="rounded-xl bg-black/30 p-3"><b class="block text-lg text-emerald-300">2–8</b><span class="text-[10px] text-zinc-500">Jugadores</span></div><div class="rounded-xl bg-black/30 p-3"><b class="block text-lg text-amber-300">4v4</b><span class="text-[10px] text-zinc-500">Equipos</span></div></div>
                   </section>
                 </aside>
             </div>
@@ -1538,19 +1506,9 @@
           <div id="arcadeSetupEmoji" class="text-4xl">🎮</div>
           <h3 id="arcadeSetupTitle" class="font-uno text-2xl mt-2"></h3>
           <div id="arcadeSetupRules" class="text-sm text-zinc-300 mt-2"></div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5">
-            <button id="arcadeSetupSolo" class="arcade-action border-amber-400/50 text-amber-100 flex-1">🤖 Jugar solo contra bots</button>
-            <button id="arcadeSetupCreate" class="arcade-action border-emerald-400/40 text-emerald-200 flex-1">🌐 Crear sala online</button>
-          </div>
-          <p class="text-[11px] text-amber-100/70 mt-2">Modo individual: vos contra 3 rivales controlados por la IA.</p>
-          <div class="border-t border-white/10 mt-4 pt-4">
-            <div class="text-xs font-black text-zinc-300 mb-2">UNIRSE A UNA SALA DE ESTE MODO</div>
-            <div class="flex flex-col sm:flex-row gap-2">
-              <input id="arcadeJoinCode" maxlength="6" autocomplete="off" placeholder="CÓDIGO DE 6 CARACTERES" class="min-w-0 flex-1 rounded-xl bg-black/40 border border-white/15 px-4 py-3 text-white font-black tracking-[.2em] uppercase">
-              <button id="arcadeJoinBtn" class="arcade-action text-emerald-200">Unirme →</button>
+          <div class="mt-5 rounded-xl border border-sky-400/25 bg-sky-950/30 p-3 text-xs text-sky-100/80">
+              🤖 Este modo funciona offline contra bots. Las salas online están reservadas exclusivamente para Rankeds.
             </div>
-          </div>
-          <p class="text-[11px] text-zinc-500 mt-3">Partidas online en tiempo real mediante Firebase · 2 a 4 jugadores.</p>
         </section>
       </div>
     </section>
@@ -1616,7 +1574,7 @@
 
             <div class="py-4 border-b border-white/10">
                 <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5">
-                    <div class="flex flex-wrap items-center justify-between gap-3"><div><span class="block text-xs font-extrabold text-fuchsia-300">🎲 Modo de juego</span><span id="gameModeHint" class="block text-[11px] text-zinc-400">Todos los modos UNO están disponibles offline y online.</span></div>
+                    <div class="flex flex-wrap items-center justify-between gap-3"><div><span class="block text-xs font-extrabold text-fuchsia-300">🎲 Modo de juego</span><span id="gameModeHint" class="block text-[11px] text-zinc-400">Todos los modos casuales UNO están disponibles offline. Rankeds es online.</span></div>
                     <div class="flex flex-wrap gap-2"><button id="gameModeClassicBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🃏 Clásico</button><button id="gameModeChaosBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">💥 Caos</button><button id="gameModeSurvivalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">❤️ Supervivencia</button><button id="gameModeTurboBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚡ Turbo</button><button id="gameModeLiarBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🎭 Mentiroso</button><button id="gameModeTacticalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚔️ Táctico</button></div></div>
                     <p id="chaosModeInfo" class="hidden mt-3 text-[11px] text-fuchsia-200 bg-fuchsia-950/40 border border-fuchsia-400/20 rounded-xl p-2.5">Cartas especiales, +99 ultra rara y mazo que se repone automáticamente sin límite.</p><p id="specialModeInfo" class="hidden mt-2 text-[11px] text-emerald-200 bg-emerald-950/40 border border-emerald-400/20 rounded-xl p-2.5"></p><div class="mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-300/20 bg-amber-950/20 p-3"><div><b class="block text-xs text-amber-200">🏆 Modo Competitivo Online</b><span class="text-[11px] text-zinc-400">Ranking individual: +30 al ganar, +12 segundo, +2 tercero y -12 restantes.</span></div><button id="competitiveModeBtn" type="button" class="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-extrabold text-zinc-300">Activar competitivo</button></div>
                 </div>
@@ -1658,9 +1616,9 @@
                 </div>
             </div>
 
-            <!-- Visibilidad Online y Temporizador de Turno -->
+            <!-- Opciones online (solo Rankeds) y temporizador de turno -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 border-b border-white/10">
-                <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                <div id="onlineVisibilityCard" class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5 flex items-center justify-between gap-3">
                     <div>
                         <span class="block text-xs font-extrabold text-sky-300">🌍 Visibilidad de la Sala</span>
                         <span class="block text-[11px] text-zinc-400">Pública aparece en el explorador; Privada solo entra con código</span>
@@ -1673,7 +1631,7 @@
 
                 <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5 flex items-center justify-between gap-3">
                     <div>
-                        <span class="block text-xs font-extrabold text-amber-300">⏱️ Reloj por Turno Online</span>
+                        <span class="block text-xs font-extrabold text-amber-300">⏱️ Reloj por Turno</span>
                         <span class="block text-[11px] text-zinc-400">Evita partidas pausadas si alguien se distrae</span>
                     </div>
                     <div class="flex gap-1.5 shrink-0">
@@ -2004,7 +1962,7 @@
                 <p><strong class="text-white">Regla de Reversa en 2 Jugadores:</strong> Cuando quedan solo 2 jugadores en la mesa, la carta <span class="text-amber-300 font-semibold">Reversa</span> actúa exactamente como un <span class="text-amber-300 font-semibold">Salta</span> (vuelve a jugar quien la lanzó).</p>
                 <p><strong class="text-white">Grito de ¡UNO! y Penalización:</strong> Cuando te queda 1 carta (o justo antes de soltar tu penúltima), pulsa el botón <span class="text-rose-400 font-bold">¡UNO!</span>. Si otro jugador pulsa <em>"¡No dijo UNO!"</em> antes que tú, robas 2 cartas de penalización.</p>
                 <p><strong class="text-white">Defensa acumulativa (+2 y +4):</strong> Si recibes un +2, puedes responder con otro +2 y pasar la suma al siguiente. Si recibes un +4, puedes responder con otro +4 o bloquearlo con un número del color que eligió quien lanzó el +4. Si no puedes defenderte, aceptas y robas toda la penalización acumulada.</p>
-                <p><strong class="text-fuchsia-300">UNO CAOS (solo online):</strong> El mazo se genera por lotes automáticamente y nunca se termina. Incluye +10, +20, +99 ultra rara (1 posibilidad entre 5.000 por carta generada), bloqueo doble, cambio de manos, todos +5, robo de 2, reversa global y escudo para defender penalizaciones.</p>
+                <p><strong class="text-fuchsia-300">UNO CAOS (offline y competitivo):</strong> El mazo se genera por lotes automáticamente y nunca se termina. Incluye +10, +20, +99 ultra rara (1 posibilidad entre 5.000 por carta generada), bloqueo doble, cambio de manos, todos +5, robo de 2, reversa global y escudo para defender penalizaciones.</p>
                 <p><strong class="text-white">Modo por Equipos (2 a 4 Equipos):</strong> Los compañeros se sientan intercalados alrededor de la mesa. Cuando cualquier integrante de un equipo se queda sin cartas, ¡todo su equipo gana la ronda!</p>
             </div>
         </div>
@@ -2221,7 +2179,7 @@
           const a=document.getElementById('playerIdDisplay'),b=document.getElementById('competitiveMenuPlayerId');
           if(a)a.textContent='ID: '+id;if(b)b.textContent=id;
         }
-        function openCompetitiveMenu(){document.getElementById('competitiveMenuScreen')?.classList.remove('hidden');renderCompetitiveRank();updatePlayerIdDisplay();renderCompetitiveFormatPicker();}
+        async function openCompetitiveMenu(){document.getElementById('competitiveMenuScreen')?.classList.remove('hidden');renderCompetitiveRank();updatePlayerIdDisplay();renderCompetitiveFormatPicker();const ready=await initFirebase();if(ready){renderCompetitiveRank();updatePlayerIdDisplay();}else showToast('Rankeds necesita conexión para sincronizar tu rango.','warn');}
         function renderCompetitiveFormatPicker(){document.querySelectorAll('[data-comp-format]').forEach(b=>{const on=b.dataset.compFormat===selectedCompetitiveFormat,tryhard=['2v1','3v1','4v1'].includes(b.dataset.compFormat);b.className='competitive-format-btn rounded-xl border px-3 py-3 text-xs font-black transition-all duration-200 '+(on?(tryhard?'border-fuchsia-300 bg-fuchsia-500/25 text-white shadow-lg shadow-fuchsia-500/20':'border-amber-300 bg-amber-400/20 text-amber-100'):(tryhard?'border-fuchsia-400/35 bg-fuchsia-950/35 text-fuchsia-100 hover:border-fuchsia-300 hover:bg-fuchsia-900/45':'border-white/10 bg-black/30 text-zinc-300'))});}
         function closeCompetitiveSearch(){
           if(competitiveSearchInterval){clearInterval(competitiveSearchInterval);competitiveSearchInterval=null;}
@@ -2430,7 +2388,7 @@
             renderAccountLinkStatus();
 
             updateOnlineBadgeUI('connected', currentUserId);
-            startPublicRoomsListener();
+            // Las salas casuales ya no se consultan: solo Rankeds usa Firestore para partidas.
             startCompetitiveLeaderboardListener();
             syncCompetitiveProfile().catch(err => console.warn("No se pudo sincronizar el perfil competitivo:", err));
 
@@ -2608,7 +2566,7 @@
                 `;
             }).join('');
         }
-        initFirebase();
+        // Firebase se conecta bajo demanda al entrar en Rankeds o en servicios online del Club.
 
         // =========================================================
         // 3. CONSTANTES Y MAZO OFICIAL DE 108 CARTAS DE UNO!
@@ -3535,7 +3493,7 @@
             state.room.comboChain = state.comboChain || null;
             state.room.updatedAt = Date.now();
             renderCurrentView();
-            if (!state.isOnline) return true;
+            if (!state.isOnline || !state.room.competitiveMode) return true;
 
             const ready = await initFirebase();
             if (!ready || !currentUser || !db || !state.roomCode) {
@@ -3660,8 +3618,15 @@
         async function createNewRoom(isOnlineMode = true, competitiveMode = false, publicOverride = null, competitiveQueue = false, localLobby = false) {
             sfx.init();
             let onlineAvailable = false;
-            if (isOnlineMode) {
+            // Solo las partidas clasificatorias pueden crear salas sincronizadas.
+            if (competitiveMode && isOnlineMode) {
                 onlineAvailable = await initFirebase();
+            } else {
+                isOnlineMode = false;
+            }
+            if (competitiveMode && !onlineAvailable) {
+                showToast('Rankeds necesita conexión con Firebase para crear una partida.','danger');
+                return;
             }
 
             const code = onlineAvailable ? generateRoomCode() : 'LOCAL';
@@ -3787,6 +3752,7 @@
                     }
                     const roomData = snap.data();
                     if (roomData.arcadeRoom) throw new Error('ARCADE_ROOM');
+                    if (!roomData.competitiveMode) throw new Error('CASUAL_OFFLINE');
                     const alreadyIn = (roomData.seats || []).find(s => s.id === currentUserId);
 
                     if (alreadyIn) {
@@ -3845,7 +3811,9 @@
                 } else if (err.message === "ROOM_FULL") {
                     showToast("La sala está completa.", "danger");
                 } else if (err.message === "ARCADE_ROOM") {
-                    showToast("Ese código es de UNO HOLD'EM POKER 3D, BATALLA o ROBADO. Entrá desde 🎮 Modos.", "warn");
+                    showToast("Ese código es de un modo Arcade. Los modos casuales son offline.", "warn");
+                } else if (err.message === "CASUAL_OFFLINE") {
+                    showToast("Los modos casuales ahora son offline. Para jugar online, usá Rankeds.", "warn");
                 } else {
                     showToast("No se pudo entrar a la sala. Verifica el código.", "danger");
                 }
@@ -3929,7 +3897,7 @@
             }
 
             room.matchId='match_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
-            const deck = room.gameMode === 'chaos' && state.isOnline ? createChaosDeckBatch(360) : shuffleArray(createOfficial108Deck());
+            const deck = room.gameMode === 'chaos' ? createChaosDeckBatch(360) : shuffleArray(createOfficial108Deck());
             room.pendingStack = null;
             room.pendingLie = null;
             room.comboChain = null;
@@ -4789,7 +4757,9 @@
         function renderLobby() {
             const room = state.room;
             const isHost = room.hostId === currentUserId;
-            document.getElementById('lobbyRoomCode').textContent = room.competitiveMode ? '🏆 COMPETITIVO · '+(room.competitiveFormat||'CLASIFICATORIA')+' · '+room.code : room.code;
+            document.getElementById('lobbyRoomCode').textContent = room.competitiveMode ? '🏆 COMPETITIVO · '+(room.competitiveFormat||'CLASIFICATORIA')+' · '+room.code : state.isOnline ? room.code : 'OFFLINE';
+            document.getElementById('btnCopyRoomCode')?.classList.toggle('hidden',!state.isOnline);
+            document.getElementById('onlineVisibilityCard')?.classList.toggle('hidden',!state.isOnline);
             document.getElementById('lobbyModeTag').textContent = room.competitiveMode ? '🏆 Sala Competitiva · '+(isHost?'Anfitrión':'Esperando jugadores') : state.isOnline ? `Multijugador Online • ${isHost ? 'Eres el Anfitrión' : 'Esperando al Anfitrión'}` : 'Sala Local';
 
             // Ocultar o deshabilitar controles exclusivos del anfitrión para invitados
@@ -4852,7 +4822,7 @@
 
             const competitiveBtn = document.getElementById('competitiveModeBtn');
             if (competitiveBtn) { const eligible = state.isOnline && !room.teamMode; competitiveBtn.disabled = !isHost || !eligible; competitiveBtn.textContent = room.competitiveMode ? '🏆 Competitivo ACTIVADO' : 'Activar competitivo'; competitiveBtn.className = 'rounded-xl border px-3 py-2 text-xs font-extrabold ' + (room.competitiveMode ? 'border-amber-300 bg-amber-400 text-zinc-950' : 'border-zinc-700 bg-zinc-900 text-zinc-300') + (!isHost || !eligible ? ' opacity-40 cursor-not-allowed' : ' cursor-pointer'); competitiveBtn.title = !state.isOnline ? 'Disponible solo online' : (room.teamMode ? 'El competitivo es individual' : 'Activar o desactivar ranking'); }
-            // Modo CAOS solo online y seleccionable por el anfitrión.
+            // Todos los modos casuales, incluido CAOS, se pueden jugar en salas locales.
             const modeButtons = { classic:'gameModeClassicBtn', chaos:'gameModeChaosBtn', survival:'gameModeSurvivalBtn', turbo:'gameModeTurboBtn', liar:'gameModeLiarBtn', tactical:'gameModeTacticalBtn' };
             const modeColors = { classic:'bg-emerald-600 border-emerald-400', chaos:'bg-fuchsia-600 border-fuchsia-300', survival:'bg-rose-600 border-rose-300', turbo:'bg-cyan-600 border-cyan-300', liar:'bg-violet-600 border-violet-300', tactical:'bg-amber-500 border-amber-300' };
             Object.entries(modeButtons).forEach(([mode,id]) => {
@@ -6063,7 +6033,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
 
         function getPokerChips(){try{const raw=localStorage.getItem('uno_pok_chips');if(raw===null)return 1000;const n=Number(raw);return Number.isFinite(n)&&n>=0?n:1000;}catch(_){return 1000;}}
         function setPokerChips(value){const n=Math.max(0,Math.floor(Number(value)||0));try{localStorage.setItem('uno_pok_chips',String(n));}catch(_){}const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=n.toLocaleString('es-AR')+' fichas';}
-        async function refreshPokerWallet(){let balance=getPokerChips();if(currentUserId&&db){try{const snap=await getDoc(clubProfileRef(currentUserId));if(snap.exists()){const p=snap.data()||{};balance=Math.max(0,Number(p.pokerChips??p.localStorage?.uno_pok_chips??1000));setPokerChips(balance);}}catch(e){console.warn('Saldo de fichas de Póker:',e);}}const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=balance.toLocaleString('es-AR')+' fichas';}
+        function refreshPokerWallet(){const balance=getPokerChips();const e=document.getElementById('arcadePokerWallet');if(e)e.textContent=balance.toLocaleString('es-AR')+' fichas';return balance;}
         async function reservePokerChips(tx,uid,amount){const ref=clubProfileRef(uid),snap=await tx.get(ref),profile=snap.exists()?snap.data():{};const balance=Math.max(0,Number(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000));if(balance<amount)throw new Error('POKER_CHIPS_LOW');const next=balance-amount;const localData={...(profile.localStorage||snapshotClubLocalStorage()),uno_pok_chips:String(next)};tx.set(ref,{uid,pokerChips:next,localStorage:localData,updatedAt:Date.now()},{merge:true});return next;}
         async function settlePokerChips(room){if(!room||room.pokerCurrency!=='chips'||room.arcadeMode!=='poker'||room.status!=='finished'||!currentUser)return;let newBalance=null,payoutPaid=0;try{await runTransaction(db,async tx=>{const roomRef=arcadeOnlineRef(room.code),profileRef=clubProfileRef(currentUserId),roomSnap=await tx.get(roomRef),profileSnap=await tx.get(profileRef);if(!roomSnap.exists()||!profileSnap.exists())return;const live=roomSnap.data(),g=live.arcadeState||{},player=(g.players||[]).find(p=>p.id===currentUserId),paid=Array.isArray(live.pokerPaidOutUids)?live.pokerPaidOutUids:[];if(live.status!=='finished'||live.pokerCurrency!=='chips'||!player||paid.includes(currentUserId))return;payoutPaid=Math.max(0,Math.floor(Number(player.stack)||0));const profile=profileSnap.data()||{},balance=Math.max(0,Number(profile.pokerChips??profile.localStorage?.uno_pok_chips??1000));newBalance=balance+payoutPaid;const localData={...(profile.localStorage||{}),uno_pok_chips:String(newBalance)};tx.set(profileRef,{pokerChips:newBalance,localStorage:localData,updatedAt:Date.now()},{merge:true});tx.update(roomRef,{pokerPaidOutUids:[...paid,currentUserId],pokerPaidOutAt:Date.now()});});if(newBalance!==null){setPokerChips(newBalance);showToast('🪙 Recuperaste '+payoutPaid.toLocaleString('es-AR')+' fichas de Póker.','success');}}catch(err){console.warn('Liquidación de fichas de Póker:',err);}}
         function getClubDiamonds(){return typeof getUnoPlus==='function'?getUnoPlus():Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));}
@@ -6103,6 +6073,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         }
 
         async function arcadeOnlineCreate(mode){
+          showToast('Los modos Arcade son offline. Para jugar online, entrá en Rankeds.','info');return;
           if(arcadeOnline.busy)return;arcadeOnline.busy=true;
           try{
             if(mode==='poker3d'){
@@ -6134,6 +6105,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           finally{arcadeOnline.busy=false;}
         }
         async function arcadeOnlineJoin(raw,expectedMode){
+          showToast('Los modos Arcade son offline. Para jugar online, entrá en Rankeds.','info');return;
           if(arcadeOnline.busy)return;arcadeOnline.busy=true;
           try{
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
@@ -6252,6 +6224,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           else arcadeOnlineRenderRobado(r,g);
         }
         async function arcadeOnlineStart(){
+          showToast('Las partidas del Arcade son locales y contra bots.','info');return;
           const r=arcadeOnline.room;if(!r||r.hostId!==currentUserId||r.status!=='lobby')return;
           const players=r.seats.filter(s=>s.id);if(players.length<2){showToast('Se necesitan al menos 2 jugadores.','warn');return;}
           let game;
@@ -6414,9 +6387,6 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
 
         document.getElementById('arcadeSetupBack').onclick=()=>{document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');};
         document.getElementById('arcadeSetupSolo').onclick=()=>arcadeOnline.selectedMode==='poker3d'?arcadeOpenPoker3D():arcadeOpenGame(arcadeOnline.selectedMode);
-        document.getElementById('arcadeSetupCreate').onclick=()=>arcadeOnlineCreate(arcadeOnline.selectedMode);
-        document.getElementById('arcadeJoinBtn').onclick=()=>arcadeOnlineJoin(document.getElementById('arcadeJoinCode').value,arcadeOnline.selectedMode);
-        document.getElementById('arcadeJoinCode').addEventListener('keydown',e=>{if(e.key==='Enter')arcadeOnlineJoin(e.currentTarget.value,arcadeOnline.selectedMode);});
         document.getElementById('arcadeGameContent').addEventListener('click',e=>{
           if(e.target.closest('[data-aonline-copy]')){GenUIcopyArcade(arcadeOnline.code);return;}
           if(e.target.closest('[data-aonline-leave]')){arcadeOnlineLeave(true);return;}
@@ -6468,8 +6438,6 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
         document.getElementById('btnCloseSettings').onclick=()=>document.getElementById('settingsModal').classList.add('hidden');document.getElementById('btnCloseStore').onclick=()=>document.getElementById('storeModal').classList.add('hidden');
         document.getElementById('btnQuickSolo').onclick = () => createNewRoom(false);
         document.getElementById('btnCreateOffline').onclick = () => createNewRoom(false, false, null, false, true);
-        document.getElementById('btnCreateOnline').onclick = () => createNewRoom(true);
-        document.getElementById('btnJoinRoom').onclick = () => joinExistingRoom(document.getElementById('joinCodeInput').value);
 
         // Botones del Lobby
         document.getElementById('btnCopyRoomCode').onclick = () => {
@@ -6953,6 +6921,7 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           },err=>{console.error(err);tcgOnlineSetStatus('Error de conexión');showToast('Error escuchando la sala TCG. Revisá las reglas de Firestore.','warn');});
         }
         async function tcgOnlineCreate(){
+          showToast('TCG funciona offline contra la IA.','info');return;
           if(!firebaseReady||!db||!currentUser){showToast('Esperá a que Firebase termine de conectar.','warn');return;}
           if(tcgDeck.length!==60){tcgStarterDeck();}
           try{
@@ -6968,6 +6937,7 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           }catch(e){console.error(e);tcgOnline=null;showToast(e.message||'No se pudo crear la sala.','warn');}
         }
         async function tcgOnlineJoin(){
+          showToast('TCG funciona offline contra la IA.','info');return;
           if(!firebaseReady||!db||!currentUser){showToast('Esperá a que Firebase termine de conectar.','warn');return;}
           if(tcgDeck.length!==60){tcgStarterDeck();}
           const code=(document.getElementById('tcgJoinCode').value||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){showToast('Ingresá un código de 6 caracteres.','warn');return;}
@@ -7197,9 +7167,6 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
         function tcgEndPlayerTurn(){const b=tcgBattle;if(!b||b.over||b.turn!=='player')return;if(b.phase!=='attackDone'){if(b.phase==='draw'){tcgDrawTurn();}if(b.phase==='main'){showToast('Podés atacar antes de terminar el turno.','warn');return}}b.turn='cpu';b.phase='draw';if(tcgOnline&&b.cpu){b.cpu.energyAttached=false;b.cpu.playedSupporter=false;b.cpu.turnDrawn=false;}tcgBattleRender();if(tcgOnline){tcgOnlinePublish();return}setTimeout(tcgCpuTurn,650)}
         function tcgCpuTurn(){const b=tcgBattle;if(!b||b.over)return;const c=b.cpu;if(c.deck.length)c.hand.push(c.deck.pop());let ei=c.hand.findIndex(id=>tcgCard(id)?.kind==='Energy');if(ei>=0)c.active.energies.push(c.hand.splice(ei,1)[0]);let bi=c.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id).rarity==='Basic');if(bi>=0&&c.bench.length<5)c.bench.push(tcgCardInstance(c.hand.splice(bi,1)[0]));const atk=(TCG_ATTACKS[c.active.id]||[]).find(a=>c.active.energies.length>=a[1]);if(atk){b.player.active.damage+=atk[2];tcgLog('La IA usó '+atk[0]+' e hizo '+atk[2]+' de daño.');if(b.player.active.damage>=b.player.active.hp){if(b.player.prizes>0)b.player.prizes--;if(b.player.bench.length){b.player.active=b.player.bench.shift();tcgLog('Tu personaje activo cayó: elegí uno de la banca en tu próximo turno.')}else{tcgBattleFinish('cpu');return}}}b.turn='player';b.phase='draw';b.player.energyAttached=false;b.player.playedSupporter=false;b.selectedEnergy=null;tcgBattleRender()}
         document.getElementById('tcgBattleStart').onclick=()=>{if(tcgOnline){showToast('Salí de la sala online para jugar contra la IA.','warn');return}if(tcgDeck.length!==60){tcgStarterDeck()}tcgAskDeviceMode(tcgBeginBattle)};
-        document.getElementById('tcgCreateOnline').onclick=()=>tcgAskDeviceMode(tcgOnlineCreate);
-        document.getElementById('tcgJoinOnline').onclick=()=>tcgAskDeviceMode(tcgOnlineJoin);
-        document.getElementById('tcgLeaveOnline').onclick=()=>tcgOnlineExit(true);
         document.getElementById('tcgEndTurn').onclick=tcgEndPlayerTurn;
         /* El ataque se selecciona tocando el Pokémon activo. */
 
@@ -7295,15 +7262,14 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
             <div class="h-2 rounded-full bg-zinc-800 mt-2 overflow-hidden"><div id="tcgDeckProgress" class="h-full bg-fuchsia-500" style="width:0%"></div></div>
             <div id="tcgDeckList" class="space-y-1 mt-3 max-h-64 overflow-y-auto"></div>
             <div class="grid grid-cols-2 gap-2 mt-4"><button id="tcgAutoDeck" class="rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 p-3 text-xs font-black">✨ Crear mazo inicial</button><button id="tcgClearDeck" class="rounded-xl bg-zinc-700 hover:bg-zinc-600 p-3 text-xs font-bold">Vaciar mazo</button></div>
-            <p id="tcgDeckHint" class="text-[11px] text-zinc-500 mt-3">La colección y el mazo se guardan localmente en este navegador. El TCG ya permite crear salas online y sincronizar el tablero entre dos jugadores.</p>
+            <p id="tcgDeckHint" class="text-[11px] text-zinc-500 mt-3">La colección, los sobres y el mazo se guardan localmente en este navegador. El campo de batalla funciona contra la IA, sin conexión.</p>
 
-          <section class="lg:col-span-2 rounded-2xl border border-emerald-400/25 bg-emerald-950/20 p-4">
-              <div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold text-lg text-emerald-200">🌐 TCG Online PvP</h3><p class="text-xs text-zinc-400">Creá una sala, compartí el código con tu hermano y jueguen 1 contra 1.</p></div><span id="tcgOnlineStatus" class="text-xs text-zinc-400">Desconectado</span></div>
-              <div class="flex flex-wrap gap-2 mt-3"><button id="tcgCreateOnline" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black">＋ Crear sala online</button><input id="tcgJoinCode" maxlength="6" placeholder="CÓDIGO" class="w-28 rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-center font-mono uppercase text-sm"><button id="tcgJoinOnline" class="rounded-xl bg-sky-700 px-4 py-2 text-xs font-black">Unirme</button><button id="tcgLeaveOnline" class="hidden rounded-xl bg-rose-900 px-4 py-2 text-xs font-bold">Salir de sala</button></div>
-              <div id="tcgOnlineRoomInfo" class="text-xs text-emerald-200 mt-2"></div>
+          <section class="lg:col-span-2 rounded-2xl border border-sky-400/20 bg-sky-950/20 p-4">
+              <h3 class="font-bold text-sm text-sky-200">🤖 TCG Offline</h3>
+              <p class="text-xs text-zinc-400 mt-1">El campo de batalla se juega contra la IA. Tu colección y tus mazos se guardan en este dispositivo.</p>
             </section>
             <section class="lg:col-span-2 rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-950/30 to-black/40 p-4">
-            <div class="flex flex-wrap justify-between items-center gap-3"><div><h3 class="font-uno text-2xl text-cyan-200">⚔️ Campo de batalla TCG</h3><p class="text-xs text-zinc-400">Formato 1 contra 1: contra IA o en sala online • seis premios • activo y banca</p></div><button id="tcgBattleStart" class="rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black px-4 py-2 text-sm">⚔️ Iniciar partida</button></div>
+            <div class="flex flex-wrap justify-between items-center gap-3"><div><h3 class="font-uno text-2xl text-cyan-200">⚔️ Campo de batalla TCG</h3><p class="text-xs text-zinc-400">Formato 1 contra 1 contra IA • seis premios • activo y banca</p></div><button id="tcgBattleStart" class="rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black px-4 py-2 text-sm">⚔️ Iniciar partida</button></div>
             <div id="tcgBattleArea" class="hidden mt-4 space-y-3">
               <div class="tcg-arena tcg-pokemon-board"><div id="tcgThreeBoard" class="tcg-three-board" aria-label="Tablero Pokémon TCG en 3D"></div><div class="tcg-board-dom-fallback hidden"><div class="tcg-board-topline"><span>⚔️ CAMPO DEL RIVAL</span><span>POKÉMON TCG</span></div><div class="grid grid-cols-1 gap-3">
                 <div class="tcg-side tcg-opponent rounded-xl bg-rose-950/30 border border-rose-400/20 p-3"><div class="flex justify-between text-xs"><b id="tcgOpponentLabel">👤 Rival</b><span id="tcgCpuPrizes">6 premios</span></div><div id="tcgCpuActive" class="mt-2 min-h-24"></div><div id="tcgCpuBench" class="flex gap-2 flex-wrap mt-2"></div></div>
