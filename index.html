@@ -1444,7 +1444,7 @@
                     <button id="btnHomePlusLearn" type="button" class="mt-3 w-full rounded-xl border border-fuchsia-300/25 bg-fuchsia-500/10 px-3 py-2.5 text-xs font-bold text-fuchsia-100">Ver tienda y objetos Plus</button>
                   </section>
                   <section class="rounded-3xl border border-emerald-300/20 bg-zinc-950/70 p-5">
-                    <div class="text-[10px] font-black tracking-[.2em] text-emerald-300">🎮 CLUB EN VIVO</div><h3 class="mt-1 font-uno text-xl text-white">Elegí cómo jugar</h3><p class="mt-2 text-xs leading-relaxed text-zinc-400">Partidas rápidas contra IA, salas online, partidas públicas y clasificatorias. ¡Sumá victorias y conseguí recompensas!</p><div class="mt-3 grid grid-cols-2 gap-2"><div class="rounded-xl bg-black/30 p-3"><b class="block text-lg text-emerald-300">2–8</b><span class="text-[10px] text-zinc-500">Jugadores</span></div><div class="rounded-xl bg-black/30 p-3"><b class="block text-lg text-amber-300">4v4</b><span class="text-[10px] text-zinc-500">Equipos</span></div></div>
+                    <div class="text-[10px] font-black tracking-[.2em] text-emerald-300">🎮 CLUB EN VIVO</div><h3 class="mt-1 font-uno text-xl text-white">Elegí cómo jugar</h3><p class="mt-2 text-xs leading-relaxed text-zinc-400">Partidas rápidas contra IA, modos especiales y Rankeds online. ¡Sumá victorias y conseguí recompensas!</p><div class="mt-3 grid grid-cols-2 gap-2"><div class="rounded-xl bg-black/30 p-3"><b class="block text-lg text-emerald-300">2–8</b><span class="text-[10px] text-zinc-500">Jugadores</span></div><div class="rounded-xl bg-black/30 p-3"><b class="block text-lg text-amber-300">4v4</b><span class="text-[10px] text-zinc-500">Equipos</span></div></div>
                   </section>
                 </aside>
             </div>
@@ -1574,7 +1574,7 @@
 
             <div class="py-4 border-b border-white/10">
                 <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5">
-                    <div class="flex flex-wrap items-center justify-between gap-3"><div><span class="block text-xs font-extrabold text-fuchsia-300">🎲 Modo de juego</span><span id="gameModeHint" class="block text-[11px] text-zinc-400">Todos los modos UNO están disponibles offline y online.</span></div>
+                    <div class="flex flex-wrap items-center justify-between gap-3"><div><span class="block text-xs font-extrabold text-fuchsia-300">🎲 Modo de juego</span><span id="gameModeHint" class="block text-[11px] text-zinc-400">Todos los modos casuales UNO están disponibles offline. Rankeds es online.</span></div>
                     <div class="flex flex-wrap gap-2"><button id="gameModeClassicBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🃏 Clásico</button><button id="gameModeChaosBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">💥 Caos</button><button id="gameModeSurvivalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">❤️ Supervivencia</button><button id="gameModeTurboBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚡ Turbo</button><button id="gameModeLiarBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">🎭 Mentiroso</button><button id="gameModeTacticalBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-extrabold border cursor-pointer">⚔️ Táctico</button></div></div>
                     <p id="chaosModeInfo" class="hidden mt-3 text-[11px] text-fuchsia-200 bg-fuchsia-950/40 border border-fuchsia-400/20 rounded-xl p-2.5">Cartas especiales, +99 ultra rara y mazo que se repone automáticamente sin límite.</p><p id="specialModeInfo" class="hidden mt-2 text-[11px] text-emerald-200 bg-emerald-950/40 border border-emerald-400/20 rounded-xl p-2.5"></p><div class="mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-300/20 bg-amber-950/20 p-3"><div><b class="block text-xs text-amber-200">🏆 Modo Competitivo Online</b><span class="text-[11px] text-zinc-400">Ranking individual: +30 al ganar, +12 segundo, +2 tercero y -12 restantes.</span></div><button id="competitiveModeBtn" type="button" class="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-extrabold text-zinc-300">Activar competitivo</button></div>
                 </div>
@@ -1616,9 +1616,9 @@
                 </div>
             </div>
 
-            <!-- Visibilidad Online y Temporizador de Turno -->
+            <!-- Opciones online (solo Rankeds) y temporizador de turno -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 border-b border-white/10">
-                <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                <div id="onlineVisibilityCard" class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5 flex items-center justify-between gap-3">
                     <div>
                         <span class="block text-xs font-extrabold text-sky-300">🌍 Visibilidad de la Sala</span>
                         <span class="block text-[11px] text-zinc-400">Pública aparece en el explorador; Privada solo entra con código</span>
@@ -1631,7 +1631,7 @@
 
                 <div class="bg-zinc-900/70 border border-white/5 rounded-2xl p-3.5 flex items-center justify-between gap-3">
                     <div>
-                        <span class="block text-xs font-extrabold text-amber-300">⏱️ Reloj por Turno Online</span>
+                        <span class="block text-xs font-extrabold text-amber-300">⏱️ Reloj por Turno</span>
                         <span class="block text-[11px] text-zinc-400">Evita partidas pausadas si alguien se distrae</span>
                     </div>
                     <div class="flex gap-1.5 shrink-0">
@@ -4757,7 +4757,9 @@
         function renderLobby() {
             const room = state.room;
             const isHost = room.hostId === currentUserId;
-            document.getElementById('lobbyRoomCode').textContent = room.competitiveMode ? '🏆 COMPETITIVO · '+(room.competitiveFormat||'CLASIFICATORIA')+' · '+room.code : room.code;
+            document.getElementById('lobbyRoomCode').textContent = room.competitiveMode ? '🏆 COMPETITIVO · '+(room.competitiveFormat||'CLASIFICATORIA')+' · '+room.code : state.isOnline ? room.code : 'OFFLINE';
+            document.getElementById('btnCopyRoomCode')?.classList.toggle('hidden',!state.isOnline);
+            document.getElementById('onlineVisibilityCard')?.classList.toggle('hidden',!state.isOnline);
             document.getElementById('lobbyModeTag').textContent = room.competitiveMode ? '🏆 Sala Competitiva · '+(isHost?'Anfitrión':'Esperando jugadores') : state.isOnline ? `Multijugador Online • ${isHost ? 'Eres el Anfitrión' : 'Esperando al Anfitrión'}` : 'Sala Local';
 
             // Ocultar o deshabilitar controles exclusivos del anfitrión para invitados
