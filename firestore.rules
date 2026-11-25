@@ -48,7 +48,7 @@ service cloud.firestore {
 
       allow create: if isSignedIn()
         && request.resource.data.hostId == request.auth.uid
-        && (!request.resource.data.keys().hasAny(['arcadeMode']) || request.(!resource.data.keys().hasAny(['arcadeMode']) || resource.data.arcadeMode != 'poker'))
+        && (!request.resource.data.keys().hasAny(['arcadeMode']) || request.resource.data.arcadeMode != 'poker')
         && (
           request.resource.data.code == roomId
           || roomId == 'TCG-' + request.resource.data.code
