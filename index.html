@@ -2458,8 +2458,8 @@
         }
         async function saveClubProfileCloud(){
           if(!db||!currentUser||!isGoogleAccountLinked()||clubProfileApplyingCloud)return false;
-          try{const localData=snapshotClubLocalStorage();const diamonds=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));
-            await setDoc(clubProfileRef(),{uid:currentUser.uid,diamonds,localStorage:localData,updatedAt:Date.now()},{merge:true});return true;
+          try{const localData=snapshotClubLocalStorage();const diamonds=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));const pokerChips=Math.max(0,Number(localStorage.getItem('uno_pok_chips')??1000));
+            await setDoc(clubProfileRef(),{uid:currentUser.uid,diamonds,pokerChips,localStorage:localData,updatedAt:Date.now()},{merge:true});return true;
           }catch(err){console.warn('Sincronización de perfil:',err);return false;}
         }
         async function loadClubProfileCloud(){
