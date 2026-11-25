@@ -2290,13 +2290,21 @@
                 game.lastClaim = claimIndex >= 0 ? { playerIndex: claimIndex, cards: gs.revealedCards || [], meshes: [], count: gs.lastClaim.count } : null;
                 const pileCount = gs.pileCount || 0;
                 const revealed = (gs.phase === "RESOLVING" || gs.phase === "ROUND_END" || gs.phase === "GAME_OVER") && Array.isArray(gs.revealedCards) ? gs.revealedCards : [];
-                const revealTransition = ["RESOLVING", "ROUND_END", "GAME_OVER"].includes(gs.phase) && oldRemotePhase !== gs.phase;
+                const revealTransition =
+                    (gs.phase === "RESOLVING" && oldRemotePhase !== "RESOLVING") ||
+                    (gs.phase === "ROUND_END" && !["RESOLVING", "ROUND_END"].includes(oldRemotePhase)) ||
+                    (gs.phase === "GAME_OVER" && !["RESOLVING", "ROUND_END", "GAME_OVER"].includes(oldRemotePhase));
                 const rebuildPile = this.remoteRound !== gs.round || this.remotePileCount === null || pileCount < this.remotePileCount || revealTransition;
                 if (rebuildPile) {
                     tableCardMeshes.forEach(m => tableObjectsGroup.remove(m)); tableCardMeshes.length = 0; activeAnimations.length = 0;
                     const hiddenCount = Math.max(0, pileCount - revealed.length);
                     for (let i = 0; i < hiddenCount; i++) { const mesh = createCard3D(target, false, new THREE.Vector3(((i % 7) - 3) * 0.16, 0.18 + i * 0.006, 0.1 + (i % 3) * 0.05)); mesh.rotation.y = (i % 5) * 0.08; }
-                    revealed.forEach((card, i) => { const type = CARD_TYPES.find(c => c.id === card.id) || WILD_TYPE; createCard3D(type, true, new THREE.Vector3((i - (revealed.length - 1) / 2) * 0.85, 0.48, 0.2)); });
+                    revealed.forEach((card, i) => {
+                        const type = CARD_TYPES.find(c => c.id === card.id) || WILD_TYPE;
+                        const position = new THREE.Vector3((i - (revealed.length - 1) / 2) * 0.85, 0.48, 0.2);
+                        const mesh = createCard3D(type, false, position);
+                        animateMeshTo(mesh, position, new THREE.Vector3(0, 0, 0), true, 0.12 + i * 0.16, 0.48);
+                    });
                 } else if (pileCount > (this.remotePileCount || 0)) {
                     const addCount = pileCount - this.remotePileCount;
                     const actorIndex = claimIndex >= 0 ? claimIndex : Math.max(0, gs.turnIndex - 1);
@@ -2310,7 +2318,17 @@
                     sfx.playCardSlap();
                 }
                 this.remotePileCount = pileCount; this.remoteRound = gs.round; this.remotePhase = gs.phase;
-                game.players.forEach((p, idx) => { if (typeof oldLives[idx] === "number" && p.lives < oldLives[idx]) { const crystal = game.crystalMeshes[idx]?.[p.lives]; if (crystal) spawnLifeShatterParticles(crystal.position, 0xff2a55); sfx.playLifeLost(); triggerCharacterReaction(idx, "hit", 1.8); } });
+                game.players.forEach((p, idx) => {
+                    if (typeof oldLives[idx] === "number" && p.lives < oldLives[idx]) {
+                        const crystal = game.crystalMeshes[idx]?.[p.lives];
+                        if (crystal) spawnLifeShatterParticles(crystal.position, 0xff2a55);
+                        sfx.playLifeLost(); triggerCharacterReaction(idx, "hit", 1.8);
+                    }
+                    if (p.eliminated) {
+                        const rig = characterRigs[idx];
+                        if (rig) { rig.root.rotation.x = -0.35; rig.root.position.y = -0.35; }
+                    }
+                });
                 game.crystalMeshes.forEach((arr, idx) => arr.forEach((mesh, n) => { const alive = n < (game.players[idx]?.lives || 0); mesh.visible = alive; }));
                 updateAllSeatsUI();
                 const claimText = document.getElementById("last-claim-text");
