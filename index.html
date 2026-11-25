@@ -2017,6 +2017,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, linkWithPopup, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, runTransaction, serverTimestamp, getDocs, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
         import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
         // =========================================================
@@ -2198,6 +2199,7 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'uno-club-official';
         let db = null;
         let auth = null;
+        let functionsClient = null;
         let currentUser = null;
         let currentUserId = 'local-' + Math.random().toString(36).substring(2, 10);
         let firebaseReady = false;
@@ -2409,6 +2411,7 @@
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
+            functionsClient = getFunctions(app, 'us-central1');
 
             // Esperar a que Firebase restaure la sesión guardada antes de autenticar.
             // Si ya existe una sesión anónima, reutilizarla: crear otra cambia el UID
@@ -2450,6 +2453,7 @@
         // El progreso se sincroniza en la nube solo cuando la sesión está vinculada a Google.
         function isGoogleAccountLinked(){return !!currentUser?.providerData?.some(p=>p.providerId==='google.com');}
         function clubProfileRef(uid=currentUserId){return doc(db,'artifacts',appId,'users',uid);}
+        async function callPokerFunction(name,payload={}){if(!functionsClient)throw new Error('No se pudo conectar con el servidor de Póker.');const call=httpsCallable(functionsClient,name);const result=await call({appId,...payload});return result.data||{};}
         function snapshotClubLocalStorage(){
           const data={};
           for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key||key.startsWith('firebase:')||key.startsWith('google:'))continue;data[key]=localStorage.getItem(key);}
@@ -2457,8 +2461,8 @@
         }
         async function saveClubProfileCloud(){
           if(!db||!currentUser||!isGoogleAccountLinked()||clubProfileApplyingCloud)return false;
-          try{const localData=snapshotClubLocalStorage();const diamonds=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));const pokerChips=Math.max(0,Number(localStorage.getItem('uno_pok_chips')??1000));
-            await setDoc(clubProfileRef(),{uid:currentUser.uid,diamonds,pokerChips,localStorage:localData,updatedAt:Date.now()},{merge:true});return true;
+          try{const localData=snapshotClubLocalStorage();const diamonds=Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0));
+            await setDoc(clubProfileRef(),{uid:currentUser.uid,diamonds,localStorage:localData,updatedAt:Date.now()},{merge:true});return true;
           }catch(err){console.warn('Sincronización de perfil:',err);return false;}
         }
         async function loadClubProfileCloud(){
@@ -6050,7 +6054,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         // =========================================================
         // ARCADE MULTIJUGADOR FIREBASE — salas independientes
         // =========================================================
-        const arcadeOnline = { code:null, room:null, unsubscribe:null, selectedCard:null, busy:false };
+        const arcadeOnline = { code:null, room:null, unsubscribe:null, privateHandUnsubscribe:null, privateHand:[], selectedCard:null, busy:false };
         const arcadeModeMeta = {
           poker3d:{title:'POKER 3D',label:'Texas Hold’em · Mesa 3D',emoji:'♠️'},
           battle:{title:'UNO! BATALLA',label:'Combate por turnos',emoji:'⚔️'},
@@ -6115,6 +6119,13 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
               document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');
               arcadeOnlineRender();return;
             }
+            if(mode==='poker'){
+              const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
+              const stake=Math.max(5,Number(document.getElementById('arcadePokerStake')?.value||100));
+              const result=await callPokerFunction('createPokerRoom',{stake,name:arcadeOnlinePlayer().name,avatar:arcadeOnlinePlayer().avatar});
+              setPokerChips(result.balance);arcadeOnline.code=result.code;arcadeOnline.privateHand=[];await arcadeOnlineSubscribe(result.code);
+              document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');arcadeOnlineRender();return;
+            }
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
             const code=generateRoomCode(),player=arcadeOnlinePlayer(),roomRef=arcadeOnlineRef(code);
             const pokerStake=mode==='poker'?Math.max(5,Number(document.getElementById('arcadePokerStake')?.value||100)):0;
@@ -6138,6 +6149,11 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           try{
             const ready=await initFirebase();if(!ready||!currentUserId||!db)throw new Error('No se pudo conectar a Firebase.');
             const code=String(raw||'').trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))throw new Error('Ingresá un código válido de 6 caracteres.');
+            if(expectedMode==='poker'){
+              const result=await callPokerFunction('joinPokerRoom',{code,name:arcadeOnlinePlayer().name,avatar:arcadeOnlinePlayer().avatar});if(result.balance!==null&&result.balance!==undefined)setPokerChips(result.balance);
+              arcadeOnline.code=code;arcadeOnline.privateHand=[];await arcadeOnlineSubscribe(code);
+              document.getElementById('arcadeModeMenu').classList.add('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeScreen').classList.add('hidden');document.getElementById('arcadeGameScreen').classList.remove('hidden');arcadeOnlineRender();return;
+            }
             const ref=arcadeOnlineRef(code);let balanceAfter=null;
             await runTransaction(db,async tx=>{
               const snap=await tx.get(ref);if(!snap.exists())throw new Error('No existe esa sala.');
@@ -6161,17 +6177,19 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         }
         async function arcadeOnlineSubscribe(code){
           if(arcadeOnline.unsubscribe)arcadeOnline.unsubscribe();
+          if(arcadeOnline.privateHandUnsubscribe){arcadeOnline.privateHandUnsubscribe();arcadeOnline.privateHandUnsubscribe=null;}
           const ready=await initFirebase();if(!ready)return;
           arcadeOnline.unsubscribe=onSnapshot(arcadeOnlineRef(code),snap=>{
             if(!snap.exists()){showToast('La sala fue cerrada.','warn');arcadeOnlineLeave(false);return;}
             const room=snap.data();
             if(!room.arcadeRoom||!(room.seats||[]).some(s=>s.id===currentUserId)){showToast('Ya no estás en esta sala.','warn');arcadeOnlineLeave(false);return;}
             arcadeOnline.room=room;arcadeOnlineRender();
-            if(room.arcadeMode==='poker'&&room.status==='finished'){const settle=room.pokerCurrency==='chips'?settlePokerChips:settlePokerDiamonds;settle(room).catch(e=>console.warn("Pago UNO HOLD'EM:",e));}
           },err=>{console.error('Arcade listener:',err);showToast('Se perdió la conexión con la sala.','danger');});
+          if(currentUserId){const handDoc=doc(db,'artifacts',appId,'public','data','uno_poker_private',code,'hands',currentUserId);arcadeOnline.privateHandUnsubscribe=onSnapshot(handDoc,snap=>{arcadeOnline.privateHand=snap.exists()?(snap.data().cards||[]):[];if(arcadeOnline.room?.arcadeMode==='poker')arcadeOnlineRender();},()=>{arcadeOnline.privateHand=[];});}
         }
         async function arcadeOnlineLeave(goMenu=true){
           const code=arcadeOnline.code,room=arcadeOnline.room;
+          if(room?.arcadeMode==='poker'&&code){try{await callPokerFunction('leavePokerRoom',{code});}catch(e){console.warn('Salida Póker:',e);}if(arcadeOnline.unsubscribe){arcadeOnline.unsubscribe();arcadeOnline.unsubscribe=null;}if(arcadeOnline.privateHandUnsubscribe){arcadeOnline.privateHandUnsubscribe();arcadeOnline.privateHandUnsubscribe=null;}arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.privateHand=[];if(currentUserId)refreshPokerWallet().catch(()=>{});if(goMenu){document.getElementById('arcadeGameScreen').classList.add('hidden');document.getElementById('arcadeScreen').classList.remove('hidden');document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');}return;}
           if(room?.arcadeMode==='poker'&&room.status==='finished'){if(room.pokerCurrency==='chips')await settlePokerChips(room);else await settlePokerDiamonds(room);}
           if(arcadeOnline.unsubscribe){arcadeOnline.unsubscribe();arcadeOnline.unsubscribe=null;}
           arcadeOnline.code=null;arcadeOnline.room=null;arcadeOnline.selectedCard=null;
@@ -6253,6 +6271,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
         }
         async function arcadeOnlineStart(){
           const r=arcadeOnline.room;if(!r||r.hostId!==currentUserId||r.status!=='lobby')return;
+          if(r.arcadeMode==='poker'){try{await callPokerFunction('startPokerHand',{code:r.code});}catch(e){showToast(e.message||'No se pudo iniciar el Póker.','danger');}return;}
           const players=r.seats.filter(s=>s.id);if(players.length<2){showToast('Se necesitan al menos 2 jugadores.','warn');return;}
           let game;
           if(r.arcadeMode==='poker'){
@@ -6296,7 +6315,7 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           g.turn=alive[0];
         }
         async function arcadeOnlinePokerAction(action){
-          const uid=currentUserId;
+          const uid=currentUserId,r=arcadeOnline.room;if(r?.arcadeMode==='poker'){try{await callPokerFunction('actPoker',{code:r.code,action});}catch(e){showToast(e.message||'No se pudo registrar la jugada.','warn');}return;}
           await arcadeOnlineMutate((r,g)=>{
             const i=g.players.findIndex(p=>p.id===uid);if(i<0||g.over||g.turn!==i)return false;const p=g.players[i],due=g.currentBet-p.bet,raiseBy=Math.max(1,Math.ceil((g.buyIn||100)/10));
             if(action==='fold'){p.folded=true;p.acted=true;}
@@ -6311,12 +6330,13 @@ document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubSt
           });
         }
          function arcadeOnlineRenderPoker(r,g){
-           const meIndex=g.players.findIndex(p=>p.id===currentUserId),me=g.players[meIndex],can=me&&!g.over&&g.players[g.turn]?.id===currentUserId;
+           const viewPlayers=g.players.map(p=>p.id===currentUserId?{...p,hand:g.over?(p.hand||arcadeOnline.privateHand):(arcadeOnline.privateHand||[])}:p);
+           const meIndex=viewPlayers.findIndex(p=>p.id===currentUserId),me=viewPlayers[meIndex],can=me&&!g.over&&viewPlayers[g.turn]?.id===currentUserId;
            const due=Math.max(0,g.currentBet-(me?.bet||0)),raiseBy=Math.max(1,Math.ceil((g.buyIn||100)/10));
            const controls=can?'<div class="flex flex-wrap justify-center gap-2 mt-4"><button data-aonline-poker="fold" class="arcade-action text-rose-200">Retirarme</button><button data-aonline-poker="call" class="arcade-action text-emerald-200">Igualar ◆ '+due+'</button><button data-aonline-poker="raise" class="arcade-action text-amber-100 border-amber-300/40">Subir +'+raiseBy+'</button></div>':'<div class="text-center text-xs text-zinc-300 mt-4">'+(g.over?'🏆 Mano finalizada':'Turno de '+arcadeEsc(g.players[g.turn]?.name||'…'))+'</div>';
            const payout=g.over?'<div class="text-center text-xs text-cyan-100 mt-3">'+(r.pokerCurrency==='chips'?'Entrada: '+Number(r.pokerStake||0)+' fichas · pozo: '+(Number(r.pokerStake||0)*(g.players||[]).length)+' fichas. Premio en tu billetera de Póker.':'Entrada antigua: '+Number(r.pokerStake||0)+' diamantes · liquidación heredada.')+'</div>':'';
            const best=me&&!me.folded?pokerBest([...me.hand,...g.community]):null;
-           pokerMountStage({players:g.players,community:g.community,pot:g.pot,stage:g.stage,turnIndex:g.turn,heroIndex:Math.max(0,meIndex),over:g.over,message:g.message,heroCards:me?.hand||[],handName:best?pokerRankNames[best.score[0]]:'Retirado',online:true,currencyName:r.pokerCurrency==='chips'?'EN FICHAS':'EN DIAMANTES'},controls+payout,r.pokerCurrency==='chips'?'🪙 ':'◆ ');
+           pokerMountStage({players:viewPlayers,community:g.community,pot:g.pot,stage:g.stage,turnIndex:g.turn,heroIndex:Math.max(0,meIndex),over:g.over,message:g.message,heroCards:me?.hand||[],handName:best?pokerRankNames[best.score[0]]:'Retirado',online:true,currencyName:r.pokerCurrency==='chips'?'EN FICHAS':'EN DIAMANTES'},controls+payout,r.pokerCurrency==='chips'?'🪙 ':'◆ ');
          }
 async function arcadeOnlineBattlePlay(cardId){
           await arcadeOnlineMutate((r,g)=>{
