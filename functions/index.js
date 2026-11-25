@@ -294,7 +294,18 @@ exports.leavePokerRoom = onCall({region:REGION,maxInstances:30}, async req=>{
           const snaps=await Promise.all(g.players.map(p=>tx.get(profileRef(appId,p.id))));
           snaps.forEach((ps,j)=>{const data=ps.exists?ps.data():{},balance=getBalance(data)+Math.max(0,Math.floor(g.players[j].stack||0));tx.set(profileRef(appId,g.players[j].id),{uid:g.players[j].id,pokerChips:balance,localStorage:{...(data.localStorage||{}),uno_pok_chips:String(balance)},updatedAt:Date.now()},{merge:true});g.players[j].stack=0;});
           g.players.forEach(p=>p.paidOut=true);room.status="finished";room.pokerPaidOutUids=g.players.map(p=>p.id);tx.delete(db.doc(`artifacts/${appId}/public/data/uno_poker_private/${code}/server/state`));
-        } else if(g.turn===i)g.turn=nextActor(g.players,i);
+        } else if(g.turn===i){
+          const next=nextActor(g.players,i);
+          if(next>=0)g.turn=next;
+          else {
+            const privateStateRef=db.doc(`artifacts/${appId}/public/data/uno_poker_private/${code}/server/state`);
+            const privateStateSnap=await tx.get(privateStateRef),deck=privateStateSnap.exists?(privateStateSnap.data().deck||[]):[];
+            while(g.stage<3){if(g.stage===0)g.community.push(deck.pop(),deck.pop(),deck.pop());else g.community.push(deck.pop());g.stage++;}
+            const handSnaps=await Promise.all(g.players.map(p=>tx.get(handRef(appId,code,p.id))));
+            const hands=handSnaps.map(h=>h.exists?h.data().cards:[]);
+            if(hands.every(h=>h.length===2)){settleShowdown(g,hands);await creditStacks(tx,appId,g);room.status="finished";room.pokerPaidOutUids=g.players.map(p=>p.id);tx.delete(privateStateRef);}
+          }
+        }
         room.arcadeState=g;tx.update(ref,{status:room.status,arcadeState:g,pokerPaidOutUids:room.pokerPaidOutUids||[],updatedAt:Date.now()});
       }
     }
