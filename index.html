@@ -1395,50 +1395,18 @@
                             </span>
                             <span class="text-xs sm:text-sm bg-black/30 px-3.5 py-1.5 rounded-xl font-extrabold">JUGAR →</span>
                         </button>
-
-                        <!-- Botón Crear Sala Online / Equipos -->
-                        <button id="btnCreateOnline" class="btn-shimmer relative overflow-hidden w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold shadow-xl shadow-rose-950/70 border border-amber-300/40 flex items-center justify-between transition-all hover:-translate-y-0.5 active:scale-[0.99] cursor-pointer">
-                            <span class="flex items-center gap-4">
-                                <span class="w-12 h-12 rounded-2xl bg-black/25 flex items-center justify-center text-2xl shadow-inner">🌐</span>
-                                <span class="text-left">
-                                    <span class="block text-base sm:text-lg font-extrabold leading-tight">Crear Sala Online / Equipos</span>
-                                    <span class="block text-xs font-medium text-amber-100/90 mt-0.5">2 a 8 jugadores • Individual o hasta 4 Equipos</span>
-                                </span>
-                            </span>
-                            <span class="text-xs sm:text-sm bg-black/30 px-3.5 py-1.5 rounded-xl font-extrabold">CREAR →</span>
-                        </button>
+                        <div class="rounded-3xl border border-sky-300/25 bg-sky-950/35 p-4 sm:p-5 flex items-center gap-4">
+                            <span class="w-12 h-12 shrink-0 rounded-2xl bg-sky-400/15 flex items-center justify-center text-2xl">🎮</span>
+                            <span><b class="block text-base sm:text-lg text-sky-100">Modos casuales 100% Offline</b><span class="block text-xs text-sky-100/70 mt-0.5">Jugá contra bots o en local. Rankeds es el único modo online.</span></span>
+                        </div>
                         <button id="btnOpenCompetitive" type="button" class="btn-shimmer relative overflow-hidden w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-600 text-zinc-950 font-bold shadow-xl border border-yellow-200/60 flex items-center justify-between transition-all hover:-translate-y-0.5 active:scale-[0.99]">
                           <span class="flex items-center gap-4"><span class="w-12 h-12 rounded-2xl bg-black/15 flex items-center justify-center text-2xl">🏆</span><span class="text-left"><span class="block text-base sm:text-lg font-extrabold">COMPETITIVO</span><span class="block text-xs font-semibold text-amber-950/80 mt-0.5">Rangos, clasificatorias y leaderboard</span></span></span><span class="text-xs bg-black/15 px-3.5 py-1.5 rounded-xl font-extrabold">ENTRAR →</span>
                         </button>
                         <button id="btnOpenArcade" type="button" class="w-full rounded-2xl border border-emerald-400/30 bg-emerald-950/60 px-4 py-3 text-left text-sm font-extrabold text-emerald-200 hover:bg-emerald-900/70">🎮 MODOS DE JUEGO · POKER 3D / BATALLA / ROBADO</button>
                     </div>
 
-                    <!-- Unirse con código -->
-                    <div class="bg-zinc-900/80 border border-white/10 rounded-3xl p-4 sm:p-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="text-xs font-extrabold uppercase tracking-wider text-amber-300">🔑 Unirse por Código</label>
-                            <span class="text-[11px] text-zinc-500">Acceso Directo</span>
-                        </div>
-                        <div class="flex flex-col gap-2.5">
-                            <input id="joinCodeInput" type="text" maxlength="6" placeholder="CÓDIGO (EJ: K8M2P9)" class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-400 rounded-2xl px-4 py-3 text-center font-mono text-base font-extrabold tracking-widest uppercase text-amber-300 placeholder:text-zinc-600 focus:outline-none">
-                            <button id="btnJoinRoom" class="w-full px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 hover:from-amber-200 hover:to-yellow-300 text-zinc-950 font-extrabold text-sm shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer">
-                                ENTRAR A LA SALA →
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Explorador de Salas Públicas en Vivo -->
-                    <div class="bg-zinc-900/80 border border-white/10 rounded-3xl p-4">
-                        <div class="flex items-center justify-between mb-2.5">
-                            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                                Salas Públicas en Vivo
-                            </span>
-                            <span id="publicRoomsCount" class="text-[11px] text-zinc-400 font-semibold">Buscando...</span>
-                        </div>
-                        <div id="publicRoomsList" class="space-y-2 max-h-32 overflow-y-auto pr-1">
-                            <div class="text-xs text-zinc-500 text-center py-3 italic">No hay salas públicas abiertas ahora. ¡Crea una!</div>
-                        </div>
+                    <div class="rounded-2xl border border-white/10 bg-zinc-900/70 p-4 text-xs text-zinc-400">
+                        🔒 Las salas con código y las partidas públicas están desactivadas en los modos casuales. Para jugar online, entrá en <b class="text-amber-200">COMPETITIVO / RANKEDS</b>.
                     </div>
 
                     <!-- Mini tarjetas de características -->
@@ -1538,19 +1506,9 @@
           <div id="arcadeSetupEmoji" class="text-4xl">🎮</div>
           <h3 id="arcadeSetupTitle" class="font-uno text-2xl mt-2"></h3>
           <div id="arcadeSetupRules" class="text-sm text-zinc-300 mt-2"></div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5">
-            <button id="arcadeSetupSolo" class="arcade-action border-amber-400/50 text-amber-100 flex-1">🤖 Jugar solo contra bots</button>
-            <button id="arcadeSetupCreate" class="arcade-action border-emerald-400/40 text-emerald-200 flex-1">🌐 Crear sala online</button>
-          </div>
-          <p class="text-[11px] text-amber-100/70 mt-2">Modo individual: vos contra 3 rivales controlados por la IA.</p>
-          <div class="border-t border-white/10 mt-4 pt-4">
-            <div class="text-xs font-black text-zinc-300 mb-2">UNIRSE A UNA SALA DE ESTE MODO</div>
-            <div class="flex flex-col sm:flex-row gap-2">
-              <input id="arcadeJoinCode" maxlength="6" autocomplete="off" placeholder="CÓDIGO DE 6 CARACTERES" class="min-w-0 flex-1 rounded-xl bg-black/40 border border-white/15 px-4 py-3 text-white font-black tracking-[.2em] uppercase">
-              <button id="arcadeJoinBtn" class="arcade-action text-emerald-200">Unirme →</button>
+          <div class="mt-5 rounded-xl border border-sky-400/25 bg-sky-950/30 p-3 text-xs text-sky-100/80">
+              🤖 Este modo funciona offline contra bots. Las salas online están reservadas exclusivamente para Rankeds.
             </div>
-          </div>
-          <p class="text-[11px] text-zinc-500 mt-3">Partidas online en tiempo real mediante Firebase · 2 a 4 jugadores.</p>
         </section>
       </div>
     </section>
@@ -2430,7 +2388,7 @@
             renderAccountLinkStatus();
 
             updateOnlineBadgeUI('connected', currentUserId);
-            startPublicRoomsListener();
+            // Las salas casuales ya no se consultan: solo Rankeds usa Firestore para partidas.
             startCompetitiveLeaderboardListener();
             syncCompetitiveProfile().catch(err => console.warn("No se pudo sincronizar el perfil competitivo:", err));
 
@@ -3535,7 +3493,7 @@
             state.room.comboChain = state.comboChain || null;
             state.room.updatedAt = Date.now();
             renderCurrentView();
-            if (!state.isOnline) return true;
+            if (!state.isOnline || !state.room.competitiveMode) return true;
 
             const ready = await initFirebase();
             if (!ready || !currentUser || !db || !state.roomCode) {
@@ -3660,8 +3618,11 @@
         async function createNewRoom(isOnlineMode = true, competitiveMode = false, publicOverride = null, competitiveQueue = false, localLobby = false) {
             sfx.init();
             let onlineAvailable = false;
-            if (isOnlineMode) {
+            // Solo las partidas clasificatorias pueden crear salas sincronizadas.
+            if (competitiveMode && isOnlineMode) {
                 onlineAvailable = await initFirebase();
+            } else {
+                isOnlineMode = false;
             }
 
             const code = onlineAvailable ? generateRoomCode() : 'LOCAL';
@@ -6414,9 +6375,6 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
 
         document.getElementById('arcadeSetupBack').onclick=()=>{document.getElementById('arcadeModeSetup').classList.add('hidden');document.getElementById('arcadeModeMenu').classList.remove('hidden');};
         document.getElementById('arcadeSetupSolo').onclick=()=>arcadeOnline.selectedMode==='poker3d'?arcadeOpenPoker3D():arcadeOpenGame(arcadeOnline.selectedMode);
-        document.getElementById('arcadeSetupCreate').onclick=()=>arcadeOnlineCreate(arcadeOnline.selectedMode);
-        document.getElementById('arcadeJoinBtn').onclick=()=>arcadeOnlineJoin(document.getElementById('arcadeJoinCode').value,arcadeOnline.selectedMode);
-        document.getElementById('arcadeJoinCode').addEventListener('keydown',e=>{if(e.key==='Enter')arcadeOnlineJoin(e.currentTarget.value,arcadeOnline.selectedMode);});
         document.getElementById('arcadeGameContent').addEventListener('click',e=>{
           if(e.target.closest('[data-aonline-copy]')){GenUIcopyArcade(arcadeOnline.code);return;}
           if(e.target.closest('[data-aonline-leave]')){arcadeOnlineLeave(true);return;}
@@ -6468,8 +6426,6 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
         document.getElementById('btnCloseSettings').onclick=()=>document.getElementById('settingsModal').classList.add('hidden');document.getElementById('btnCloseStore').onclick=()=>document.getElementById('storeModal').classList.add('hidden');
         document.getElementById('btnQuickSolo').onclick = () => createNewRoom(false);
         document.getElementById('btnCreateOffline').onclick = () => createNewRoom(false, false, null, false, true);
-        document.getElementById('btnCreateOnline').onclick = () => createNewRoom(true);
-        document.getElementById('btnJoinRoom').onclick = () => joinExistingRoom(document.getElementById('joinCodeInput').value);
 
         // Botones del Lobby
         document.getElementById('btnCopyRoomCode').onclick = () => {
@@ -7197,9 +7153,6 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
         function tcgEndPlayerTurn(){const b=tcgBattle;if(!b||b.over||b.turn!=='player')return;if(b.phase!=='attackDone'){if(b.phase==='draw'){tcgDrawTurn();}if(b.phase==='main'){showToast('Podés atacar antes de terminar el turno.','warn');return}}b.turn='cpu';b.phase='draw';if(tcgOnline&&b.cpu){b.cpu.energyAttached=false;b.cpu.playedSupporter=false;b.cpu.turnDrawn=false;}tcgBattleRender();if(tcgOnline){tcgOnlinePublish();return}setTimeout(tcgCpuTurn,650)}
         function tcgCpuTurn(){const b=tcgBattle;if(!b||b.over)return;const c=b.cpu;if(c.deck.length)c.hand.push(c.deck.pop());let ei=c.hand.findIndex(id=>tcgCard(id)?.kind==='Energy');if(ei>=0)c.active.energies.push(c.hand.splice(ei,1)[0]);let bi=c.hand.findIndex(id=>tcgCard(id)?.kind==='Character'&&tcgCard(id).rarity==='Basic');if(bi>=0&&c.bench.length<5)c.bench.push(tcgCardInstance(c.hand.splice(bi,1)[0]));const atk=(TCG_ATTACKS[c.active.id]||[]).find(a=>c.active.energies.length>=a[1]);if(atk){b.player.active.damage+=atk[2];tcgLog('La IA usó '+atk[0]+' e hizo '+atk[2]+' de daño.');if(b.player.active.damage>=b.player.active.hp){if(b.player.prizes>0)b.player.prizes--;if(b.player.bench.length){b.player.active=b.player.bench.shift();tcgLog('Tu personaje activo cayó: elegí uno de la banca en tu próximo turno.')}else{tcgBattleFinish('cpu');return}}}b.turn='player';b.phase='draw';b.player.energyAttached=false;b.player.playedSupporter=false;b.selectedEnergy=null;tcgBattleRender()}
         document.getElementById('tcgBattleStart').onclick=()=>{if(tcgOnline){showToast('Salí de la sala online para jugar contra la IA.','warn');return}if(tcgDeck.length!==60){tcgStarterDeck()}tcgAskDeviceMode(tcgBeginBattle)};
-        document.getElementById('tcgCreateOnline').onclick=()=>tcgAskDeviceMode(tcgOnlineCreate);
-        document.getElementById('tcgJoinOnline').onclick=()=>tcgAskDeviceMode(tcgOnlineJoin);
-        document.getElementById('tcgLeaveOnline').onclick=()=>tcgOnlineExit(true);
         document.getElementById('tcgEndTurn').onclick=tcgEndPlayerTurn;
         /* El ataque se selecciona tocando el Pokémon activo. */
 
@@ -7295,12 +7248,11 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
             <div class="h-2 rounded-full bg-zinc-800 mt-2 overflow-hidden"><div id="tcgDeckProgress" class="h-full bg-fuchsia-500" style="width:0%"></div></div>
             <div id="tcgDeckList" class="space-y-1 mt-3 max-h-64 overflow-y-auto"></div>
             <div class="grid grid-cols-2 gap-2 mt-4"><button id="tcgAutoDeck" class="rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 p-3 text-xs font-black">✨ Crear mazo inicial</button><button id="tcgClearDeck" class="rounded-xl bg-zinc-700 hover:bg-zinc-600 p-3 text-xs font-bold">Vaciar mazo</button></div>
-            <p id="tcgDeckHint" class="text-[11px] text-zinc-500 mt-3">La colección y el mazo se guardan localmente en este navegador. El TCG ya permite crear salas online y sincronizar el tablero entre dos jugadores.</p>
+            <p id="tcgDeckHint" class="text-[11px] text-zinc-500 mt-3">La colección, los sobres y el mazo se guardan localmente en este navegador. El campo de batalla funciona contra la IA, sin conexión.</p>
 
-          <section class="lg:col-span-2 rounded-2xl border border-emerald-400/25 bg-emerald-950/20 p-4">
-              <div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold text-lg text-emerald-200">🌐 TCG Online PvP</h3><p class="text-xs text-zinc-400">Creá una sala, compartí el código con tu hermano y jueguen 1 contra 1.</p></div><span id="tcgOnlineStatus" class="text-xs text-zinc-400">Desconectado</span></div>
-              <div class="flex flex-wrap gap-2 mt-3"><button id="tcgCreateOnline" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black">＋ Crear sala online</button><input id="tcgJoinCode" maxlength="6" placeholder="CÓDIGO" class="w-28 rounded-xl bg-zinc-900 border border-white/10 px-3 py-2 text-center font-mono uppercase text-sm"><button id="tcgJoinOnline" class="rounded-xl bg-sky-700 px-4 py-2 text-xs font-black">Unirme</button><button id="tcgLeaveOnline" class="hidden rounded-xl bg-rose-900 px-4 py-2 text-xs font-bold">Salir de sala</button></div>
-              <div id="tcgOnlineRoomInfo" class="text-xs text-emerald-200 mt-2"></div>
+          <section class="lg:col-span-2 rounded-2xl border border-sky-400/20 bg-sky-950/20 p-4">
+              <h3 class="font-bold text-sm text-sky-200">🤖 TCG Offline</h3>
+              <p class="text-xs text-zinc-400 mt-1">El campo de batalla se juega contra la IA. Tu colección y tus mazos se guardan en este dispositivo.</p>
             </section>
             <section class="lg:col-span-2 rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-950/30 to-black/40 p-4">
             <div class="flex flex-wrap justify-between items-center gap-3"><div><h3 class="font-uno text-2xl text-cyan-200">⚔️ Campo de batalla TCG</h3><p class="text-xs text-zinc-400">Formato 1 contra 1: contra IA o en sala online • seis premios • activo y banca</p></div><button id="tcgBattleStart" class="rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black px-4 py-2 text-sm">⚔️ Iniciar partida</button></div>
