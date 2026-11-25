@@ -67,7 +67,9 @@
       const p=g.players.find(x=>x.uid===a.actorUid);
       const current=g.players[g.turnIndex];
       if(!p||p.eliminated||current?.uid!==a.actorUid)throw Error('Acción fuera de turno.');
+      if(g.phase==='RESOLVING'||g.phase==='GAME_OVER')throw Error('La ronda está resolviéndose o ya terminó.');
       if(a.type==='play'){
+        if(g.phase!=='TURN')throw Error('No puedes jugar cartas en esta fase.');
         const previous=g.lastClaim?g.players[g.lastClaim.playerIndex]:null;
         if(previous&&previous.hand.length===0)throw Error('Debes desafiar la última jugada; no puedes lanzar cartas.');
         const ids=Array.isArray(a.cardIds)?a.cardIds:[];
@@ -78,6 +80,7 @@
         [...ix].sort((x,y)=>y-x).forEach(x=>p.hand.splice(x,1));
         b.playCards(p,cards);
       }else if(a.type==='challenge'){
+        if(g.phase!=='TURN')throw Error('No puedes desafiar en esta fase.');
         if(!g.lastClaim||g.lastClaim.playerIndex===p.id)throw Error('No hay una jugada rival que puedas desafiar.');
         b.challenge(p);
       }else if(a.type==='next_round'){
