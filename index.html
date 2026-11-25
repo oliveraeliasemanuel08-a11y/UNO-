@@ -2542,17 +2542,14 @@
                     const r = docSnap.data();
                     if (!r || r.status !== 'lobby' || r.isPublic === false) return;
 
-                    // Limpieza automática: eliminar únicamente salas públicas abandonadas
-                    // durante más de 24 horas. Las partidas en curso nunca se tocan.
+                    // Ocultar del listado cualquier sala de lobby sin actividad durante 12 horas.
+                    // No se borra el documento: solo desaparece del listado; las partidas en curso
+                    // y el historial permanecen intactos.
                     const lastActivity = Number(r.updatedAt || r.createdAt || 0);
-                    const abandonedFor24h = lastActivity > 0 && (now - lastActivity) >= 24 * 60 * 60 * 1000;
-                    if (abandonedFor24h) {
-                        deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'uno_rooms', docSnap.id))
-                            .catch(err => console.warn('No se pudo limpiar la sala abandonada ' + docSnap.id + ':', err));
-                        return;
-                    }
+                    const inactiveFor12h = lastActivity > 0 && (now - lastActivity) >= 12 * 60 * 60 * 1000;
+                    if (inactiveFor12h) return;
 
-                    if ((now - (lastActivity || now)) < 1000 * 60 * 30) {
+                    if ((now - (lastActivity || now)) < 12 * 60 * 60 * 1000) {
                         const occupied = (r.seats || []).filter(s => s && s.id).length;
                         if (occupied > 0 && occupied < (r.maxSeats || 4)) {
                             openRooms.push({ ...r, occupied });
