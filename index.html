@@ -820,6 +820,33 @@
 @media(prefers-reduced-motion:reduce){.uno-evo-level-4 .uno-card-art *{animation:none!important}}
 body.reduce-effects .uno-evo-level-4 .uno-card-art *{animation:none!important}
 
+/* CARD EVOLUTION OVERDRIVE — diseños originales por estilo y efectos por despertar */
+.uno-card-art{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible}
+.uno-card-art svg{width:100%;height:100%;overflow:visible}
+.uno-card-art .art-signature{filter:drop-shadow(0 0 4px currentColor);transform-origin:50% 50%;transition:filter .5s,transform .6s}
+.uno-card-art .art-corner{opacity:.8}
+.uno-card-art .evo-tier2,.uno-card-art .evo-tier3,.uno-card-art .evo-tier4{opacity:0;transition:opacity .65s ease}
+.uno-evo-level-2 .uno-card-art .evo-tier2,.uno-evo-level-3 .uno-card-art .evo-tier2,.uno-evo-level-4 .uno-card-art .evo-tier2{opacity:1}
+.uno-evo-level-3 .uno-card-art .evo-tier3,.uno-evo-level-4 .uno-card-art .evo-tier3{opacity:1}
+.uno-evo-level-4 .uno-card-art .evo-tier4{opacity:1}
+.uno-evo-level-2 .uno-card-art .art-signature{filter:drop-shadow(0 0 7px currentColor)}
+.uno-evo-level-3 .uno-card-art .art-signature{filter:drop-shadow(0 0 9px currentColor);transform:scale(1.025)}
+.uno-evo-level-4 .uno-card-art .art-signature{filter:drop-shadow(0 0 7px currentColor) drop-shadow(0 0 17px #fff9);animation:evoSigilBreath 2.4s ease-in-out infinite}
+.uno-evo-level-4 .uno-card-art .evo-orbit{transform-box:fill-box;transform-origin:center;animation:evoOrbitDrive 5s linear infinite}
+.uno-evo-level-4 .uno-card-art .evo-orbit.reverse{animation-direction:reverse;animation-duration:7s}
+.uno-evo-level-4 .uno-card-art .evo-star{transform-origin:125px 180px;animation:evoStarPulse 1.35s ease-in-out infinite}
+.uno-card-art .evo-particle{fill:#fff;filter:drop-shadow(0 0 4px #fff);animation:evoParticleFloat 2.8s ease-in-out infinite alternate}
+.uno-card-art .evo-particle.p1{animation-delay:-.7s}.uno-card-art .evo-particle.p2{animation-delay:-1.3s}.uno-card-art .evo-particle.p3{animation-delay:-1.9s}
+.uno-evo-level-4 .uno-card-inner:before{background:linear-gradient(115deg,transparent 18%,#fff2 35%,transparent 52%,#fff3 68%,transparent 82%);background-size:220% 100%;animation:evoHoloSweep 3.2s linear infinite}
+.uno-art-inferno .art-signature{stroke:#ff8b38}.uno-art-frost .art-signature{stroke:#b8f5ff}.uno-art-cyber .art-signature{stroke:#e879f9}.uno-art-royal .art-signature{stroke:#f8d779}.uno-art-toxic .art-signature{stroke:#a3e635}.uno-art-galaxy .art-signature{stroke:#c4b5fd}.uno-art-void .art-signature{stroke:#cbd5e1}.uno-art-prism .art-signature{stroke:#f0abfc}
+@keyframes evoOrbitDrive{to{transform:rotate(360deg)}}
+@keyframes evoStarPulse{0%,100%{opacity:.5;transform:scale(.82) rotate(0)}50%{opacity:1;transform:scale(1.12) rotate(45deg)}}
+@keyframes evoParticleFloat{from{opacity:.18;transform:translateY(5px) scale(.7)}to{opacity:1;transform:translateY(-7px) scale(1.3)}}
+@keyframes evoSigilBreath{0%,100%{opacity:.78}50%{opacity:1}}
+@keyframes evoHoloSweep{from{background-position:120% 0}to{background-position:-120% 0}}
+@media(prefers-reduced-motion:reduce){.uno-card-art *{animation:none!important}}
+body.reduce-effects .uno-card-art *,body.animations-reduced .uno-card-art *,body.animations-off .uno-card-art *{animation:none!important}
+body.performance-low .uno-card-art .evo-particle{display:none}
 /* UNO! TCG — cartas coleccionables con profundidad 2.5D */
 .tcg-card-3d{position:relative;isolation:isolate;aspect-ratio:2.5/3.5;min-width:112px;max-width:148px;width:100%;border-radius:15px;padding:5px;background:linear-gradient(145deg,#fff7d6,#b9a5ff 38%,#172554 72%,#080b18);box-shadow:0 14px 22px #0009,0 3px 0 #ffffff55 inset;transform:perspective(850px) rotateY(-5deg) rotateX(2deg);transform-style:preserve-3d;transition:transform .22s ease,filter .22s ease;overflow:hidden}
 .tcg-card-3d:hover{transform:perspective(850px) rotateY(0) rotateX(0) translateY(-7px) scale(1.035);z-index:8;filter:brightness(1.12)}
@@ -3073,57 +3100,25 @@ body.reduce-effects .uno-evo-level-4 .uno-card-art *{animation:none!important}
             return `<span class="font-uno font-extrabold ${fontSize} ${underline} leading-none">${value}</span>`;
         }
 
-        function renderCardFaceSVG(card, evolutionLevel = 1) {
-            const evolutionArt = `
-                <g class="evo-tier2 evo-glow" fill="none" stroke="#e0f2fe" stroke-width="1.5">
-                    <path d="M31 126Q55 88 88 88M219 126Q195 88 162 88M31 234Q55 272 88 272M219 234Q195 272 162 272" stroke-dasharray="3 5"/>
-                    <path d="M75 72l8-9 8 9-8 9zM167 72l8-9 8 9-8 9zM75 288l8-9 8 9-8 9zM167 288l8-9 8 9-8 9z" fill="#fff" fill-opacity=".35"/>
-                </g>
-                <g class="evo-tier3 evo-glow" fill="none" stroke="#fde68a" stroke-width="2">
-                    <path d="M57 153Q18 123 38 98Q62 111 78 145M193 153Q232 123 212 98Q188 111 172 145M57 207Q18 237 38 262Q62 249 78 215M193 207Q232 237 212 262Q188 249 172 215"/>
-                    <path d="M106 91l19-18 19 18-8 12h-22z" fill="#fbbf24" fill-opacity=".22"/>
-                    <circle cx="125" cy="73" r="4" fill="#fff7cc"/>
-                    <path d="M109 269h32M115 277h20" stroke-linecap="round"/>
-                </g>
-                <g class="evo-tier4 evo-glow" fill="none" stroke="#a5f3fc">
-                    <ellipse class="evo-orbit evo-pulse" cx="125" cy="180" rx="111" ry="88" stroke-width="2" stroke-dasharray="5 8"/>
-                    <ellipse class="evo-orbit" cx="125" cy="180" rx="99" ry="75" stroke="#c4b5fd" stroke-width="1.5" stroke-dasharray="2 12"/>
-                    <path d="M125 17l5 14 14 5-14 5-5 14-5-14-14-5 14-5zM125 305l4 11 11 4-11 4-4 11-4-11-11-4 11-4z" fill="#ecfeff" stroke="#fff"/>
-                    <path class="evo-spark" d="M47 180l5-12 5 12-5 12zM193 180l5-12 5 12-5 12zM125 105l4-9 4 9-4 9zM125 255l4-9 4 9-4 9z" fill="#fff"/>
-                    <path d="M26 180h17m163 0h18M125 25v18m0 274v18" stroke-width="2" stroke-linecap="round"/>
-                </g>`;
-
-            const palette = card.color === 'wild'
-                ? ['#f43f5e','#facc15','#22c55e','#3b82f6']
-                : [(COLOR_META[card.color] || COLOR_META.red).hex || '#ffffff'];
-            const accent = card.color === 'wild' ? '#f8fafc' : (palette[0] || '#ffffff');
-            const gems = card.color === 'wild'
-                ? '<path class="art-wild" d="M125 36l7 12-7 12-7-12z" fill="#f43f5e"/><path class="art-wild" d="M214 180l-7 12 7 12 7-12z" fill="#3b82f6"/><path class="art-wild" d="M125 300l7 12-7 12-7-12z" fill="#22c55e"/><path class="art-wild" d="M36 180l-7 12 7 12 7-12z" fill="#facc15"/>'
-                : '<path class="art-gem" d="M125 38l6 9-6 9-6-9z"/><path class="art-gem" d="M214 180l-6 9 6 9 6-9z"/><path class="art-gem" d="M125 304l6 9-6 9-6-9z"/><path class="art-gem" d="M36 180l-6 9 6 9 6-9z"/>';
-            return `<div class="uno-card-art" aria-hidden="true">
-                <svg viewBox="0 0 250 360" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="unoMetal${String(card.id).replace(/[^a-zA-Z0-9_-]/g,'')}" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0" stop-color="#fff" stop-opacity=".78"/>
-                            <stop offset=".5" stop-color="${accent}" stop-opacity=".12"/>
-                            <stop offset="1" stop-color="#fff" stop-opacity=".5"/>
-                        </linearGradient>
-                    </defs>
-                    <rect x="8" y="8" width="234" height="344" rx="13" class="art-line"/>
-                    <rect x="13" y="13" width="224" height="334" rx="10" class="art-gold"/>
-                    <path class="art-line" d="M22 74V24h50M178 24h50v50M22 286v50h50M178 336h50v-50"/>
-                    <path class="art-gold" d="M25 60c18-2 20-16 22-27 10 7 17 14 18 28M225 60c-18-2-20-16-22-27-10 7-17 14-18 28M25 300c18 2 20 16 22 27 10-7 17-14 18-28M225 300c-18 2-20 16-22 27-10-7-17-14-18-28"/>
-                    <path class="art-line" d="M125 30v35M125 295v35M30 180h35M185 180h35"/>
-                    <ellipse cx="125" cy="180" rx="103" ry="78" transform="rotate(-28 125 180)" fill="url(#unoMetal${String(card.id).replace(/[^a-zA-Z0-9_-]/g,'')})" opacity=".22"/>
-                    <ellipse cx="125" cy="180" rx="94" ry="69" transform="rotate(-28 125 180)" class="art-center"/>
-                    <ellipse cx="125" cy="180" rx="84" ry="60" transform="rotate(-28 125 180)" class="art-line" opacity=".18"/>
-                    <path class="art-gold" d="M91 108q34-25 68 0M91 252q34 25 68 0" opacity=".34"/>
-                    <circle cx="125" cy="180" r="68" class="art-line" stroke-dasharray="2 7" opacity=".18"/>
-                    ${evolutionArt}
-                    ${gems}
-                    <path class="art-line" d="M42 92l10 10m-10 0l10-10M198 92l10 10m-10 0l10-10M42 258l10 10m-10 0l10-10M198 258l10 10m-10 0l10-10" opacity=".5"/>
-                </svg>
-            </div>`;
+        function renderCardFaceSVG(card, evolutionLevel = 1, styleId = getEquippedCardSkin()) {
+            const style = String(styleId || 'classic').toLowerCase();
+            const art = {
+                classic:{a:'#f8fafc',b:'#fbbf24',motif:'<path d="M42 82Q125 28 208 82L190 112Q125 78 60 112Z M42 278Q125 332 208 278L190 248Q125 282 60 248Z"/><path d="M125 48l12 22 25 4-18 17 4 25-23-12-23 12 4-25-18-17 25-4z"/>'},
+                inferno:{a:'#ff7b35',b:'#ffe08a',motif:'<path d="M52 250C10 190 75 160 60 95c42 25 32 61 57 76-2-62 47-90 54-132 48 57 12 91 37 129 28 44 9 99-20 123-39 34-107 28-136-11Z"/><path d="M91 250c-10-35 24-47 30-83 30 25 11 48 35 61 9 19-5 39-30 43-17 3-31-5-35-21Z"/>'},
+                frost:{a:'#8be7ff',b:'#f0fdff',motif:'<path d="M125 48V312M36 180H214M62 117l126 126M188 117L62 243"/><path d="M125 48l-15 20m15-20 15 20M125 312l-15-20m15 20 15-20M36 180l22-13m-22 13 22 13M214 180l-22-13m22 13-22 13"/><path d="M125 112l20 36-20 36-20-36zM125 176l30 52-30 52-30-52z"/>'},
+                cyber:{a:'#e879f9',b:'#67e8f9',motif:'<path d="M34 78h52v34H60v36H34zM216 78h-52v34h26v36h26zM34 282h52v-34H60v-36H34zM216 282h-52v-34h26v-36h26z"/><path d="M64 180h122M125 70v220M72 126l106 108M178 126L72 234"/><circle cx="125" cy="180" r="43"/>'},
+                royal:{a:'#f8d779',b:'#fff3c4',motif:'<path d="M43 112l36-36 29 28 17-46 17 46 29-28 36 36-20 111H63z"/><path d="M67 250h116v24H67zM82 285h86v13H82z"/><circle cx="125" cy="116" r="12"/>'},
+                toxic:{a:'#a3e635',b:'#ecfccb',motif:'<path d="M125 48C91 93 62 128 62 178a63 63 0 00126 0c0-50-29-85-63-130Z"/><path d="M125 105c-17 27-30 47-30 72a30 30 0 0060 0c0-25-13-45-30-72Z"/><circle cx="52" cy="105" r="8"/><circle cx="198" cy="250" r="11"/><circle cx="190" cy="94" r="5"/>'},
+                galaxy:{a:'#c4b5fd',b:'#f0abfc',motif:'<path d="M125 50l15 75 73 55-73 55-15 75-15-75-73-55 73-55z"/><ellipse cx="125" cy="180" rx="94" ry="32" transform="rotate(-32 125 180)"/><circle cx="125" cy="180" r="19"/><path d="M58 84l5 12 12 5-12 5-5 12-5-12-12-5 12-5zM195 245l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/>'},
+                void:{a:'#94a3b8',b:'#e2e8f0',motif:'<circle cx="125" cy="180" r="82"/><circle cx="125" cy="180" r="58"/><path d="M125 70c-38 24-57 58-57 110s19 86 57 110c38-24 57-58 57-110S163 94 125 70Z"/><path d="M43 180h164M125 55v250"/>'},
+                prism:{a:'#f0abfc',b:'#67e8f9',motif:'<path d="M125 42l62 48-15 91 15 89-62 48-62-48 15-89-15-91z"/><path d="M63 90l124 180M187 90L63 270M125 42v276M63 90h124M63 270h124"/><path d="M125 111l38 69-38 69-38-69z"/>'}
+            }[style] || {a:'#f8fafc',b:'#fbbf24',motif:'<circle cx="125" cy="180" r="72"/>'};
+            const safeId=String(card.id||'card').replace(/[^a-zA-Z0-9_-]/g,'');
+            const color=card.color==='wild'?'#ffffff':((COLOR_META[card.color]||COLOR_META.red).hex||'#fff');
+            const wild=card.color==='wild';
+            const shards=wild?'<path d="M125 28l8 15-8 15-8-15zM218 180l-8 15 8 15 8-15zM125 302l8 15-8 15-8-15zM32 180l-8 15 8 15 8-15z" fill="#fff"/>':'';
+            const particles=evolutionLevel>=4?Array.from({length:12},(_,i)=>{const x=24+(i*37)%202,y=30+(i*67)%300;return '<circle class="evo-particle p'+(i%4)+'" cx="'+x+'" cy="'+y+'" r="'+(i%3+1)+'"/>'}).join(''):'';
+            return '<div class="uno-card-art uno-art-'+style+'" aria-hidden="true"><svg viewBox="0 0 250 360" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="evo-'+safeId+'" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+art.a+'"/><stop offset=".5" stop-color="'+color+'"/><stop offset="1" stop-color="'+art.b+'"/></linearGradient></defs><rect x="7" y="7" width="236" height="346" rx="18" fill="none" stroke="url(#evo-'+safeId+')" stroke-width="4"/><rect x="15" y="15" width="220" height="330" rx="14" fill="none" stroke="'+art.a+'" stroke-opacity=".5"/><path class="art-corner" d="M24 78V28h50M176 28h50v50M24 282v50h50M176 332h50v-50" fill="none" stroke="'+art.b+'" stroke-width="4"/><g class="art-signature" fill="none" stroke="url(#evo-'+safeId+')" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">'+art.motif+'</g><circle cx="125" cy="180" r="64" fill="url(#evo-'+safeId+')" fill-opacity=".12" stroke="'+art.a+'" stroke-opacity=".55" stroke-width="2"/><g class="evo-tier2" fill="none" stroke="'+art.b+'" stroke-width="2"><path d="M36 130Q70 95 96 112M214 130Q180 95 154 112M36 230Q70 265 96 248M214 230Q180 265 154 248"/><path d="M125 75l8 14 16 3-12 11 3 16-15-8-15 8 3-16-12-11 16-3z"/></g><g class="evo-tier3" fill="none" stroke="'+art.a+'" stroke-width="3"><path d="M58 155Q15 115 42 82Q75 100 87 143M192 155Q235 115 208 82Q175 100 163 143M58 205Q15 245 42 278Q75 260 87 217M192 205Q235 245 208 278Q175 260 163 217"/><path d="M93 64l32-25 32 25-12 18h-40z" fill="'+art.b+'" fill-opacity=".4"/></g><g class="evo-tier4" fill="none" stroke="'+art.b+'" stroke-width="2"><ellipse class="evo-orbit" cx="125" cy="180" rx="112" ry="91" stroke-dasharray="7 8"/><ellipse class="evo-orbit reverse" cx="125" cy="180" rx="96" ry="72" stroke-dasharray="3 9"/><path class="evo-star" d="M125 18l7 17 18 7-18 7-7 18-7-18-18-7 18-7zM125 293l7 17 18 7-18 7-7 18-7-18-18-7 18-7z"/></g>'+particles+shards+'<path d="M24 180h17m168 0h17M125 25v16m0 278v16" stroke="'+art.a+'" stroke-width="2" opacity=".8"/></svg></div>';
         }
 
         function createCardHTML(card, extraClasses = '', styleAttr = '') {
@@ -3149,7 +3144,7 @@ body.reduce-effects .uno-evo-level-4 .uno-card-art *{animation:none!important}
                     <div class="uno-card-inner" style="${bgStyle}">
                         <div class="uno-card-glare"></div>
                         <div class="uno-oval"></div>
-                        ${renderCardFaceSVG(card, evolutionLevel)}
+                        ${renderCardFaceSVG(card, evolutionLevel, getEquippedCardSkin())}
                         <!-- Esquina superior izquierda -->
                         <div class="absolute top-1 left-1.5 text-white font-bold uno-corner-shadow leading-none z-10">
                             ${renderCardSymbolSVG(card.value, true)}
@@ -5899,7 +5894,7 @@ function updatePlusWalletUI(){const v=getUnoPlus().toLocaleString('es-AR');['uno
         function getCardEvolutionTokens(){return Math.max(0,Math.floor(Number(localStorage.getItem('uno_card_evolution_tokens')||0)))}
         function buyCardEvolutionTokens(amount,price){const n=Math.max(1,Math.floor(Number(amount)||0)),cost=Math.max(0,Math.floor(Number(price)||0)),balance=getUnoPlus();if(balance<cost){showToast('Te faltan '+(cost-balance)+' diamantes para comprar tokens.','warn');return}setUnoPlus(balance-cost);localStorage.setItem('uno_card_evolution_tokens',String(getCardEvolutionTokens()+n));showToast('⚡ ¡+'+n+' tokens de evolución!','success');renderDiamondStore()}
         function evolveCardStyle(styleId){const style=CARD_EVOLUTION_STYLES.find(x=>x.id===styleId);if(!style)return;if(styleId!=='classic'&&!ownedCardSkins().includes(styleId)){showToast('Primero desbloqueá el estilo '+style.name+'.','warn');return}const level=getCardEvolutionLevel(styleId);if(level>=4){showToast('¡Este estilo ya alcanzó su evolución máxima!','success');return}const cost=CARD_EVOLUTION_TOKEN_COST[level];if(getCardEvolutionTokens()<cost){showToast('Necesitás '+cost+' tokens para evolucionar al nivel '+(level+1)+'.','warn');return}localStorage.setItem('uno_card_evolution_tokens',String(getCardEvolutionTokens()-cost));const levels=getCardEvolutionLevels();levels[styleId]=level+1;localStorage.setItem('uno_card_evolution_levels',JSON.stringify(levels));showToast('✨ '+style.name+' evolucionó a '+['','Despertar','Resonancia','Ascensión','Forma Suprema'][level+1]+'!','success');renderDiamondStore();if(getEquippedCardSkin()===styleId&&typeof renderGameTable==='function'&&state?.room)renderGameTable()}
-        function renderEvolutionCardPreview(styleId,level){const style=CARD_EVOLUTION_STYLES.find(x=>x.id===styleId),skinClass=styleId==='classic'?'':'uno-skin-'+styleId;return '<div class="card-evolution-preview"><div class="uno-card '+skinClass+' uno-evo-level-'+level+'" style="width:62px;height:90px;flex:0 0 62px"><div class="uno-card-inner" style="background:linear-gradient(145deg,#dc2626,#991b1b)"><div class="uno-card-glare"></div><div class="uno-oval"></div>'+renderCardFaceSVG({id:'evo-'+styleId,color:'red'},level)+'<div class="relative z-10 text-white font-black text-3xl">7</div></div></div></div>'}
+        function renderEvolutionCardPreview(styleId,level){const style=CARD_EVOLUTION_STYLES.find(x=>x.id===styleId),skinClass=styleId==='classic'?'':'uno-skin-'+styleId;return '<div class="card-evolution-preview"><div class="uno-card '+skinClass+' uno-evo-level-'+level+'" style="width:62px;height:90px;flex:0 0 62px"><div class="uno-card-inner" style="background:linear-gradient(145deg,#dc2626,#991b1b)"><div class="uno-card-glare"></div><div class="uno-oval"></div>'+renderCardFaceSVG({id:'evo-'+styleId,color:'red'},level,styleId)+'<div class="relative z-10 text-white font-black text-3xl">7</div></div></div></div>'}
         function renderCardEvolutionStore(){const grid=document.getElementById('cardEvolutionStylesGrid'),balance=document.getElementById('cardEvolutionTokenBalance');if(!grid)return;const tokens=getCardEvolutionTokens();if(balance)balance.textContent=tokens.toLocaleString('es-AR');grid.innerHTML=CARD_EVOLUTION_STYLES.map(style=>{const owned=style.id==='classic'||ownedCardSkins().includes(style.id),level=getCardEvolutionLevel(style.id),nextCost=CARD_EVOLUTION_TOKEN_COST[level]||0,levelNames=['','Base','Despertar','Resonancia','Forma Suprema'],pips=[1,2,3,4].map(n=>'<i class="evo-level-pip '+(n<=level?(level===4?'active max':'active'):'')+'"></i>').join(''),action= !owned?'<button data-evo-unlock="'+style.id+'" class="w-full rounded-lg bg-fuchsia-400 px-2 py-2 text-[10px] font-black text-slate-950">Desbloquear · 💎 '+style.price+'</button>':level>=4?'<button disabled class="w-full rounded-lg border border-amber-300/30 bg-amber-950/40 px-2 py-2 text-[10px] font-black text-amber-200">✦ EVOLUCIÓN MÁXIMA</button>':'<button data-evolve-style="'+style.id+'" class="w-full rounded-lg bg-cyan-300 px-2 py-2 text-[10px] font-black text-slate-950">Evolucionar · '+nextCost+' tokens</button>';return '<article class="overflow-hidden rounded-2xl border '+(level===4?'border-amber-300/60 bg-gradient-to-br from-amber-950/50 to-slate-950':level>=3?'border-fuchsia-300/40 bg-gradient-to-br from-fuchsia-950/30 to-slate-950':'border-white/10 bg-slate-950/80')+' p-3"><div class="flex items-center justify-between gap-2"><b class="text-xs tracking-widest text-white">'+style.name+'</b><span class="text-[9px] font-black text-cyan-200">NIVEL '+level+'/4</span></div>'+renderEvolutionCardPreview(style.id,level)+'<div class="mt-2 flex items-center justify-between"><small class="text-[10px] text-zinc-400">'+levelNames[level]+'</small><div class="flex gap-1">'+pips+'</div></div><div class="mt-2">'+action+'</div></article>'}).join('');grid.querySelectorAll('[data-evo-pack]').forEach(b=>b.onclick=()=>buyCardEvolutionTokens(b.dataset.evoPack,b.dataset.evoPrice));grid.querySelectorAll('[data-evolve-style]').forEach(b=>b.onclick=()=>evolveCardStyle(b.dataset.evolveStyle));grid.querySelectorAll('[data-evo-unlock]').forEach(b=>b.onclick=()=>buyCardSkin(b.dataset.evoUnlock))}
         function getDailyDiamondItems(){const day=clubLocalDate();let seed=0;for(let i=0;i<day.length;i++)seed=(seed*33+day.charCodeAt(i))>>>0;const shuffle=pool=>{const a=[...pool];for(let i=a.length-1;i>0;i--){seed=(seed*1664525+1013904223)>>>0;const j=seed%(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};return [...shuffle(UNO_CARD_SKINS).slice(0,5),...shuffle(UNO_PLUS_ITEMS.filter(x=>x.field==='frame')).slice(0,3)]}
         function updateDiamondStoreClock(){const el=document.getElementById('diamondStoreCountdown');if(!el)return;const now=new Date(),next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1),ms=next-now,h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),sec=Math.floor(ms%60000/1000);el.textContent='Nueva rotación en '+h+' h '+m+' min '+sec+' s';const bal=document.getElementById('diamondStoreBalance');if(bal)bal.textContent=getUnoPlus().toLocaleString('es-AR')}
