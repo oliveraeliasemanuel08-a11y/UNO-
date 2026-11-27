@@ -116,6 +116,14 @@
         .card-skin-preview{width:74px;height:104px;border-radius:12px;position:relative;overflow:hidden;border:3px solid #fff9;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:900;font-size:22px;color:#fff;text-shadow:0 2px 5px #000;box-shadow:0 8px 22px #0009,inset 0 0 0 2px #ffffff30;transform:rotate(-4deg)}
         .card-skin-preview:before{content:"";position:absolute;inset:7px;border:1px solid #ffffff80;border-radius:8px;transform:rotate(12deg)}
         .card-skin-preview:after{content:"";position:absolute;inset:-40%;background:linear-gradient(110deg,transparent 38%,#ffffff55 48%,transparent 58%);animation:cardSkinShine 3.8s linear infinite}
+        .card-skin-preview.uno-skin-inferno{background:radial-gradient(circle at 50% 100%,#f97316,#7f1d1d 62%,#1c0a0a)}
+        .card-skin-preview.uno-skin-frost{background:linear-gradient(145deg,#e0f2fe,#38bdf8 48%,#164e63)}
+        .card-skin-preview.uno-skin-cyber{background:repeating-linear-gradient(0deg,#18052c 0 7px,#6b21a8 8px 9px,#082f49 10px 16px)}
+        .card-skin-preview.uno-skin-royal{background:linear-gradient(145deg,#fef3c7,#b45309 45%,#422006)}
+        .card-skin-preview.uno-skin-toxic{background:radial-gradient(circle at 30% 25%,#bef264,#365314 55%,#10220a)}
+        .card-skin-preview.uno-skin-galaxy{background:radial-gradient(circle at 30% 20%,#c4b5fd,#6d28d9 42%,#09051d)}
+        .card-skin-preview.uno-skin-void{background:linear-gradient(145deg,#64748b,#1e293b 55%,#020617)}
+        .card-skin-preview.uno-skin-prism{background:linear-gradient(135deg,#e879f9,#22d3ee 35%,#facc15 68%,#8b5cf6)}
         @keyframes cardSkinShine{0%{transform:translateX(-65%) rotate(12deg)}100%{transform:translateX(65%) rotate(12deg)}}
         .uno-card[class*="uno-skin-"]{border-width:3px}
         .uno-card.uno-skin-inferno{border-color:#fb923c;box-shadow:0 0 8px #f97316,0 0 20px #dc262688,0 8px 18px #0009}
@@ -5773,7 +5781,7 @@ function updatePlusWalletUI(){const v=getUnoPlus().toLocaleString('es-AR');['uno
         function cardSkinClass(){const id=localStorage.getItem('uno_card_skin_equipped')||'classic';return UNO_CARD_SKINS.some(x=>x.id===id)?'uno-skin-'+id:''}
         function getEquippedCardSkin(){return localStorage.getItem('uno_card_skin_equipped')||'classic'}
         function ownedCardSkins(){try{const a=JSON.parse(localStorage.getItem('uno_card_skins_owned')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
-        function getDailyDiamondItems(){const day=clubLocalDate();let seed=0;for(let i=0;i<day.length;i++)seed=(seed*33+day.charCodeAt(i))>>>0;const pool=[...UNO_CARD_SKINS,...UNO_PLUS_ITEMS.filter(x=>x.field==='frame')];for(let i=pool.length-1;i>0;i--){seed=(seed*1664525+1013904223)>>>0;const j=seed%(i+1);[pool[i],pool[j]]=[pool[j],pool[i]]}return pool.slice(0,8)}
+        function getDailyDiamondItems(){const day=clubLocalDate();let seed=0;for(let i=0;i<day.length;i++)seed=(seed*33+day.charCodeAt(i))>>>0;const shuffle=pool=>{const a=[...pool];for(let i=a.length-1;i>0;i--){seed=(seed*1664525+1013904223)>>>0;const j=seed%(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};return [...shuffle(UNO_CARD_SKINS).slice(0,5),...shuffle(UNO_PLUS_ITEMS.filter(x=>x.field==='frame')).slice(0,3)]}
         function updateDiamondStoreClock(){const el=document.getElementById('diamondStoreCountdown');if(!el)return;const now=new Date(),next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1),ms=next-now,h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),sec=Math.floor(ms%60000/1000);el.textContent='Nueva rotación en '+h+' h '+m+' min '+sec+' s';const bal=document.getElementById('diamondStoreBalance');if(bal)bal.textContent=getUnoPlus().toLocaleString('es-AR')}
         function buyCardSkin(id){const item=UNO_CARD_SKINS.find(x=>x.id===id),owned=ownedCardSkins();if(!item||owned.includes(id))return;const bal=getUnoPlus();if(bal<item.price){showToast('Te faltan '+(item.price-bal)+' diamantes.','warn');return}setUnoPlus(bal-item.price);owned.push(id);localStorage.setItem('uno_card_skins_owned',JSON.stringify(owned));equipCardSkin(id);showToast('¡Skin '+item.name+' desbloqueada!','success')}
         function equipCardSkin(id){if(id!=='classic'&&!ownedCardSkins().includes(id))return;localStorage.setItem('uno_card_skin_equipped',id);const label=document.getElementById('cardSkinEquippedLabel');if(label)label.textContent=id==='classic'?'Skin clásica equipada':'Skin '+(UNO_CARD_SKINS.find(x=>x.id===id)?.name||id)+' equipada';renderDiamondStore();if(typeof renderGame==='function'&&state?.room)renderGame()}
