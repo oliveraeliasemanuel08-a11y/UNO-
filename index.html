@@ -1633,7 +1633,7 @@ body.performance-low .uno-card-art .evo-particle{display:none}
       <div class="grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,.8fr)]">
         <section class="capital-panel min-w-0">
           <div class="flex flex-wrap items-start justify-between gap-3"><div><div class="capital-eyebrow">GLOBAL MARKET INDEX</div><h2 class="mt-1 text-xl font-black">Índice UNO CLUB</h2><div class="mt-2 flex items-baseline gap-3"><span id="capitalIndexValue" class="font-uno text-4xl text-white">1.000,00</span><span id="capitalIndexChange" class="text-sm font-black text-emerald-300">+0,00%</span></div></div><div class="text-right"><div class="capital-muted">EVENTO ACTIVO</div><div id="capitalEventName" class="mt-1 text-sm font-black text-amber-200">Analizando mercado...</div><div id="capitalEventDesc" class="mt-1 max-w-[230px] text-[10px] text-slate-400">El mercado se actualiza en tiempo global.</div></div></div>
-          <div class="mt-4 flex flex-wrap items-center justify-between gap-2"><div id="capitalChartAssetName" class="text-xs font-bold text-emerald-200">UNOcoins · Índice</div><div class="flex gap-1"><button data-capital-range="1H" class="capital-range">1H</button><button data-capital-range="6H" class="capital-range">6H</button><button data-capital-range="24H" class="capital-range active">24H</button><button data-capital-range="7D" class="capital-range">7D</button></div></div>
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2"><div id="capitalChartAssetName" class="text-xs font-bold text-emerald-200">UNOcoins · Índice</div><div class="flex gap-1"><button data-capital-range="1H" class="capital-range">1H</button><button data-capital-range="6H" class="capital-range">6H</button><button data-capital-range="24H" class="capital-range active">24H</button><button data-capital-range="7D" class="capital-range">7D</button></div><span class="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2 py-1 text-[9px] font-black tracking-wider text-emerald-200">● ACTUALIZA CADA 10 S</span></div>
           <div id="capitalChart" class="mt-2 overflow-hidden rounded-xl border border-white/5 bg-[#050d16] p-2"></div>
           <div class="mt-3 grid grid-cols-3 gap-2 text-[10px] text-slate-400"><div>APERTURA <b id="capitalOpen" class="ml-1 text-slate-200">—</b></div><div>MÁXIMO <b id="capitalHigh" class="ml-1 text-emerald-200">—</b></div><div>MÍNIMO <b id="capitalLow" class="ml-1 text-rose-200">—</b></div></div>
         </section>
@@ -7693,7 +7693,7 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           if(typeof initFirebase==='function')await initFirebase().catch(()=>false);
           capitalSettleExpired();capitalSwitchTab('market');capitalRenderAll();
           if(capitalTickTimer)clearInterval(capitalTickTimer);
-          capitalTickTimer=setInterval(()=>{if(!document.getElementById('unoCapitalScreen')?.classList.contains('hidden')){capitalSettleExpired();capitalRenderAll()}},15000);
+          capitalTickTimer=setInterval(()=>{if(!document.getElementById('unoCapitalScreen')?.classList.contains('hidden')){capitalSettleExpired();capitalRenderAll()}},10000);
         }
         function closeUnoCapital(){document.getElementById('unoCapitalScreen')?.classList.add('hidden');if(capitalTickTimer){clearInterval(capitalTickTimer);capitalTickTimer=null}}
         document.getElementById('btnOpenCapital')?.addEventListener('click',openUnoCapital);
