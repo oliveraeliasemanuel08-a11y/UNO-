@@ -774,6 +774,25 @@
         body.performance-low .uno-card{box-shadow:0 3px 8px rgba(0,0,0,.4)!important}body.no-shadows .uno-card,body.no-shadows .table-oval-3d{box-shadow:none!important}body.animations-off *,body.animations-off *:before,body.animations-off *:after{animation:none!important;transition-duration:0s!important}body.animations-reduced *,body.animations-reduced *:before,body.animations-reduced *:after{animation-duration:.25s!important;transition-duration:.15s!important}body.compact-ui #homeScreen .rounded-3xl{padding:.75rem!important}body.large-ui button,body.large-ui input,body.large-ui select{font-size:1.05rem}
             .card-motion-off .uno-card { animation: none !important; transition: none !important; }
 
+/* CARD REVOLUTION — arte SVG ornamental para todas las cartas UNO */
+.uno-card-inner{isolation:isolate;background-blend-mode:normal}
+.uno-card-art{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:visible}
+.uno-card-art svg{display:block;width:100%;height:100%;overflow:visible}
+.uno-card-art .art-line{fill:none;stroke:#fff;stroke-width:1.35;opacity:.34}
+.uno-card-art .art-gold{fill:none;stroke:#ffe6a1;stroke-width:1.45;opacity:.72}
+.uno-card-art .art-gem{stroke:#fff;stroke-width:1;fill:#fff;opacity:.5}
+.uno-card-art .art-center{fill:none;stroke:#a16207;stroke-width:1.5;opacity:.34}
+.uno-card-art .art-wild{opacity:.7}
+.uno-card-inner>.uno-oval{z-index:1}
+.uno-card-inner>.uno-card-art{z-index:4}
+.uno-card-inner>.uno-card-glare{z-index:15}
+.uno-card:not(.uno-card-back) .uno-card-inner{box-shadow:inset 0 0 0 1px #ffffff55}
+.uno-card:not(.uno-card-back) .uno-oval{background:linear-gradient(145deg,#fff 0%,#fffdf7 48%,#e8e7e2 100%);box-shadow:inset 0 2px 5px #0002,0 2px 8px #0003}
+.uno-card:not(.uno-card-back) .uno-card-inner:after{content:"";position:absolute;inset:4px;border:1px solid #ffffff65;border-radius:7px;pointer-events:none;z-index:5}
+.uno-card-back .uno-card-art{opacity:.75}
+@media(prefers-reduced-motion:reduce){.uno-card-art *{animation:none!important}}
+/* Fin del arte SVG */
+
 /* UNO! TCG — cartas coleccionables con profundidad 2.5D */
 .tcg-card-3d{position:relative;isolation:isolate;aspect-ratio:2.5/3.5;min-width:112px;max-width:148px;width:100%;border-radius:15px;padding:5px;background:linear-gradient(145deg,#fff7d6,#b9a5ff 38%,#172554 72%,#080b18);box-shadow:0 14px 22px #0009,0 3px 0 #ffffff55 inset;transform:perspective(850px) rotateY(-5deg) rotateX(2deg);transform-style:preserve-3d;transition:transform .22s ease,filter .22s ease;overflow:hidden}
 .tcg-card-3d:hover{transform:perspective(850px) rotateY(0) rotateX(0) translateY(-7px) scale(1.035);z-index:8;filter:brightness(1.12)}
@@ -3017,6 +3036,39 @@
             return `<span class="font-uno font-extrabold ${fontSize} ${underline} leading-none">${value}</span>`;
         }
 
+        function renderCardFaceSVG(card) {
+            const palette = card.color === 'wild'
+                ? ['#f43f5e','#facc15','#22c55e','#3b82f6']
+                : [(COLOR_META[card.color] || COLOR_META.red).hex || '#ffffff'];
+            const accent = card.color === 'wild' ? '#f8fafc' : (palette[0] || '#ffffff');
+            const gems = card.color === 'wild'
+                ? '<path class="art-wild" d="M125 36l7 12-7 12-7-12z" fill="#f43f5e"/><path class="art-wild" d="M214 180l-7 12 7 12 7-12z" fill="#3b82f6"/><path class="art-wild" d="M125 300l7 12-7 12-7-12z" fill="#22c55e"/><path class="art-wild" d="M36 180l-7 12 7 12 7-12z" fill="#facc15"/>'
+                : '<path class="art-gem" d="M125 38l6 9-6 9-6-9z"/><path class="art-gem" d="M214 180l-6 9 6 9 6-9z"/><path class="art-gem" d="M125 304l6 9-6 9-6-9z"/><path class="art-gem" d="M36 180l-6 9 6 9 6-9z"/>';
+            return `<div class="uno-card-art" aria-hidden="true">
+                <svg viewBox="0 0 250 360" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="unoMetal${String(card.id).replace(/[^a-zA-Z0-9_-]/g,'')}" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#fff" stop-opacity=".78"/>
+                            <stop offset=".5" stop-color="${accent}" stop-opacity=".12"/>
+                            <stop offset="1" stop-color="#fff" stop-opacity=".5"/>
+                        </linearGradient>
+                    </defs>
+                    <rect x="8" y="8" width="234" height="344" rx="13" class="art-line"/>
+                    <rect x="13" y="13" width="224" height="334" rx="10" class="art-gold"/>
+                    <path class="art-line" d="M22 74V24h50M178 24h50v50M22 286v50h50M178 336h50v-50"/>
+                    <path class="art-gold" d="M25 60c18-2 20-16 22-27 10 7 17 14 18 28M225 60c-18-2-20-16-22-27-10 7-17 14-18 28M25 300c18 2 20 16 22 27 10-7 17-14 18-28M225 300c-18 2-20 16-22 27-10-7-17-14-18-28"/>
+                    <path class="art-line" d="M125 30v35M125 295v35M30 180h35M185 180h35"/>
+                    <ellipse cx="125" cy="180" rx="103" ry="78" transform="rotate(-28 125 180)" fill="url(#unoMetal${String(card.id).replace(/[^a-zA-Z0-9_-]/g,'')})" opacity=".22"/>
+                    <ellipse cx="125" cy="180" rx="94" ry="69" transform="rotate(-28 125 180)" class="art-center"/>
+                    <ellipse cx="125" cy="180" rx="84" ry="60" transform="rotate(-28 125 180)" class="art-line" opacity=".18"/>
+                    <path class="art-gold" d="M91 108q34-25 68 0M91 252q34 25 68 0" opacity=".34"/>
+                    <circle cx="125" cy="180" r="68" class="art-line" stroke-dasharray="2 7" opacity=".18"/>
+                    ${gems}
+                    <path class="art-line" d="M42 92l10 10m-10 0l10-10M198 92l10 10m-10 0l10-10M42 258l10 10m-10 0l10-10M198 258l10 10m-10 0l10-10" opacity=".5"/>
+                </svg>
+            </div>`;
+        }
+
         function createCardHTML(card, extraClasses = '', styleAttr = '') {
             const equippedSkinClass=cardSkinClass();
             if (card.faceDownDeclaration) return `
@@ -3039,6 +3091,7 @@
                     <div class="uno-card-inner" style="${bgStyle}">
                         <div class="uno-card-glare"></div>
                         <div class="uno-oval"></div>
+                        ${renderCardFaceSVG(card)}
                         <!-- Esquina superior izquierda -->
                         <div class="absolute top-1 left-1.5 text-white font-bold uno-corner-shadow leading-none z-10">
                             ${renderCardSymbolSVG(card.value, true)}
