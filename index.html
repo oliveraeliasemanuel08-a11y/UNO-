@@ -112,6 +112,20 @@
             animation: cameraShake 0.44s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
         }
 
+
+        .uno-store-pane{min-width:0}.uno-store-pane.hidden{display:none!important}
+        [data-store-tab]{transition:transform .18s ease,border-color .18s ease,background .18s ease}
+        [data-store-tab]:active{transform:scale(.97)}
+        .uno-currency-icon{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;filter:drop-shadow(0 2px 5px #0008)}
+        .uno-card-art svg{filter:drop-shadow(0 0 5px #fff4)}
+        .uno-card-art .evo-ornament{fill:none;stroke-linecap:round;stroke-linejoin:round}
+        .uno-evo-level-2 .uno-card-art .tier-awaken{opacity:1}
+        .uno-evo-level-3 .uno-card-art .tier-resonance{opacity:1}
+        .uno-evo-level-4 .uno-card-art .tier-ascended{opacity:1}
+        .uno-card-art .tier-awaken,.uno-card-art .tier-resonance,.uno-card-art .tier-ascended{opacity:0;transition:opacity .35s ease}
+        @keyframes evoSigilPulse{0%,100%{opacity:.55;filter:drop-shadow(0 0 2px currentColor)}50%{opacity:1;filter:drop-shadow(0 0 9px currentColor)}}
+        .uno-evo-level-4 .uno-card-art .tier-ascended{animation:evoSigilPulse 2.4s ease-in-out infinite}
+        .performance-low .uno-evo-level-4 .uno-card-art .tier-ascended,.animations-reduced .uno-evo-level-4 .uno-card-art .tier-ascended,.animations-off .uno-evo-level-4 .uno-card-art .tier-ascended{animation:none}
         /* CARD REVOLUTION: skins equipables; conservan reglas y colores */
         .card-skin-preview{width:74px;height:104px;border-radius:12px;position:relative;overflow:hidden;border:3px solid #fff9;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:900;font-size:22px;color:#fff;text-shadow:0 2px 5px #000;box-shadow:0 8px 22px #0009,inset 0 0 0 2px #ffffff30;transform:rotate(-4deg)}
         .card-skin-preview:before{content:"";position:absolute;inset:7px;border:1px solid #ffffff80;border-radius:8px;transform:rotate(12deg)}
@@ -3196,7 +3210,11 @@ body.performance-low .uno-card-art .evo-particle{display:none}
             const wild=card.color==='wild';
             const shards=wild?'<path d="M125 28l8 15-8 15-8-15zM218 180l-8 15 8 15 8-15zM125 302l8 15-8 15-8-15zM32 180l-8 15 8 15 8-15z" fill="#fff"/>':'';
             const particles=evolutionLevel>=4?Array.from({length:12},(_,i)=>{const x=24+(i*37)%202,y=30+(i*67)%300;return '<circle class="evo-particle p'+(i%4)+'" cx="'+x+'" cy="'+y+'" r="'+(i%3+1)+'"/>'}).join(''):'';
-            return '<div class="uno-card-art uno-art-'+style+'" aria-hidden="true"><svg viewBox="0 0 250 360" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="evo-'+safeId+'" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+art.a+'"/><stop offset=".5" stop-color="'+color+'"/><stop offset="1" stop-color="'+art.b+'"/></linearGradient></defs><rect x="7" y="7" width="236" height="346" rx="18" fill="none" stroke="url(#evo-'+safeId+')" stroke-width="4"/><rect x="15" y="15" width="220" height="330" rx="14" fill="none" stroke="'+art.a+'" stroke-opacity=".5"/><path class="art-corner" d="M24 78V28h50M176 28h50v50M24 282v50h50M176 332h50v-50" fill="none" stroke="'+art.b+'" stroke-width="4"/><g class="art-signature" fill="none" stroke="url(#evo-'+safeId+')" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">'+art.motif+'</g><circle cx="125" cy="180" r="64" fill="url(#evo-'+safeId+')" fill-opacity=".12" stroke="'+art.a+'" stroke-opacity=".55" stroke-width="2"/><g class="evo-tier2" fill="none" stroke="'+art.b+'" stroke-width="2"><path d="M36 130Q70 95 96 112M214 130Q180 95 154 112M36 230Q70 265 96 248M214 230Q180 265 154 248"/><path d="M125 75l8 14 16 3-12 11 3 16-15-8-15 8 3-16-12-11 16-3z"/></g><g class="evo-tier3" fill="none" stroke="'+art.a+'" stroke-width="3"><path d="M58 155Q15 115 42 82Q75 100 87 143M192 155Q235 115 208 82Q175 100 163 143M58 205Q15 245 42 278Q75 260 87 217M192 205Q235 245 208 278Q175 260 163 217"/><path d="M93 64l32-25 32 25-12 18h-40z" fill="'+art.b+'" fill-opacity=".4"/></g><g class="evo-tier4" fill="none" stroke="'+art.b+'" stroke-width="2"><ellipse class="evo-orbit" cx="125" cy="180" rx="112" ry="91" stroke-dasharray="7 8"/><ellipse class="evo-orbit reverse" cx="125" cy="180" rx="96" ry="72" stroke-dasharray="3 9"/><path class="evo-star" d="M125 18l7 17 18 7-18 7-7 18-7-18-18-7 18-7zM125 293l7 17 18 7-18 7-7 18-7-18-18-7 18-7z"/></g>'+particles+shards+'<path d="M24 180h17m168 0h17M125 25v16m0 278v16" stroke="'+art.a+'" stroke-width="2" opacity=".8"/></svg></div>';
+            const tier2='<g class="tier-awaken evo-ornament" stroke="'+art.b+'" stroke-width="2.2"><path d="M18 95Q48 48 92 64M232 95Q202 48 158 64M18 265Q48 312 92 296M232 265Q202 312 158 296"/><path d="M125 20l7 16 17 7-17 7-7 16-7-16-17-7 17-7zM125 294l7 16 17 7-17 7-7 16-7-16-17-7 17-7z"/><circle cx="34" cy="180" r="5" fill="'+art.b+'"/><circle cx="216" cy="180" r="5" fill="'+art.b+'"/></g>';
+            const tier3='<g class="tier-resonance evo-ornament" stroke="'+art.a+'" stroke-width="3"><path d="M28 42l24 10 10 24-24-10zM222 42l-24 10-10 24 24-10zM28 318l24-10 10-24-24 10zM222 318l-24-10-10-24 24 10z"/><path d="M125 58l18 18-18 18-18-18zM125 266l18 18-18 18-18-18z"/><ellipse cx="125" cy="180" rx="102" ry="126" stroke-dasharray="2 10"/></g>';
+            const tier4='<g class="tier-ascended evo-ornament" stroke="'+art.b+'" stroke-width="2.6"><ellipse class="evo-orbit" cx="125" cy="180" rx="116" ry="150" stroke-dasharray="8 8"/><ellipse class="evo-orbit reverse" cx="125" cy="180" rx="102" ry="132" stroke-dasharray="3 9"/><path d="M125 8l9 21 22 9-22 9-9 21-9-21-22-9 22-9zM125 292l9 21 22 9-22 9-9 21-9-21-22-9 22-9z"/><path d="M13 180l17-8 17 8-17 8zM203 180l17-8 17 8-17 8z" fill="'+art.b+'"/></g>';
+            const gems=Array.from({length:evolutionLevel>=4?12:evolutionLevel>=3?8:evolutionLevel>=2?4:0},(_,i)=>{const pts=[[42,55],[208,55],[42,305],[208,305],[125,34],[125,326],[25,180],[225,180],[70,92],[180,92],[70,268],[180,268]],p=pts[i];return '<path d="M'+p[0]+' '+(p[1]-5)+'l5 5-5 5-5-5z" fill="'+(i%2?art.a:art.b)+'" stroke="#fff" stroke-opacity=".8"/>'}).join('');
+            return '<div class="uno-card-art uno-art-'+style+'" aria-hidden="true"><svg viewBox="0 0 250 360" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="evo-'+safeId+'" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+art.a+'"/><stop offset=".48" stop-color="'+color+'"/><stop offset="1" stop-color="'+art.b+'"/></linearGradient><radialGradient id="core-'+safeId+'"><stop stop-color="#fff" stop-opacity=".9"/><stop offset=".35" stop-color="'+art.a+'" stop-opacity=".5"/><stop offset="1" stop-color="'+color+'" stop-opacity="0"/></radialGradient></defs><rect x="5" y="5" width="240" height="350" rx="21" fill="none" stroke="url(#evo-'+safeId+')" stroke-width="5"/><rect x="12" y="12" width="226" height="336" rx="17" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="1.2"/><path d="M22 88V24h64M164 24h64v64M22 272v64h64M164 336h64v-64" fill="none" stroke="'+art.b+'" stroke-width="5"/><path d="M31 82V33h48M171 33h48v49M31 278v49h48M171 327h48v-49" fill="none" stroke="'+art.a+'" stroke-width="2"/><circle cx="125" cy="180" r="92" fill="url(#core-'+safeId+')" opacity=".85"/><circle cx="125" cy="180" r="75" fill="none" stroke="'+art.b+'" stroke-opacity=".8" stroke-width="2"/><circle cx="125" cy="180" r="68" fill="none" stroke="#fff" stroke-opacity=".45" stroke-dasharray="2 5"/><g class="art-signature" fill="none" stroke="url(#evo-'+safeId+')" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">'+art.motif+'</g>'+tier2+tier3+tier4+gems+particles+shards+'<path d="M24 180h17m168 0h17M125 25v16m0 278v16" stroke="'+art.a+'" stroke-width="2.5" opacity=".95"/></svg></div>';;
         }
 
         function createCardHTML(card, extraClasses = '', styleAttr = '') {
@@ -5984,7 +6002,76 @@ function updatePlusWalletUI(){const v=getUnoPlus().toLocaleString('es-AR');['uno
         function renderClubStore(){const owned=ownedClubItems(),grid=document.getElementById('storeItemsGrid'),q=(document.getElementById('storeSearchInput')?.value||'').trim().toLowerCase(),cat=document.getElementById('storeCategoryFilter')?.value||'all';updateClubWalletUI();const items=getDailyStoreItems().filter(x=>(cat==='all'||x.category===cat)&&(!q||(x.name+' '+x.rarity).toLowerCase().includes(q)));grid.innerHTML=items.map(x=>{const bought=owned.includes(x.id);return '<div class="rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-3 flex flex-col gap-2"><div class="flex items-center justify-center min-h-[58px]">'+(x.category==='frame'&&x.value>=6?unoVipFrameSVG(x.value,58):'<span class="text-3xl">'+x.emoji+'</span>')+'<span class="text-[9px] uppercase tracking-wider text-fuchsia-300">'+(x.rarity||'Común')+'</span></div><b class="text-xs">'+x.name+'</b><span class="text-amber-300 text-xs">🪙 '+(x.price||0)+'</span><button data-buy="'+x.id+'" class="rounded-lg px-2 py-1.5 text-xs font-bold '+(bought?'bg-emerald-900 text-emerald-200':'bg-amber-400 text-zinc-950')+'">'+(bought?'Equipar':'Comprar')+'</button></div>'}).join('')||'<p class="col-span-full text-center text-sm text-zinc-400 py-8">La selección de hoy no tiene artículos en esta categoría. ¡Probá otra!</p>';grid.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>owned.includes(b.dataset.buy)?equipClubItem(b.dataset.buy):buyClubItem(b.dataset.buy));const pg=document.getElementById('unoPlusCosmetics');if(pg){pg.innerHTML=UNO_PLUS_ITEMS.map(x=>'<article class="rounded-xl border border-cyan-300/20 bg-gradient-to-br from-cyan-950/70 via-slate-950 to-indigo-950 p-3"><div class="flex h-20 items-center justify-center">'+(x.field==='frame'?unoVipFrameSVG(x.value,76):'<span class="text-3xl">'+x.emoji+'</span>')+'</div><b class="mt-1 block text-xs">'+x.name+'</b><small class="text-cyan-200">💎 '+x.price+'</small><button data-buy-plus="'+x.id+'" class="mt-2 w-full rounded-lg bg-cyan-400 px-2 py-2 text-[10px] font-black text-slate-950">'+(owned.includes(x.id)?'✓ Equipar':'Comprar con Plus')+'</button></article>').join('');pg.querySelectorAll('[data-buy-plus]').forEach(b=>b.onclick=()=>owned.includes(b.dataset.buyPlus)?equipClubItem(b.dataset.buyPlus):buyUnoPlusCosmetic(b.dataset.buyPlus))}updatePlusWalletUI();updateDailyStoreClock();renderDiamondStore()}
         function equipClubItem(id){const x=CLUB_STORE_ITEMS.find(i=>i.id===id)||UNO_PLUS_ITEMS.find(i=>i.id===id);if(!x)return;state.playerAvatar[x.field]=x.value;saveAvatarCfg();const mine=state.room?.seats?.find(p=>p.id===currentUserId);if(mine){mine.avatar=state.playerAvatar;syncRoomToCloud()}showToast('¡Equipaste '+x.name+'!','success');renderClubStore()}
         function buyClubItem(id){const x=CLUB_STORE_ITEMS.find(i=>i.id===id),owned=ownedClubItems();if(!x||owned.includes(id))return;const p=Number(localStorage.getItem('uno_club_points')||0);if(p<x.price){showToast('Te faltan '+(x.price-p)+' puntos.','warn');return}localStorage.setItem('uno_club_points',String(p-x.price));owned.push(id);localStorage.setItem('uno_club_owned',JSON.stringify(owned));equipClubItem(id)}
-        function openClubStore(){renderClubStore();document.getElementById('storeModal').classList.remove('hidden')}
+
+        /* UNO! CLUB — identidad visual de monedas y tiendas especializadas */
+        function unoCurrencyIcon(kind,size=24){
+          const common='width="'+size+'" height="'+size+'" viewBox="0 0 64 64" aria-hidden="true"';
+          const defs='<defs><linearGradient id="coinGold" x2="1" y2="1"><stop stop-color="#fff4a8"/><stop offset=".45" stop-color="#fbbf24"/><stop offset="1" stop-color="#92400e"/></linearGradient><linearGradient id="coinBlue" x2="1" y2="1"><stop stop-color="#e0f2fe"/><stop offset=".5" stop-color="#38bdf8"/><stop offset="1" stop-color="#1e3a8a"/></linearGradient><linearGradient id="coinEther" x2="1" y2="1"><stop stop-color="#d1fae5"/><stop offset=".48" stop-color="#34d399"/><stop offset="1" stop-color="#064e3b"/></linearGradient><linearGradient id="coinNebula" x2="1" y2="1"><stop stop-color="#f5d0fe"/><stop offset=".5" stop-color="#a855f7"/><stop offset="1" stop-color="#312e81"/></linearGradient></defs>';
+          const art={
+            coins:'<circle cx="32" cy="32" r="27" fill="url(#coinGold)" stroke="#fff1a8" stroke-width="2"/><circle cx="32" cy="32" r="21" fill="none" stroke="#78350f" stroke-width="2"/><path d="M32 13l5 13 14 6-14 6-5 13-5-13-14-6 14-6z" fill="#fff7cc" stroke="#92400e" stroke-width="1.5"/>',
+            diamonds:'<path d="M32 4L55 23 32 60 9 23Z" fill="url(#coinBlue)" stroke="#e0f2fe" stroke-width="2"/><path d="M9 23h46M22 23l10 37 10-37M22 23l10-19 10 19" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="2"/>',
+            ether:'<path d="M32 4C21 19 12 29 12 40a20 20 0 0040 0C52 29 43 19 32 4Z" fill="url(#coinEther)" stroke="#d1fae5" stroke-width="2"/><path d="M32 17l-9 23 9 7 9-7z" fill="none" stroke="#ecfdf5" stroke-width="2"/><path d="M32 17v30" stroke="#ecfdf5" stroke-width="2"/>',
+            nebula:'<circle cx="32" cy="32" r="27" fill="url(#coinNebula)" stroke="#f5d0fe" stroke-width="2"/><path d="M32 10l5 14 14 8-14 8-5 14-5-14-14-8 14-8z" fill="none" stroke="#fff" stroke-width="2"/><circle cx="32" cy="32" r="5" fill="#fff"/>',
+            tokens:'<path d="M32 5l23 13v28L32 59 9 46V18z" fill="url(#coinBlue)" stroke="#e0f2fe" stroke-width="2"/><path d="M32 15v34M18 24l28 16M46 24L18 40" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'
+          };
+          return '<svg '+common+' xmlns="http://www.w3.org/2000/svg">'+defs+(art[kind]||art.coins)+'</svg>';
+        }
+        const UNO_RARE_SHOPS={
+          ether:{title:'TIENDA ÉTER',sub:'Reliquias vivas · cosméticos de categoría legendaria',icon:'ether',items:[
+            {id:'inferno',name:'Inferno Ascendente',kind:'skin',cost:3,desc:'Skin ígnea para todas tus cartas'},
+            {id:'frost',name:'Glaciar Primordial',kind:'skin',cost:3,desc:'Cristal y escarcha animada'},
+            {id:'cyber',name:'Núcleo Cyber',kind:'skin',cost:4,desc:'Circuitos holográficos'},
+            {id:'ether_wings',name:'Alas de Éter',kind:'acc',cost:5,field:'acc',value:29,emoji:'✧'},
+            {id:'ether_frame',name:'Marco Alquimia',kind:'frame',cost:6,field:'frame',value:30,emoji:'◈'}
+          ]},
+          nebula:{title:'TIENDA NÉBULA',sub:'Artefactos supremos · piezas de máxima rareza',icon:'nebula',items:[
+            {id:'galaxy',name:'Galaxia Infinita',kind:'skin',cost:2,desc:'Constelaciones en cada carta'},
+            {id:'void',name:'Vacío Absoluto',kind:'skin',cost:3,desc:'Portal oscuro y energía abismal'},
+            {id:'prism',name:'Prisma Celestial',kind:'skin',cost:4,desc:'Facetas holográficas multicolor'},
+            {id:'nebula_crown',name:'Corona de Nébula',kind:'acc',cost:3,field:'acc',value:31,emoji:'✺'},
+            {id:'nebula_frame',name:'Marco Singularidad',kind:'frame',cost:4,field:'frame',value:32,emoji:'✧'}
+          ]}
+        };
+        function initUnoStoreTabs(){
+          const modal=document.getElementById('storeModal'),content=modal?.querySelector('.p-4');if(!content||document.getElementById('unoStoreTabs'))return;
+          const filter=document.getElementById('storeSearchInput')?.parentElement,normalGrid=document.getElementById('storeItemsGrid'),diamondSection=document.getElementById('cardEvolutionLab')?.closest('section');
+          if(!normalGrid||!diamondSection)return;
+          const nav=document.createElement('div');nav.id='unoStoreTabs';nav.className='grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4';
+          const panes={normal:document.createElement('section'),diamonds:document.createElement('section'),nebula:document.createElement('section'),ether:document.createElement('section')};
+          Object.entries(panes).forEach(([k,p])=>{p.id='unoStorePane'+k;p.className='uno-store-pane';});
+          panes.normal.append(filter,normalGrid);panes.diamonds.append(diamondSection);
+          const makeTab=(key,label,icon)=>'<button type="button" data-store-tab="'+key+'" class="rounded-xl border border-white/10 bg-slate-900/80 px-2 py-3 text-[11px] font-black text-white flex flex-col items-center gap-1">'+unoCurrencyIcon(icon,25)+'<span>'+label+'</span></button>';
+          nav.innerHTML=makeTab('normal','NORMAL','coins')+makeTab('diamonds','DIAMANTES','diamonds')+makeTab('nebula','NÉBULA','nebula')+makeTab('ether','ÉTER','ether');
+          const createRarePane=(key)=>{const cfg=UNO_RARE_SHOPS[key],p=panes[key];p.innerHTML='<div class="rounded-2xl border '+(key==='nebula'?'border-fuchsia-300/30 bg-gradient-to-br from-indigo-950 via-slate-950 to-fuchsia-950/40':'border-emerald-300/30 bg-gradient-to-br from-emerald-950 via-slate-950 to-teal-950/40')+' p-4"><div class="flex flex-wrap items-center justify-between gap-3"><div class="flex items-center gap-3">'+unoCurrencyIcon(cfg.icon,42)+'<div><h3 class="font-uno text-2xl">'+cfg.title+'</h3><p class="text-[10px] text-slate-300">'+cfg.sub+'</p></div></div><div class="flex items-center gap-2 text-xl font-black">'+unoCurrencyIcon(cfg.icon,25)+'<b id="uno'+key+'Balance">0</b></div></div><div id="uno'+key+'ShopGrid" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3"></div><p class="mt-3 text-[10px] text-slate-400">Esta moneda se consigue jugando y cumpliendo objetivos; no se compra directamente con diamantes.</p></div>';};
+          createRarePane('nebula');createRarePane('ether');
+          content.prepend(nav);content.append(panes.normal,panes.diamonds,panes.nebula,panes.ether);
+          nav.querySelectorAll('[data-store-tab]').forEach(b=>b.addEventListener('click',()=>switchUnoStoreTab(b.dataset.storeTab)));
+          switchUnoStoreTab('normal');
+        }
+        function switchUnoStoreTab(key){
+          ['normal','diamonds','nebula','ether'].forEach(k=>{const p=document.getElementById('unoStorePane'+k);if(p)p.classList.toggle('hidden',k!==key)});
+          document.querySelectorAll('[data-store-tab]').forEach(b=>{const active=b.dataset.storeTab===key;b.classList.toggle('border-amber-300',active);b.classList.toggle('bg-amber-500/15',active);b.classList.toggle('text-amber-100',active);});
+          if(key==='nebula'||key==='ether')renderUnoRareShop(key);
+          if(key==='diamonds')renderDiamondStore();
+        }
+        function renderUnoRareShop(key){
+          const cfg=UNO_RARE_SHOPS[key],grid=document.getElementById('uno'+key+'ShopGrid'),balance=document.getElementById('uno'+key+'Balance');if(!cfg||!grid)return;
+          const currency=key==='ether'?'ether':'nebula',wallet=capitalGetWallet();if(balance)balance.textContent=wallet[currency].toLocaleString('es-AR');
+          grid.innerHTML=cfg.items.map(item=>{const skin=item.kind==='skin',owned=skin?ownedCardSkins().includes(item.id):ownedClubItems().includes(item.id),equipped=skin?getEquippedCardSkin()===item.id:false,visual=skin?'<div class="card-skin-preview uno-skin-'+item.id+'">'+(item.id==='inferno'?'✹':item.id==='frost'?'❄':item.id==='cyber'?'⌘':item.id==='galaxy'?'✦':item.id==='void'?'◉':'◇')+'</div>':'<div class="grid h-20 w-20 place-items-center rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-black/30 text-4xl">'+(item.emoji||'✧')+'</div>';return '<article class="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-black/35 p-3"><div class="flex h-24 items-center justify-center">'+visual+'</div><b class="text-center text-xs">'+item.name+'</b><small class="min-h-7 text-center text-[9px] text-slate-400">'+(item.desc||'Accesorio exclusivo para tu perfil')+'</small><div class="flex items-center gap-1 text-sm font-black">'+unoCurrencyIcon(currency,17)+' '+item.cost+'</div><button data-rare-buy="'+item.id+'" class="w-full rounded-lg px-2 py-2 text-[10px] font-black '+(equipped?'bg-emerald-900 text-emerald-200':owned?'bg-sky-500 text-slate-950':'bg-white text-slate-950')+'">'+(equipped?'✓ EQUIPADA':owned?'EQUIPAR':'DESBLOQUEAR')+'</button></article>'}).join('');
+          grid.querySelectorAll('[data-rare-buy]').forEach(btn=>btn.onclick=()=>buyUnoRareItem(key,btn.dataset.rareBuy));
+        }
+        function buyUnoRareItem(key,id){
+          const cfg=UNO_RARE_SHOPS[key],item=cfg?.items.find(x=>x.id===id);if(!item)return;
+          const skin=item.kind==='skin',owned=skin?ownedCardSkins():ownedClubItems();
+          if(owned.includes(id)){if(skin)equipCardSkin(id);else equipClubItem(id);renderUnoRareShop(key);return}
+          const currency=key==='ether'?'ether':'nebula',wallet=capitalGetWallet();if(wallet[currency]<item.cost){showToast('Te faltan '+(item.cost-wallet[currency])+' '+(key==='ether'?'UNO Éter':'UNO Nébula')+'.','warn');return}
+          capitalSetWallet(currency,wallet[currency]-item.cost);
+          if(skin){owned.push(id);localStorage.setItem('uno_card_skins_owned',JSON.stringify(owned));equipCardSkin(id)}
+          else{const club=ownedClubItems();club.push(id);localStorage.setItem('uno_club_owned',JSON.stringify(club));if(!UNO_PLUS_ITEMS.some(x=>x.id===id))UNO_PLUS_ITEMS.push({id,name:item.name,emoji:item.emoji||'✧',price:0,field:item.field,value:item.value,rarity:key==='ether'?'Reliquia de Éter':'Artefacto Nébula'});equipClubItem(id)}
+          scheduleClubProfileCloudSync?.();showToast('¡'+item.name+' desbloqueado!','success');renderUnoRareShop(key);
+        }
+        function openClubStore(){initUnoStoreTabs();renderClubStore();document.getElementById('storeModal').classList.remove('hidden');switchUnoStoreTab('normal')}
+
 document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubStore);document.getElementById('btnHomePlusLearn')?.addEventListener('click',openClubStore);
         document.getElementById('storeSearchInput')?.addEventListener('input',renderClubStore);
         document.getElementById('storeCategoryFilter')?.addEventListener('change',renderClubStore);
