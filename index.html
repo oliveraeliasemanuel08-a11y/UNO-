@@ -1073,6 +1073,25 @@ body.performance-low .uno-card-art .evo-particle{display:none}
         @keyframes vipRingFlare{0%,100%{opacity:.45;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
         .vip-frame-aurora{--vip-glow:#22d3ee}.vip-frame-inferno{--vip-glow:#fb7185}.vip-frame-cosmic{--vip-glow:#a78bfa}.vip-frame-dragon{--vip-glow:#fb923c}.vip-frame-celestial{--vip-glow:#c4b5fd}.vip-frame-cyber{--vip-glow:#22d3ee}.vip-frame-royal{--vip-glow:#facc15}.vip-frame-solar{--vip-glow:#fde047}.vip-frame-toxic{--vip-glow:#a3e635}.vip-frame-abyss{--vip-glow:#38bdf8}.vip-frame-phantom{--vip-glow:#e9d5ff}
         @media(prefers-reduced-motion:reduce){.vip-frame-art *{animation:none!important}}
+
+.capital-panel{border:1px solid rgba(148,163,184,.14);background:linear-gradient(145deg,rgba(15,29,42,.96),rgba(5,13,22,.96));border-radius:20px;padding:16px;box-shadow:0 18px 45px #0003}
+.capital-stat{border:1px solid rgba(148,163,184,.14);background:linear-gradient(145deg,#101f2d,#09131e);border-radius:15px;padding:13px;min-width:0}
+.capital-muted{font-size:9px;letter-spacing:.16em;font-weight:900;color:#8295a8;text-transform:uppercase}
+.capital-stat-value{font-family:'Fredoka',sans-serif;font-size:clamp(22px,3vw,30px);font-weight:900;color:#f8fafc;overflow:hidden;text-overflow:ellipsis}
+.capital-eyebrow{font-size:9px;letter-spacing:.22em;font-weight:900;color:#6ee7b7}
+.capital-range{border:1px solid #ffffff15;border-radius:7px;padding:5px 9px;font-size:10px;font-weight:900;color:#94a3b8}
+.capital-range.active{border-color:#34d39988;background:#064e3b;color:#a7f3d0}
+.capital-tab{border-radius:11px;padding:11px 5px;font-size:11px;font-weight:900;color:#94a3b8}
+.capital-tab.active{background:linear-gradient(135deg,#065f46,#0f766e);color:#ecfdf5;box-shadow:0 4px 14px #0005}
+.capital-label{display:block;font-size:10px;font-weight:900;letter-spacing:.08em;color:#9fb2c5;text-transform:uppercase}
+.capital-input{display:block;width:100%;margin-top:7px;border:1px solid #ffffff20;border-radius:10px;background:#07111d;color:#f8fafc;padding:11px;font-size:13px;outline:none}
+.capital-input:focus{border-color:#34d399}
+.capital-asset-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #ffffff10;border-radius:12px;background:#ffffff05;padding:10px;cursor:pointer;text-align:left;width:100%}
+.capital-asset-row.selected,.capital-asset-row:hover{border-color:#34d39966;background:#10b98112}
+.capital-table{width:100%;border-collapse:collapse;min-width:540px;font-size:11px}
+.capital-table th{text-align:left;color:#8295a8;font-size:9px;letter-spacing:.12em;padding:10px;border-bottom:1px solid #ffffff15}
+.capital-table td{padding:11px 10px;border-bottom:1px solid #ffffff0d;white-space:nowrap}
+.capital-up{color:#6ee7b7}.capital-down{color:#fda4af}
 </style>
 <style id="tcg-v2-styles">
 .tcg-reveal-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;background:radial-gradient(ellipse at center,#30145cdd,#02030bf2);backdrop-filter:blur(12px);animation:tcgFadeIn .25s ease both}
@@ -1304,7 +1323,7 @@ body.performance-low .uno-card-art .evo-particle{display:none}
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button id="btnOpenSettings" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-sky-300" title="Configuración">⚙️</button>
+                    <button id="btnOpenCapital" class="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-300/40 text-emerald-200 font-black text-xs shadow-lg" title="UNO CAPITAL">📈 CAPITAL</button><button id="btnOpenSettings" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-sky-300" title="Configuración">⚙️</button>
                     <button id="btnOpenProfile" class="px-3 py-2 rounded-xl bg-zinc-900 border border-cyan-300/30 text-cyan-200">👤 Perfil</button>
                     <button id="btnOpenInbox" class="relative px-3 py-2 rounded-xl bg-zinc-900 border border-emerald-300/30 text-emerald-200">💬 Chat <span id="inboxUnreadBadge" class="hidden absolute -right-1 -top-1 rounded-full bg-rose-500 px-1 text-[9px] font-black text-white">0</span></button>
                     <button id="btnOpenPlayerLookup" class="px-3 py-2 rounded-xl bg-zinc-900 border border-sky-300/30 text-sky-200" title="Buscar jugador por ID">🔎 ID</button>
@@ -1593,6 +1612,65 @@ body.performance-low .uno-card-art .evo-particle{display:none}
         </div>
     </div>
 
+
+
+<section id="unoCapitalScreen" class="hidden fixed inset-0 z-[220] overflow-y-auto bg-[#050b12] text-slate-100">
+  <div class="min-h-full bg-[radial-gradient(ellipse_at_top,#123b36_0%,#08131d_42%,#03070c_100%)]">
+    <header class="sticky top-0 z-20 border-b border-emerald-300/15 bg-[#07111bee] backdrop-blur-xl">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
+        <div class="flex items-center gap-3"><div class="grid h-11 w-11 place-items-center rounded-xl border border-emerald-300/40 bg-emerald-400/10 text-2xl">📈</div><div><div class="font-uno text-2xl tracking-wide text-white">UNO <span class="text-emerald-300">CAPITAL</span></div><div class="text-[9px] font-black tracking-[.25em] text-emerald-200/60">GLOBAL SIMULATED EXCHANGE</div></div></div>
+        <div class="flex items-center gap-2"><span id="capitalMarketStatus" class="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black text-emerald-200">● MERCADO ABIERTO</span><button id="btnCloseCapital" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold hover:bg-white/10">✕ <span class="hidden sm:inline">Cerrar</span></button></div>
+      </div>
+    </header>
+    <main class="mx-auto max-w-7xl space-y-4 px-3 py-5 sm:px-5">
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <div class="capital-stat"><div class="capital-muted">UNOcoins</div><div id="capitalBalanceCoins" class="capital-stat-value">0</div><div class="capital-muted">Moneda del Club</div></div>
+        <div class="capital-stat"><div class="capital-muted">Diamantes</div><div id="capitalBalanceDiamonds" class="capital-stat-value text-cyan-200">0</div><div class="capital-muted">UNOcoins Plus</div></div>
+        <div class="capital-stat"><div class="capital-muted">Tokens</div><div id="capitalBalanceTokens" class="capital-stat-value text-violet-200">0</div><div class="capital-muted">Evolución</div></div>
+        <div class="capital-stat"><div class="capital-muted">UNO Éter</div><div id="capitalBalanceEther" class="capital-stat-value text-amber-200">0</div><div class="capital-muted">Legendaria</div></div>
+        <div class="capital-stat col-span-2 lg:col-span-1"><div class="capital-muted">UNO Nébula</div><div id="capitalBalanceNebula" class="capital-stat-value text-fuchsia-200">0</div><div class="capital-muted">Suprema</div></div>
+      </div>
+      <div class="grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,.8fr)]">
+        <section class="capital-panel min-w-0">
+          <div class="flex flex-wrap items-start justify-between gap-3"><div><div class="capital-eyebrow">GLOBAL MARKET INDEX</div><h2 class="mt-1 text-xl font-black">Índice UNO CLUB</h2><div class="mt-2 flex items-baseline gap-3"><span id="capitalIndexValue" class="font-uno text-4xl text-white">1.000,00</span><span id="capitalIndexChange" class="text-sm font-black text-emerald-300">+0,00%</span></div></div><div class="text-right"><div class="capital-muted">EVENTO ACTIVO</div><div id="capitalEventName" class="mt-1 text-sm font-black text-amber-200">Analizando mercado...</div><div id="capitalEventDesc" class="mt-1 max-w-[230px] text-[10px] text-slate-400">El mercado se actualiza en tiempo global.</div></div></div>
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2"><div id="capitalChartAssetName" class="text-xs font-bold text-emerald-200">UNOcoins · Índice</div><div class="flex gap-1"><button data-capital-range="1H" class="capital-range">1H</button><button data-capital-range="6H" class="capital-range">6H</button><button data-capital-range="24H" class="capital-range active">24H</button><button data-capital-range="7D" class="capital-range">7D</button></div></div>
+          <div id="capitalChart" class="mt-2 overflow-hidden rounded-xl border border-white/5 bg-[#050d16] p-2"></div>
+          <div class="mt-3 grid grid-cols-3 gap-2 text-[10px] text-slate-400"><div>APERTURA <b id="capitalOpen" class="ml-1 text-slate-200">—</b></div><div>MÁXIMO <b id="capitalHigh" class="ml-1 text-emerald-200">—</b></div><div>MÍNIMO <b id="capitalLow" class="ml-1 text-rose-200">—</b></div></div>
+        </section>
+        <section class="capital-panel">
+          <div class="capital-eyebrow">MARKET WATCH</div><h2 class="mt-1 text-xl font-black">Activos</h2><div id="capitalAssetList" class="mt-3 space-y-2"></div>
+        </section>
+      </div>
+      <nav class="grid grid-cols-4 gap-2 rounded-2xl border border-white/10 bg-black/25 p-1.5">
+        <button data-capital-tab="market" class="capital-tab active">Mercado</button><button data-capital-tab="contracts" class="capital-tab">Contratos</button><button data-capital-tab="portfolio" class="capital-tab">Portafolio</button><button data-capital-tab="history" class="capital-tab">Historial</button>
+      </nav>
+      <section id="capitalTabMarket" class="capital-panel">
+        <div class="flex flex-wrap items-center justify-between gap-2"><div><div class="capital-eyebrow">LIVE MARKET</div><h2 class="text-xl font-black">Cotizaciones globales</h2></div><span class="text-[10px] text-slate-500">Precios simulados · iguales para todos</span></div>
+        <div id="capitalMarketTable" class="mt-4 overflow-x-auto"></div>
+        <div class="mt-4 rounded-xl border border-emerald-300/15 bg-emerald-400/5 p-3 text-[11px] leading-relaxed text-emerald-100/80">Los precios se calculan con el mismo reloj global y la misma fórmula para todos los jugadores. Las inversiones y los saldos se guardan en el perfil local; al vincular Google, el sistema de sincronización de UNO! CLUB puede respaldarlos.</div>
+      </section>
+      <section id="capitalTabContracts" class="capital-panel hidden">
+        <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(290px,.8fr)]">
+          <div><div class="capital-eyebrow">DERIVATIVES DESK</div><h2 class="text-xl font-black">Crear contrato</h2><p class="mt-1 text-xs text-slate-400">Elegí un activo, una moneda de garantía y la dirección del mercado. Si acertás, recibís tu inversión más el rendimiento; si fallás, podés perder el 100%.</p>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              <label class="capital-label">Activo a predecir<select id="capitalContractAsset" class="capital-input"><option value="coins">UNOcoins Index</option><option value="diamonds">Diamond Index</option><option value="tokens">Evolution Token Index</option><option value="ether">Éter Index</option><option value="nebula">Nébula Index</option></select></label>
+              <label class="capital-label">Moneda de garantía<select id="capitalContractCurrency" class="capital-input"><option value="coins">UNOcoins</option><option value="diamonds">Diamantes</option><option value="tokens">Tokens</option><option value="ether">UNO Éter</option><option value="nebula">UNO Nébula</option></select></label>
+              <label class="capital-label">Cantidad a invertir<input id="capitalContractStake" class="capital-input" type="number" min="1" step="1" value="100" inputmode="numeric"></label>
+              <label class="capital-label">Vencimiento<select id="capitalContractDuration" class="capital-input"><option value="300000">5 minutos</option><option value="900000">15 minutos</option><option value="3600000">1 hora</option><option value="86400000">24 horas</option></select></label>
+            </div>
+            <div class="mt-4 grid grid-cols-2 gap-2"><button id="capitalGoLong" class="rounded-xl border border-emerald-300/40 bg-emerald-400/15 px-4 py-3 font-black text-emerald-200 hover:bg-emerald-400/25">↗ SUBE</button><button id="capitalGoShort" class="rounded-xl border border-rose-300/40 bg-rose-400/15 px-4 py-3 font-black text-rose-200 hover:bg-rose-400/25">↘ BAJA</button></div>
+            <p class="mt-2 text-[10px] text-slate-500">Rendimiento potencial mostrado antes de confirmar: +70% sobre la garantía. La garantía completa está en riesgo.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-black/20 p-4"><div class="capital-eyebrow">CONTRACT RULES</div><h3 class="mt-1 font-black">Reglas claras</h3><ul class="mt-3 space-y-2 text-xs text-slate-300"><li>• La garantía se descuenta al abrir el contrato.</li><li>• El precio de entrada queda registrado.</li><li>• Al vencer, se compara con la cotización global.</li><li>• Acierto: recuperás garantía + 70% de ganancia.</li><li>• Error: perdés el 100% de la garantía.</li><li>• No se puede retirar antes del vencimiento.</li></ul><div id="capitalContractFeedback" class="mt-4 rounded-lg bg-white/5 p-3 text-xs text-slate-400">Seleccioná un contrato para comenzar.</div></div>
+        </div>
+        <div class="mt-5 border-t border-white/10 pt-4"><div class="flex items-center justify-between gap-2"><h3 class="font-black">Contratos activos</h3><span id="capitalActiveCount" class="text-xs text-slate-400">0 activos</span></div><div id="capitalActiveContracts" class="mt-3 space-y-2"></div></div>
+      </section>
+      <section id="capitalTabPortfolio" class="capital-panel hidden"><div class="capital-eyebrow">YOUR POSITIONS</div><h2 class="text-xl font-black">Tu portafolio</h2><div id="capitalPortfolioSummary" class="mt-3 grid gap-2 sm:grid-cols-3"></div><div id="capitalPortfolioRows" class="mt-4 space-y-2"></div></section>
+      <section id="capitalTabHistory" class="capital-panel hidden"><div class="capital-eyebrow">AUDIT TRAIL</div><h2 class="text-xl font-black">Historial de operaciones</h2><div id="capitalHistoryRows" class="mt-3 space-y-2"></div></section>
+      <footer class="pb-6 text-center text-[10px] text-slate-500">UNO CAPITAL · Economía ficticia de UNO! CLUB · Sin dinero real · Las operaciones no afectan partidas ni rangos competitivos.</footer>
+    </main>
+  </div>
+</section>
 
 <section id="competitiveMenuScreen" class="hidden fixed inset-0 z-[80] overflow-y-auto bg-[radial-gradient(ellipse_at_top,#3b2b08_0%,#10100b_48%,#030504_100%)] p-3 sm:p-6"><div class="max-w-5xl mx-auto">
 <header class="flex items-center justify-between gap-3 mb-5"><div><div class="text-[10px] tracking-[.3em] text-amber-300 font-black">UNO! CLUB · CLASIFICATORIAS</div><h2 class="font-uno text-3xl sm:text-4xl text-white">🏆 Modo competitivo</h2><p class="text-xs text-zinc-300 mt-1">Jugá por tu rango contra personas reales. Las IA solo completan la mesa si no aparecen rivales.</p></div><button id="btnCompetitiveBack" class="rounded-xl border border-white/15 bg-zinc-900 px-4 py-2 text-xs font-bold text-white">← Menú principal</button></header>
@@ -7455,7 +7533,177 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           tcgBattle=null;tcgHideBattleScreen(true);
         });
         document.getElementById('tcgMatchSound')?.addEventListener('change',e=>{document.getElementById('tcgBattleScreen')?.classList.toggle('tcg-effects-off',!e.target.checked);});
-    </script>
+    
+        // =========================================================
+        // UNO CAPITAL — mercado global determinista + contratos locales
+        // =========================================================
+        const CAPITAL_ASSETS={
+          coins:{name:'UNOcoins',ticker:'UNC',base:1000,color:'#34d399',currency:'coins'},
+          diamonds:{name:'Diamantes',ticker:'DIA',base:1450,color:'#22d3ee',currency:'diamonds'},
+          tokens:{name:'Tokens de evolución',ticker:'EVT',base:820,color:'#a78bfa',currency:'tokens'},
+          ether:{name:'UNO Éter',ticker:'ETHR',base:4200,color:'#fbbf24',currency:'ether'},
+          nebula:{name:'UNO Nébula',ticker:'NEB',base:12500,color:'#e879f9',currency:'nebula'}
+        };
+        const CAPITAL_CURRENCY_NAMES={coins:'UNOcoins',diamonds:'Diamantes',tokens:'Tokens',ether:'UNO Éter',nebula:'UNO Nébula'};
+        let capitalSelectedAsset='coins',capitalChartRange='24H',capitalTab='market',capitalTickTimer=null;
+        function capitalHash(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+        function capitalNoise(seed){let x=Math.sin(seed*12.9898+78.233)*43758.5453;return (x-Math.floor(x))*2-1}
+        function capitalEventAt(ts=Date.now()){
+          const slot=Math.floor(ts/21600000),events=[
+            {id:'bull',name:'BULL MARKET',desc:'Optimismo general: los índices reciben impulso positivo.',impact:.012},
+            {id:'crash',name:'CORRECCIÓN',desc:'El mercado atraviesa una toma de ganancias.',impact:-.014},
+            {id:'diamond',name:'DIAMOND RUSH',desc:'Los activos premium reciben mayor actividad.',impact:.009},
+            {id:'token',name:'TOKEN SEASON',desc:'Los tokens de evolución concentran el interés.',impact:.011},
+            {id:'nebula',name:'NÉBULA AWAKENING',desc:'Los activos supremos registran volatilidad especial.',impact:.015},
+            {id:'calm',name:'MERCADO EN CALMA',desc:'Menor volatilidad y movimientos más moderados.',impact:0}
+          ];
+          const idx=capitalHash('uno-capital-event-'+slot)%events.length;
+          return {...events[idx],slot,nextAt:(slot+1)*21600000};
+        }
+        function capitalPrice(assetId,ts=Date.now()){
+          const a=CAPITAL_ASSETS[assetId]||CAPITAL_ASSETS.coins,ev=capitalEventAt(ts),hours=ts/3600000,seed=capitalHash(assetId+'-'+Math.floor(ts/900000));
+          const long=Math.sin(hours/17+capitalHash(assetId)%13)*.025;
+          const medium=Math.sin(hours/3.7+capitalHash(assetId+'m')%9)*.009;
+          const wave=Math.sin(hours/0.9+capitalHash(assetId+'w')%7)*.0035;
+          let impact=ev.impact;
+          if(ev.id==='diamond'&&assetId==='diamonds')impact*=2.4;
+          if(ev.id==='token'&&assetId==='tokens')impact*=2.4;
+          if(ev.id==='nebula'&&(assetId==='ether'||assetId==='nebula'))impact*=2.2;
+          if(ev.id==='calm')impact*=.25;
+          const eventWave=impact*Math.sin((ts-ev.slot*21600000)/21600000*Math.PI);
+          const noise=capitalNoise(seed)*.0022;
+          return Math.max(1,a.base*(1+long+medium+wave+eventWave+noise));
+        }
+        function capitalMoney(n){return Math.floor(Number(n)||0).toLocaleString('es-AR')}
+        function capitalGetWallet(){
+          return {
+            coins:Math.max(0,Number(localStorage.getItem('uno_club_points')||0)),
+            diamonds:typeof getUnoPlus==='function'?getUnoPlus():Math.max(0,Number(localStorage.getItem('uno_plus_balance')||0)),
+            tokens:typeof getCardEvolutionTokens==='function'?getCardEvolutionTokens():Math.max(0,Number(localStorage.getItem('uno_card_evolution_tokens')||0)),
+            ether:Math.max(0,Number(localStorage.getItem('uno_capital_ether')||0)),
+            nebula:Math.max(0,Number(localStorage.getItem('uno_capital_nebula')||0))
+          };
+        }
+        function capitalSetWallet(currency,value){
+          const n=Math.max(0,Math.floor(Number(value)||0));
+          if(currency==='coins'){localStorage.setItem('uno_club_points',String(n));updateClubWalletUI?.()}
+          else if(currency==='diamonds'){setUnoPlus(n)}
+          else if(currency==='tokens')localStorage.setItem('uno_card_evolution_tokens',String(n));
+          else if(currency==='ether')localStorage.setItem('uno_capital_ether',String(n));
+          else if(currency==='nebula')localStorage.setItem('uno_capital_nebula',String(n));
+          scheduleClubProfileCloudSync?.();
+        }
+        function capitalRead(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'')??fallback}catch(_){return fallback}}
+        function capitalSaveContracts(rows){localStorage.setItem('uno_capital_contracts',JSON.stringify(rows));scheduleClubProfileCloudSync?.()}
+        function capitalContracts(){const rows=capitalRead('uno_capital_contracts',[]);return Array.isArray(rows)?rows:[]}
+        function capitalHistory(){const rows=capitalRead('uno_capital_history',[]);return Array.isArray(rows)?rows:[]}
+        function capitalSaveHistory(rows){localStorage.setItem('uno_capital_history',JSON.stringify(rows.slice(0,100)));scheduleClubProfileCloudSync?.()}
+        function capitalCandleData(assetId,range){
+          const now=Date.now(),cfg=range==='1H'?{step:60000,count:60}:range==='6H'?{step:300000,count:72}:range==='7D'?{step:3600000,count:168}:{step:900000,count:96};
+          const start=now-cfg.step*cfg.count,rows=[];let prev=capitalPrice(assetId,start);
+          for(let i=0;i<cfg.count;i++){
+            const t=start+i*cfg.step,close=capitalPrice(assetId,t+cfg.step),noise=capitalNoise(capitalHash(assetId+'c'+i+Math.floor(t/cfg.step)));
+            const open=prev,high=Math.max(open,close)*(1+Math.abs(noise)*.003),low=Math.min(open,close)*(1-Math.abs(noise)*.003);
+            rows.push({open,close,high,low});prev=close;
+          }return rows;
+        }
+        function capitalRenderChart(){
+          const host=document.getElementById('capitalChart');if(!host)return;
+          const rows=capitalCandleData(capitalSelectedAsset,capitalChartRange),vals=rows.flatMap(x=>[x.high,x.low]),min=Math.min(...vals),max=Math.max(...vals),span=max-min||1;
+          const W=900,H=280,left=18,right=18,top=14,bottom=18,plotH=H-top-bottom,step=(W-left-right)/rows.length,cw=Math.max(2,step*.58);
+          const y=v=>top+(max-v)/span*plotH;
+          let grid='';for(let i=0;i<5;i++){const yy=top+i*plotH/4,price=max-(max-min)*i/4;grid+='<line x1="'+left+'" y1="'+yy+'" x2="'+(W-right)+'" y2="'+yy+'" stroke="#ffffff" stroke-opacity=".08"/><text x="'+(W-right)+'" y="'+(yy-4)+'" text-anchor="end" fill="#7890a5" font-size="10">'+price.toFixed(1)+'</text>'}
+          let candles='';rows.forEach((c,i)=>{const x=left+i*step+step/2,up=c.close>=c.open,col=up?'#34d399':'#fb7185',yo=y(c.open),yc=y(c.close),body=Math.max(1,Math.abs(yc-yo));candles+='<line x1="'+x+'" y1="'+y(c.high)+'" x2="'+x+'" y2="'+y(c.low)+'" stroke="'+col+'" stroke-width="1.5"/><rect x="'+(x-cw/2)+'" y="'+Math.min(yo,yc)+'" width="'+cw+'" height="'+body+'" rx=".8" fill="'+col+'" opacity=".95"/>'});
+          host.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Gráfico de velas de '+CAPITAL_ASSETS[capitalSelectedAsset].name+'" class="w-full" style="display:block;max-height:300px">'+grid+candles+'</svg>';
+          const last=rows[rows.length-1],first=rows[0],change=(last.close/first.open-1)*100;
+          document.getElementById('capitalIndexValue').textContent=capitalPrice(capitalSelectedAsset).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+          const ch=document.getElementById('capitalIndexChange');ch.textContent=(change>=0?'+':'')+change.toFixed(2)+'%';ch.className='text-sm font-black '+(change>=0?'text-emerald-300':'text-rose-300');
+          document.getElementById('capitalChartAssetName').textContent=CAPITAL_ASSETS[capitalSelectedAsset].name+' · '+CAPITAL_ASSETS[capitalSelectedAsset].ticker;
+          document.getElementById('capitalOpen').textContent=first.open.toFixed(2);document.getElementById('capitalHigh').textContent=Math.max(...rows.map(x=>x.high)).toFixed(2);document.getElementById('capitalLow').textContent=Math.min(...rows.map(x=>x.low)).toFixed(2);
+        }
+        function capitalRenderWallet(){
+          const w=capitalGetWallet();
+          for(const [id,key] of [['capitalBalanceCoins','coins'],['capitalBalanceDiamonds','diamonds'],['capitalBalanceTokens','tokens'],['capitalBalanceEther','ether'],['capitalBalanceNebula','nebula']]){const el=document.getElementById(id);if(el)el.textContent=capitalMoney(w[key])}
+        }
+        function capitalRenderMarket(){
+          const ev=capitalEventAt(),eventName=document.getElementById('capitalEventName'),eventDesc=document.getElementById('capitalEventDesc');
+          if(eventName)eventName.textContent=ev.name;if(eventDesc)eventDesc.textContent=ev.desc;
+          const list=document.getElementById('capitalAssetList'),table=document.getElementById('capitalMarketTable');
+          const keys=Object.keys(CAPITAL_ASSETS);
+          if(list)list.innerHTML=keys.map(id=>{const a=CAPITAL_ASSETS[id],now=capitalPrice(id),prev=capitalPrice(id,Date.now()-86400000),pct=(now/prev-1)*100;return '<button class="capital-asset-row '+(capitalSelectedAsset===id?'selected':'')+'" data-capital-asset="'+id+'"><span class="min-w-0 text-left"><b class="block text-xs text-slate-100">'+a.name+'</b><small class="text-[9px] text-slate-500">'+a.ticker+'</small></span><span class="text-right"><b class="block text-xs">'+now.toLocaleString('es-AR',{maximumFractionDigits:2})+'</b><small class="text-[10px] '+(pct>=0?'capital-up':'capital-down')+'">'+(pct>=0?'+':'')+pct.toFixed(2)+'%</small></span></button>'}).join('');
+          if(table)table.innerHTML='<table class="capital-table"><thead><tr><th>ACTIVO</th><th>ÍNDICE</th><th>24H</th><th>EVENTO</th></tr></thead><tbody>'+keys.map(id=>{const a=CAPITAL_ASSETS[id],v=capitalPrice(id),p=(v/capitalPrice(id,Date.now()-86400000)-1)*100;return '<tr><td><b>'+a.name+'</b><div class="text-[9px] text-slate-500">'+a.ticker+'</div></td><td>'+v.toFixed(2)+'</td><td class="'+(p>=0?'capital-up':'capital-down')+'">'+(p>=0?'+':'')+p.toFixed(2)+'%</td><td class="text-slate-400">'+ev.name+'</td></tr>'}).join('')+'</tbody></table>';
+          const idx=capitalPrice('coins'),old=capitalPrice('coins',Date.now()-86400000),pct=(idx/old-1)*100;
+          const top=document.getElementById('capitalIndexValue');if(top)top.textContent=idx.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+          const change=document.getElementById('capitalIndexChange');if(change){change.textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';change.className='text-sm font-black '+(pct>=0?'text-emerald-300':'text-rose-300')}
+          list?.querySelectorAll('[data-capital-asset]').forEach(b=>b.addEventListener('click',()=>{capitalSelectedAsset=b.dataset.capitalAsset;capitalRenderMarket();capitalRenderChart()}));
+        }
+        function capitalRenderContracts(){
+          const rows=capitalContracts(),active=rows.filter(x=>x.status==='active'),box=document.getElementById('capitalActiveContracts');
+          const count=document.getElementById('capitalActiveCount');if(count)count.textContent=active.length+' activos';
+          if(box)box.innerHTML=active.length?active.map(c=>'<div class="rounded-xl border border-amber-300/15 bg-amber-300/5 p-3"><div class="flex flex-wrap items-center justify-between gap-2"><b class="text-xs">'+CAPITAL_ASSETS[c.asset].name+' · '+(c.direction==='up'?'↗ SUBE':'↘ BAJA')+'</b><span class="text-[10px] text-amber-200">Vence '+new Date(c.expiresAt).toLocaleString('es-AR')+'</span></div><div class="mt-1 text-[10px] text-slate-400">Garantía: '+capitalMoney(c.stake)+' '+CAPITAL_CURRENCY_NAMES[c.currency]+' · Entrada '+Number(c.entryPrice).toFixed(2)+'</div></div>').join(''):'<div class="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-slate-500">No tenés contratos activos.</div>';
+        }
+        function capitalSettleExpired(){
+          const rows=capitalContracts(),now=Date.now(),wallet=capitalGetWallet();let changed=false,history=capitalHistory();
+          rows.forEach(c=>{if(c.status!=='active'||c.expiresAt>now)return;const exit=capitalPrice(c.asset,c.expiresAt),diff=exit-Number(c.entryPrice),won=c.direction==='up'?diff>0:diff<0;let payout=0;
+            if(won){payout=Math.floor(c.stake*1.7);wallet[c.currency]+=payout}
+            c.status=won?'won':'lost';c.exitPrice=exit;c.settledAt=now;c.payout=payout;c.profit=won?payout-c.stake:-c.stake;
+            history.unshift({id:c.id,asset:c.asset,currency:c.currency,stake:c.stake,direction:c.direction,status:c.status,payout,profit:c.profit,entryPrice:c.entryPrice,exitPrice:exit,createdAt:c.createdAt,settledAt:now});changed=true;
+          });
+          if(changed){Object.keys(wallet).forEach(k=>capitalSetWallet(k,wallet[k]));capitalSaveContracts(rows);capitalSaveHistory(history);const wins=Number(localStorage.getItem('uno_capital_wins')||0)+rows.filter(c=>c.status==='won'&&c.settledAt===now).length;localStorage.setItem('uno_capital_wins',String(wins));capitalGrantMilestoneRewards(wins);showToast('UNO CAPITAL: contratos vencidos liquidados.','success')}
+        }
+        function capitalGrantMilestoneRewards(wins){
+          const etherLevel=Math.floor(wins/5),nebulaLevel=Math.floor(wins/25),oldEther=Number(localStorage.getItem('uno_capital_ether_milestones')||0),oldNebula=Number(localStorage.getItem('uno_capital_nebula_milestones')||0);
+          if(etherLevel>oldEther){const add=etherLevel-oldEther;localStorage.setItem('uno_capital_ether',String(Number(localStorage.getItem('uno_capital_ether')||0)+add));localStorage.setItem('uno_capital_ether_milestones',String(etherLevel));showToast('🌟 Objetivo alcanzado: +'+add+' UNO Éter.','success')}
+          if(nebulaLevel>oldNebula){const add=nebulaLevel-oldNebula;localStorage.setItem('uno_capital_nebula',String(Number(localStorage.getItem('uno_capital_nebula')||0)+add));localStorage.setItem('uno_capital_nebula_milestones',String(nebulaLevel));showToast('🌌 Hito supremo: +'+add+' UNO Nébula.','success')}
+        }
+        function capitalCreateContract(direction){
+          capitalSettleExpired();
+          const asset=document.getElementById('capitalContractAsset').value,currency=document.getElementById('capitalContractCurrency').value,stake=Math.floor(Number(document.getElementById('capitalContractStake').value)||0),duration=Number(document.getElementById('capitalContractDuration').value),wallet=capitalGetWallet();
+          if(!CAPITAL_ASSETS[asset]||!CAPITAL_CURRENCY_NAMES[currency]||!Number.isFinite(stake)||stake<1){showToast('Ingresá una cantidad válida para invertir.','warn');return}
+          if(stake>wallet[currency]){showToast('No tenés suficientes '+CAPITAL_CURRENCY_NAMES[currency]+'.','warn');return}
+          if(![300000,900000,3600000,86400000].includes(duration)){showToast('Duración de contrato inválida.','danger');return}
+          if(!confirm('¿Confirmás invertir '+capitalMoney(stake)+' '+CAPITAL_CURRENCY_NAMES[currency]+' en el contrato '+(direction==='up'?'SUBE':'BAJA')+'? Podés perder el 100% de la garantía.'))return;
+          wallet[currency]-=stake;capitalSetWallet(currency,wallet[currency]);
+          const now=Date.now(),rows=capitalContracts(),c={id:'CAP-'+now+'-'+Math.random().toString(36).slice(2,8),asset,currency,stake,direction,entryPrice:capitalPrice(asset,now),createdAt:now,expiresAt:now+duration,status:'active'};
+          rows.unshift(c);capitalSaveContracts(rows);
+          const feedback=document.getElementById('capitalContractFeedback');if(feedback)feedback.textContent='Contrato '+c.id+' creado. Entrada: '+c.entryPrice.toFixed(2)+'. Vencimiento: '+new Date(c.expiresAt).toLocaleString('es-AR')+'.';
+          capitalRenderAll();showToast('Contrato creado. ¡Que el mercado te acompañe!','success');
+        }
+        function capitalRenderPortfolio(){
+          const rows=capitalContracts(),active=rows.filter(x=>x.status==='active'),hist=capitalHistory(),wins=hist.filter(x=>x.status==='won').length,losses=hist.filter(x=>x.status==='lost').length;
+          const sum=active.reduce((n,x)=>n+x.stake,0),box=document.getElementById('capitalPortfolioSummary'),list=document.getElementById('capitalPortfolioRows');
+          if(box)box.innerHTML='<div class="rounded-xl bg-white/5 p-3"><div class="capital-muted">CONTRATOS ABIERTOS</div><b class="mt-1 block text-xl">'+active.length+'</b></div><div class="rounded-xl bg-white/5 p-3"><div class="capital-muted">CAPITAL BLOQUEADO</div><b class="mt-1 block text-xl">'+capitalMoney(sum)+'</b></div><div class="rounded-xl bg-white/5 p-3"><div class="capital-muted">VICTORIAS / DERROTAS</div><b class="mt-1 block text-xl">'+wins+' / '+losses+'</b></div>';
+          if(list)list.innerHTML=active.length?active.map(c=>'<div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 p-3"><div><b class="text-xs">'+CAPITAL_ASSETS[c.asset].name+'</b><div class="text-[10px] text-slate-400">'+(c.direction==='up'?'Posición alcista':'Posición bajista')+' · '+capitalMoney(c.stake)+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'</div></div><div class="text-right text-[10px] text-amber-200">Vence '+new Date(c.expiresAt).toLocaleString('es-AR')+'</div></div>').join(''):'<div class="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-slate-500">Tu portafolio está vacío. Abrí un contrato para empezar.</div>';
+        }
+        function capitalRenderHistory(){
+          const host=document.getElementById('capitalHistoryRows'),rows=capitalHistory();
+          if(!host)return;
+          host.innerHTML=rows.length?rows.map(c=>'<div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 p-3"><div><b class="text-xs">'+CAPITAL_ASSETS[c.asset].name+' · '+(c.direction==='up'?'SUBE':'BAJA')+'</b><div class="text-[10px] text-slate-500">'+new Date(c.createdAt).toLocaleString('es-AR')+' · '+capitalMoney(c.stake)+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'</div></div><div class="text-right"><b class="text-xs '+(c.status==='won'?'text-emerald-300':'text-rose-300')+'">'+(c.status==='won'?'GANADO':'PERDIDO')+'</b><div class="text-[10px] text-slate-400">'+(c.status==='won'?'+'+capitalMoney(c.profit):'-'+capitalMoney(c.stake))+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'</div></div></div>').join(''):'<div class="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-slate-500">Todavía no hay operaciones cerradas.</div>';
+        }
+        function capitalSwitchTab(tab){
+          capitalTab=tab;
+          document.querySelectorAll('[data-capital-tab]').forEach(b=>b.classList.toggle('active',b.dataset.capitalTab===tab));
+          ['market','contracts','portfolio','history'].forEach(k=>document.getElementById('capitalTab'+k[0].toUpperCase()+k.slice(1))?.classList.toggle('hidden',k!==tab));
+        }
+        function capitalRenderAll(){
+          capitalRenderWallet();capitalRenderMarket();capitalRenderChart();capitalRenderContracts();capitalRenderPortfolio();capitalRenderHistory();
+        }
+        async function openUnoCapital(){
+          document.getElementById('unoCapitalScreen')?.classList.remove('hidden');
+          if(typeof initFirebase==='function')await initFirebase().catch(()=>false);
+          capitalSettleExpired();capitalSwitchTab('market');capitalRenderAll();
+          if(capitalTickTimer)clearInterval(capitalTickTimer);
+          capitalTickTimer=setInterval(()=>{if(!document.getElementById('unoCapitalScreen')?.classList.contains('hidden')){capitalSettleExpired();capitalRenderAll()}},15000);
+        }
+        function closeUnoCapital(){document.getElementById('unoCapitalScreen')?.classList.add('hidden');if(capitalTickTimer){clearInterval(capitalTickTimer);capitalTickTimer=null}}
+        document.getElementById('btnOpenCapital')?.addEventListener('click',openUnoCapital);
+        document.getElementById('btnCloseCapital')?.addEventListener('click',closeUnoCapital);
+        document.getElementById('capitalGoLong')?.addEventListener('click',()=>capitalCreateContract('up'));
+        document.getElementById('capitalGoShort')?.addEventListener('click',()=>capitalCreateContract('down'));
+        document.querySelectorAll('[data-capital-tab]').forEach(b=>b.addEventListener('click',()=>capitalSwitchTab(b.dataset.capitalTab)));
+        document.querySelectorAll('[data-capital-range]').forEach(b=>b.addEventListener('click',()=>{capitalChartRange=b.dataset.capitalRange;document.querySelectorAll('[data-capital-range]').forEach(x=>x.classList.toggle('active',x===b));capitalRenderChart()}));
+        
+</script>
 
     <div id="unoTcgModal" class="hidden fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
       <div class="max-w-5xl mx-auto rounded-3xl border border-fuchsia-400/30 bg-gradient-to-br from-zinc-900 via-slate-950 to-fuchsia-950/30 shadow-2xl">
