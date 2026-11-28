@@ -7897,7 +7897,7 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           else if(currency==='tokens')localStorage.setItem('uno_card_evolution_tokens',String(n));
           else if(currency==='ether')localStorage.setItem('uno_capital_ether',String(n));
           else if(currency==='nebula')localStorage.setItem('uno_capital_nebula',String(n));
-          scheduleClubProfileCloudSync?.();capitalQueueFlow(currency,n-before);
+          scheduleClubProfileCloudSync?.();capitalQueueFlow(currency,before-n); // salida de saldo = demanda; entrada = presión de oferta
         }
         function capitalRead(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'')??fallback}catch(_){return fallback}}
         function capitalSaveContracts(rows){localStorage.setItem('uno_capital_contracts',JSON.stringify(rows));scheduleClubProfileCloudSync?.()}
