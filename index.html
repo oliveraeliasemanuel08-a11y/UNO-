@@ -7826,6 +7826,24 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           const flows=capitalLoadPendingFlows();flows[currency]=(Number(flows[currency])||0)+Number(delta||0);
           localStorage.setItem(CAPITAL_FLOW_KEY,JSON.stringify(flows));
         }
+        // Observa también compras, recompensas y gastos del resto del juego que modifican las billeteras.
+        if(!window.__unoCapitalStorageHook){
+          const nativeStorageSet=Storage.prototype.setItem;
+          Storage.prototype.setItem=function(key,value){
+            const watched={'uno_club_points':'coins','uno_plus_balance':'diamonds','uno_card_evolution_tokens':'tokens','uno_capital_ether':'ether','uno_capital_nebula':'nebula'};
+            const currency=watched[key],isLocal=this===window.localStorage;
+            const before=currency&&isLocal?Number(this.getItem(key)||0):0;
+            nativeStorageSet.call(this,key,value);
+            if(currency&&isLocal){
+              const after=Number(value)||0,delta=before-after;
+              if(Number.isFinite(delta)&&delta!==0){
+                const flows=capitalLoadPendingFlows();flows[currency]=(Number(flows[currency])||0)+delta;
+                nativeStorageSet.call(this,CAPITAL_FLOW_KEY,JSON.stringify(flows));
+              }
+            }
+          };
+          window.__unoCapitalStorageHook=true;
+        }
         function capitalPrice(assetId,ts=Date.now()){
           const a=CAPITAL_ASSETS[assetId]||CAPITAL_ASSETS.coins;
           const shared=capitalMarketState?.prices?.[assetId];
@@ -7897,7 +7915,7 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           else if(currency==='tokens')localStorage.setItem('uno_card_evolution_tokens',String(n));
           else if(currency==='ether')localStorage.setItem('uno_capital_ether',String(n));
           else if(currency==='nebula')localStorage.setItem('uno_capital_nebula',String(n));
-          scheduleClubProfileCloudSync?.();capitalQueueFlow(currency,before-n); // salida de saldo = demanda; entrada = presión de oferta
+          scheduleClubProfileCloudSync?.();
         }
         function capitalRead(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'')??fallback}catch(_){return fallback}}
         function capitalSaveContracts(rows){localStorage.setItem('uno_capital_contracts',JSON.stringify(rows));scheduleClubProfileCloudSync?.()}
