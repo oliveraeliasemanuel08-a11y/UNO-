@@ -1337,7 +1337,7 @@ body.performance-low .uno-card-art .evo-particle{display:none}
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button id="btnOpenCapital" class="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-300/40 text-emerald-200 font-black text-xs shadow-lg" title="UNO CAPITAL">📈 CAPITAL</button><button id="btnOpenSettings" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-sky-300" title="Configuración">⚙️</button>
+                    <button id="btnOpenSettings" class="px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-sky-300" title="Configuración">⚙️</button>
                     <button id="btnOpenProfile" class="px-3 py-2 rounded-xl bg-zinc-900 border border-cyan-300/30 text-cyan-200">👤 Perfil</button>
                     <button id="btnOpenInbox" class="relative px-3 py-2 rounded-xl bg-zinc-900 border border-emerald-300/30 text-emerald-200">💬 Chat <span id="inboxUnreadBadge" class="hidden absolute -right-1 -top-1 rounded-full bg-rose-500 px-1 text-[9px] font-black text-white">0</span></button>
                     <button id="btnOpenPlayerLookup" class="px-3 py-2 rounded-xl bg-zinc-900 border border-sky-300/30 text-sky-200" title="Buscar jugador por ID">🔎 ID</button>
@@ -1378,7 +1378,7 @@ body.performance-low .uno-card-art .evo-particle{display:none}
             </section>
 
             <section id="profileScreen" class="hidden fixed inset-0 z-[85] overflow-y-auto bg-[#070b16] p-3 sm:p-6"><div class="mx-auto max-w-6xl"><header class="sticky top-0 z-10 -mx-3 mb-4 flex items-center justify-between gap-3 border-b border-white/10 bg-[#070b16]/95 px-3 py-3 backdrop-blur sm:-mx-6 sm:px-6"><div><div class="text-[10px] font-black tracking-[.24em] text-cyan-300">UNO! CLUB · CENTRO PERSONAL</div><h2 class="font-uno text-2xl text-white sm:text-3xl">Mi perfil</h2><p class="text-[10px] text-zinc-400">Tu progreso, colección, misiones y temporada.</p></div><button id="btnCloseProfile" type="button" class="shrink-0 rounded-xl border border-white/10 bg-zinc-800 px-4 py-3 text-sm font-bold text-white">← Volver</button></header>
-<div class="mb-4 rounded-2xl border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-950/40 to-cyan-950/40 p-3"><div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-sm text-white">🎨 Personalización del avatar</b><p class="text-[10px] text-zinc-400">Cambiá tu pelo, ropa, accesorios y estilo.</p></div><button id="btnOpenAvatarStudio" type="button" class="rounded-xl bg-fuchsia-500 px-4 py-3 text-xs font-black text-white">🎨 Personalizar avatar</button></div><div id="profileAvatarStudio" class="hidden mt-3"><div class="lg:col-span-5 bg-zinc-900/80 border border-white/10 rounded-3xl p-4 sm:p-5 flex flex-col justify-between">
+<section class="mb-4 rounded-2xl border border-emerald-300/25 bg-gradient-to-r from-emerald-950/60 via-slate-950 to-cyan-950/40 p-4"><div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-[10px] font-black tracking-[.2em] text-emerald-300">ECONOMÍA DEL CLUB</div><h3 class="mt-1 font-uno text-xl text-white">📈 UNO CAPITAL</h3><p class="text-xs text-slate-400">Mercado simulado, activos y operaciones de tu cuenta.</p></div><button id="btnOpenCapital" type="button" class="rounded-xl border border-emerald-300/40 bg-emerald-400/15 px-5 py-3 text-xs font-black text-emerald-100 shadow-lg hover:bg-emerald-400/25">ABRIR CAPITAL →</button></div></section><div class="mb-4 rounded-2xl border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-950/40 to-cyan-950/40 p-3"><div class="flex flex-wrap items-center justify-between gap-3"><div><b class="text-sm text-white">🎨 Personalización del avatar</b><p class="text-[10px] text-zinc-400">Cambiá tu pelo, ropa, accesorios y estilo.</p></div><button id="btnOpenAvatarStudio" type="button" class="rounded-xl bg-fuchsia-500 px-4 py-3 text-xs font-black text-white">🎨 Personalizar avatar</button></div><div id="profileAvatarStudio" class="hidden mt-3"><div class="lg:col-span-5 bg-zinc-900/80 border border-white/10 rounded-3xl p-4 sm:p-5 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-xs font-extrabold uppercase tracking-wider text-amber-300">🎨 Estudio de Avatar</span>
@@ -6034,24 +6034,64 @@ function updatePlusWalletUI(){const v=getUnoPlus().toLocaleString('es-AR');['uno
         };
         function registerUnoRareCosmetics(){if(typeof UNO_PLUS_ITEMS==='undefined')return;Object.values(UNO_RARE_SHOPS).forEach(shop=>shop.items.filter(x=>x.kind!=='skin').forEach(item=>{if(!UNO_PLUS_ITEMS.some(x=>x.id===item.id))UNO_PLUS_ITEMS.push({id:item.id,name:item.name,emoji:item.emoji||'✧',price:0,field:item.field,value:item.value,rarity:'Cosmético '+shop.title})}))}
         function initUnoStoreTabs(){
-          registerUnoRareCosmetics();const modal=document.getElementById('storeModal'),content=modal?.querySelector('.p-4');if(!content||document.getElementById('unoStoreTabs'))return;
-          const filter=document.getElementById('storeSearchInput')?.parentElement,normalGrid=document.getElementById('storeItemsGrid'),diamondSection=document.getElementById('cardEvolutionLab')?.closest('section'),plusSection=document.getElementById('clubPlusBalance')?.closest('section');
-          if(!normalGrid||!diamondSection)return;
-          const nav=document.createElement('div');nav.id='unoStoreTabs';nav.className='grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4';
+          registerUnoRareCosmetics();
+          const modal=document.getElementById('storeModal'),content=modal?.querySelector('.p-4');
+          if(!content||document.getElementById('unoStoreHome'))return;
+          const filter=document.getElementById('storeSearchInput')?.parentElement;
+          const normalGrid=document.getElementById('storeItemsGrid');
+          const diamondSection=document.getElementById('cardEvolutionLab')?.closest('section');
+          const plusSection=document.getElementById('clubPlusBalance')?.closest('section');
+          if(!normalGrid||!diamondSection||!filter)return;
+          const home=document.createElement('section');
+          home.id='unoStoreHome';
+          home.className='grid grid-cols-1 sm:grid-cols-2 gap-3';
           const panes={normal:document.createElement('section'),diamonds:document.createElement('section'),nebula:document.createElement('section'),ether:document.createElement('section')};
-          Object.entries(panes).forEach(([k,p])=>{p.id='unoStorePane'+k;p.className='uno-store-pane';});
-          panes.normal.append(filter,normalGrid);panes.diamonds.append(diamondSection);if(plusSection)panes.diamonds.append(plusSection);
-          const makeTab=(key,label,icon)=>'<button type="button" data-store-tab="'+key+'" class="rounded-xl border border-white/10 bg-slate-900/80 px-2 py-3 text-[11px] font-black text-white flex flex-col items-center gap-1">'+unoCurrencyIcon(icon,25)+'<span>'+label+'</span></button>';
-          nav.innerHTML=makeTab('normal','NORMAL','coins')+makeTab('diamonds','DIAMANTES','diamonds')+makeTab('nebula','NÉBULA','nebula')+makeTab('ether','ÉTER','ether');
-          const createRarePane=(key)=>{const cfg=UNO_RARE_SHOPS[key],p=panes[key];p.innerHTML='<div class="rounded-2xl border '+(key==='nebula'?'border-fuchsia-300/30 bg-gradient-to-br from-indigo-950 via-slate-950 to-fuchsia-950/40':'border-emerald-300/30 bg-gradient-to-br from-emerald-950 via-slate-950 to-teal-950/40')+' p-4"><div class="flex flex-wrap items-center justify-between gap-3"><div class="flex items-center gap-3">'+unoCurrencyIcon(cfg.icon,42)+'<div><h3 class="font-uno text-2xl">'+cfg.title+'</h3><p class="text-[10px] text-slate-300">'+cfg.sub+'</p></div></div><div class="flex items-center gap-2 text-xl font-black">'+unoCurrencyIcon(cfg.icon,25)+'<b id="uno'+key+'Balance">0</b></div></div><div id="uno'+key+'ShopGrid" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3"></div><p class="mt-3 text-[10px] text-slate-400">Esta moneda se consigue jugando y cumpliendo objetivos; no se compra directamente con diamantes.</p></div>';};
+          const meta={
+            normal:{title:'TIENDA NORMAL',sub:'Cosméticos y objetos del Club · UNOcoins'},
+            diamonds:{title:'TIENDA DE DIAMANTES',sub:'Skins de cartas, evoluciones y artículos premium'},
+            nebula:{title:'TIENDA NÉBULA',sub:'Colección cósmica · Moneda Nébula'},
+            ether:{title:'TIENDA ÉTER',sub:'Reliquias especiales · Moneda Éter'}
+          };
+          const cards=[
+            ['normal','🪙','Tienda normal','Objetos, accesorios y personalización con UNOcoins','from-amber-950/70 to-orange-950/30','border-amber-300/30'],
+            ['diamonds','💎','Diamantes','Skins de cartas, evoluciones y artículos premium','from-cyan-950/70 to-blue-950/30','border-cyan-300/30'],
+            ['nebula','🌌','Nébula','Artículos cósmicos y exclusivos','from-indigo-950/70 to-fuchsia-950/30','border-fuchsia-300/30'],
+            ['ether','✨','Éter','Reliquias y cosméticos de categoría especial','from-emerald-950/70 to-teal-950/30','border-emerald-300/30']
+          ];
+          home.innerHTML='<div class="sm:col-span-2 mb-1"><div class="text-[10px] font-black tracking-[.22em] text-amber-300">CENTRO COMERCIAL</div><h3 class="font-uno text-2xl text-white">Elegí tu tienda</h3><p class="text-xs text-slate-400">Cada moneda tiene su propio catálogo y sus propios artículos.</p></div>'+cards.map(c=>'<button type="button" data-store-open="'+c[0]+'" class="group min-h-32 rounded-2xl border '+c[5]+' bg-gradient-to-br '+c[4]+' p-4 text-left transition hover:-translate-y-0.5 hover:brightness-125"><div class="flex items-start justify-between gap-3"><span class="text-3xl">'+c[1]+'</span><span class="rounded-lg border border-white/10 bg-black/20 px-2 py-1 text-[9px] font-black text-white/60">ENTRAR ↗</span></div><b class="mt-3 block text-base text-white">'+c[2]+'</b><span class="mt-1 block text-[11px] text-slate-300">'+c[3]+'</span></button>').join('');
+          Object.entries(panes).forEach(([key,p])=>{
+            p.id='unoStorePane'+key;
+            p.className='uno-store-pane hidden min-w-0';
+            const head=document.createElement('div');
+            head.className='mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-900/70 p-3';
+            head.innerHTML='<div><h3 class="font-uno text-xl text-white">'+meta[key].title+'</h3><p class="text-[10px] text-slate-400">'+meta[key].sub+'</p></div><button type="button" data-store-back class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/10">← Todas las tiendas</button>';
+            p.append(head);
+          });
+          panes.normal.append(filter,normalGrid);
+          panes.diamonds.append(diamondSection);
+          if(plusSection)panes.diamonds.append(plusSection);
+          const createRarePane=(key)=>{
+            const cfg=UNO_RARE_SHOPS[key],p=panes[key];
+            p.insertAdjacentHTML('beforeend','<div class="rounded-2xl border '+(key==='nebula'?'border-fuchsia-300/30 bg-gradient-to-br from-indigo-950 via-slate-950 to-fuchsia-950/40':'border-emerald-300/30 bg-gradient-to-br from-emerald-950 via-slate-950 to-teal-950/40')+' p-4"><div class="flex flex-wrap items-center justify-between gap-3"><div class="flex items-center gap-3">'+unoCurrencyIcon(cfg.icon,42)+'<div><h3 class="font-uno text-2xl">'+cfg.title+'</h3><p class="text-[10px] text-slate-300">'+cfg.sub+'</p></div></div><div class="flex items-center gap-2 text-xl font-black">'+unoCurrencyIcon(cfg.icon,25)+'<b id="uno'+key+'Balance">0</b></div></div><div id="uno'+key+'ShopGrid" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3"></div><p class="mt-3 text-[10px] text-slate-400">Esta moneda se consigue jugando y cumpliendo objetivos; no se compra directamente con diamantes.</p></div>');
+          };
           createRarePane('nebula');createRarePane('ether');
-          content.prepend(nav);content.append(panes.normal,panes.diamonds,panes.nebula,panes.ether);
-          nav.querySelectorAll('[data-store-tab]').forEach(b=>b.addEventListener('click',()=>switchUnoStoreTab(b.dataset.storeTab)));
-          switchUnoStoreTab('normal');
+          content.replaceChildren(home,panes.normal,panes.diamonds,panes.nebula,panes.ether);
+          content.addEventListener('click',e=>{
+            const open=e.target.closest('[data-store-open]');
+            if(open)switchUnoStoreTab(open.dataset.storeOpen);
+            if(e.target.closest('[data-store-back]'))showUnoStoreHome();
+          });
+        }
+        function showUnoStoreHome(){
+          document.getElementById('unoStoreHome')?.classList.remove('hidden');
+          ['normal','diamonds','nebula','ether'].forEach(k=>document.getElementById('unoStorePane'+k)?.classList.add('hidden'));
         }
         function switchUnoStoreTab(key){
-          ['normal','diamonds','nebula','ether'].forEach(k=>{const p=document.getElementById('unoStorePane'+k);if(p)p.classList.toggle('hidden',k!==key)});
-          document.querySelectorAll('[data-store-tab]').forEach(b=>{const active=b.dataset.storeTab===key;b.classList.toggle('border-amber-300',active);b.classList.toggle('bg-amber-500/15',active);b.classList.toggle('text-amber-100',active);});
+          const valid=['normal','diamonds','nebula','ether'];
+          if(!valid.includes(key))return;
+          document.getElementById('unoStoreHome')?.classList.add('hidden');
+          valid.forEach(k=>document.getElementById('unoStorePane'+k)?.classList.toggle('hidden',k!==key));
+          if(key==='normal')renderClubStore();
           if(key==='nebula'||key==='ether')renderUnoRareShop(key);
           if(key==='diamonds')renderDiamondStore();
         }
@@ -6071,7 +6111,7 @@ function updatePlusWalletUI(){const v=getUnoPlus().toLocaleString('es-AR');['uno
           else{const club=ownedClubItems();club.push(id);localStorage.setItem('uno_club_owned',JSON.stringify(club));registerUnoRareCosmetics();equipClubItem(id)}
           scheduleClubProfileCloudSync?.();showToast('¡'+item.name+' desbloqueado!','success');renderUnoRareShop(key);
         }
-        function openClubStore(){initUnoStoreTabs();renderClubStore();document.getElementById('storeModal').classList.remove('hidden');switchUnoStoreTab('normal')}
+        function openClubStore(){initUnoStoreTabs();renderClubStore();document.getElementById('storeModal').classList.remove('hidden');showUnoStoreHome()}
 
 document.getElementById('btnHomePlusStore')?.addEventListener('click',openClubStore);document.getElementById('btnHomePlusLearn')?.addEventListener('click',openClubStore);
         document.getElementById('storeSearchInput')?.addEventListener('input',renderClubStore);
