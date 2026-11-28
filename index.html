@@ -1123,6 +1123,27 @@ body.performance-low .uno-card-art .evo-particle{display:none}
 .tcg-action-guide{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;border:1px solid #67e8f933;background:linear-gradient(90deg,#082f49dd,#111827ee);border-radius:14px;padding:10px}.tcg-action-guide span{font-size:10px;color:#dbeafe;line-height:1.35}.tcg-action-guide b{display:block;color:#67e8f9;font-size:10px;letter-spacing:.08em;margin-bottom:3px}
 .tcg-active-target{display:block;width:100%;border-radius:14px;padding:4px;background:#064e3b55;border:1px solid #34d39955}.tcg-active-target:focus-visible,.tcg-bench-target:focus-visible{outline:3px solid #fbbf24;outline-offset:3px}
 @media(max-width:640px){.tcg-action-guide{grid-template-columns:repeat(2,minmax(0,1fr))}.tcg-catalog-art{min-height:62px;font-size:34px}}@media(prefers-reduced-motion:reduce){.tcg-catalog-card,.tcg-shop-cosmetic{transition:none!important;animation:none!important}}
+
+/* LEGACY SKIN REMASTER — identidad original + acabado premium */
+.uno-card.uno-skin-inferno .uno-card-inner{background-image:radial-gradient(ellipse at 50% 100%,#ffb34755,transparent 52%),repeating-linear-gradient(115deg,transparent 0 13px,#ff6b3520 14px 16px)}
+.uno-card.uno-skin-frost .uno-card-inner{background-image:linear-gradient(125deg,#ffffff66,transparent 35%,#7dd3fc44 70%),repeating-linear-gradient(45deg,transparent 0 9px,#e0f2fe35 10px 11px)}
+.uno-card.uno-skin-cyber .uno-card-inner{background-image:linear-gradient(90deg,transparent 48%,#22d3ee22 50%,transparent 52%),repeating-linear-gradient(0deg,transparent 0 10px,#e879f933 11px 12px)}
+.uno-card.uno-skin-royal .uno-card-inner{background-image:radial-gradient(ellipse at 50% 15%,#fff7c255,transparent 50%),linear-gradient(135deg,#fff2b333,transparent 45%,#92400e33)}
+.uno-card.uno-skin-toxic .uno-card-inner{background-image:radial-gradient(circle at 22% 25%,#d9f99d88 0 2px,transparent 4px),radial-gradient(circle at 76% 65%,#bef26477 0 3px,transparent 5px),linear-gradient(135deg,#36531444,transparent)}
+.uno-card.uno-skin-galaxy .uno-card-inner{background-image:radial-gradient(circle at 18% 20%,#fff 0 1px,transparent 2px),radial-gradient(circle at 80% 32%,#ddd6fe 0 1px,transparent 2px),radial-gradient(circle at 30% 78%,#c4b5fd 0 1px,transparent 2px),linear-gradient(135deg,#4c1d9544,transparent)}
+.uno-card.uno-skin-void .uno-card-inner{background-image:linear-gradient(135deg,#cbd5e122,transparent 35%,#02061788),repeating-linear-gradient(135deg,transparent 0 12px,#94a3b822 13px 14px)}
+.uno-card.uno-skin-prism .uno-card-inner{background-image:linear-gradient(125deg,#f0abfc55,#67e8f944 32%,transparent 55%,#fde68a44 75%,#a78bfa55);background-size:180% 180%;animation:prismSkinFlow 7s ease-in-out infinite}
+.uno-card.uno-skin-aurora .uno-card-inner{background-image:radial-gradient(ellipse at 15% 20%,#67e8f955,transparent 45%),linear-gradient(125deg,#22d3ee33,#a78bfa44,#34d39933)}
+.uno-card.uno-skin-titan .uno-card-inner{background-image:repeating-linear-gradient(135deg,transparent 0 12px,#cbd5e133 13px 15px),linear-gradient(145deg,#64748b44,#fbbf2433)}
+.uno-card.uno-skin-sakura .uno-card-inner{background-image:radial-gradient(circle at 20% 25%,#fbcfe8aa 0 2px,transparent 4px),radial-gradient(circle at 75% 65%,#f9a8d455 0 3px,transparent 5px),linear-gradient(135deg,#fce7f344,#be185d22)}
+.uno-card.uno-skin-chrono .uno-card-inner{background-image:repeating-radial-gradient(circle at 50% 50%,transparent 0 12px,#fbbf2433 13px 14px),linear-gradient(135deg,#312e8144,#f59e0b22)}
+.uno-card.uno-skin-abyss .uno-card-inner{background-image:radial-gradient(ellipse at 50% 100%,#22d3ee55,transparent 60%),repeating-linear-gradient(90deg,transparent 0 15px,#67e8f422 16px 17px)}
+.uno-card.uno-skin-celestial .uno-card-inner{background-image:radial-gradient(circle at 50% 15%,#fff7ed99 0 2px,transparent 4px),radial-gradient(ellipse at 50% 50%,#fef3c744,transparent 70%),linear-gradient(135deg,#fef3c722,#a78bfa33)}
+@keyframes prismSkinFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.uno-card[class*="uno-skin-"] .uno-card-inner:before{opacity:.72}
+.uno-card[class*="uno-skin-"] .uno-card-inner:after{mix-blend-mode:screen}
+.performance-low .uno-card.uno-skin-prism .uno-card-inner,.animations-reduced .uno-card.uno-skin-prism .uno-card-inner,.animations-off .uno-card.uno-skin-prism .uno-card-inner{animation:none}
+
 </style>
 <style id="tcg-v2-styles">
 .tcg-reveal-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;background:radial-gradient(ellipse at center,#30145cdd,#02030bf2);backdrop-filter:blur(12px);animation:tcgFadeIn .25s ease both}
@@ -5715,7 +5736,16 @@ body.performance-low .uno-card-art .evo-particle{display:none}
           {id:'frame_ruby',name:'Marco rubí',price:1350,field:'frame',value:7,emoji:'❤️‍🔥',category:'frame',rarity:'Mítico'},
           {id:'frame_amethyst',name:'Marco amatista',price:1450,field:'frame',value:8,emoji:'🔮',category:'frame',rarity:'Mítico'},
           {id:'frame_rainbow',name:'Marco arcoíris VIP',price:2200,field:'frame',value:9,emoji:'🌈',category:'frame',rarity:'Mítico'},
-          {id:'frame_purple',name:'Marco violeta',price:520,field:'frame',value:4,emoji:'💜',category:'frame',rarity:'Épico'}
+          {id:'frame_purple',name:'Marco violeta',price:520,field:'frame',value:4,emoji:'💜',category:'frame',rarity:'Épico'},
+
+          {id:'legacy_skin_inferno',name:'Skin Inferno Remaster',price:1250,field:'cardSkin',value:'inferno',emoji:'🔥',category:'cardskin',rarity:'Legendaria'},
+          {id:'legacy_skin_frost',name:'Skin Frost Remaster',price:1150,field:'cardSkin',value:'frost',emoji:'❄️',category:'cardskin',rarity:'Épica'},
+          {id:'legacy_skin_cyber',name:'Skin Cyber Remaster',price:1350,field:'cardSkin',value:'cyber',emoji:'⚡',category:'cardskin',rarity:'Legendaria'},
+          {id:'legacy_skin_royal',name:'Skin Royal Remaster',price:1500,field:'cardSkin',value:'royal',emoji:'👑',category:'cardskin',rarity:'Mítica'},
+          {id:'legacy_skin_toxic',name:'Skin Toxic Remaster',price:1200,field:'cardSkin',value:'toxic',emoji:'☢️',category:'cardskin',rarity:'Legendaria'},
+          {id:'legacy_skin_galaxy',name:'Skin Galaxy Remaster',price:1550,field:'cardSkin',value:'galaxy',emoji:'🌌',category:'cardskin',rarity:'Mítica'},
+          {id:'legacy_skin_void',name:'Skin Void Remaster',price:1050,field:'cardSkin',value:'void',emoji:'🌑',category:'cardskin',rarity:'Épica'},
+          {id:'legacy_skin_prism',name:'Skin Prism Remaster',price:1750,field:'cardSkin',value:'prism',emoji:'💠',category:'cardskin',rarity:'Mítica'}
         ];
 
         const UNO_COMPETITIVE_RANKS=[
