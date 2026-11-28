@@ -7818,7 +7818,7 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
         }
         function capitalPrice(assetId,ts=Date.now()){
           const a=CAPITAL_ASSETS[assetId]||CAPITAL_ASSETS.coins,ev=capitalEventAt(ts),hours=ts/3600000,seed=capitalHash(assetId+'-'+Math.floor(ts/900000));
-          const long=Math.sin(hours/17+capitalHash(assetId)%13)*.025;
+          const daysSinceLaunch=(ts-Date.UTC(2026,0,1))/86400000;const growth=Math.pow(1.004,daysSinceLaunch);const long=Math.sin(hours/17+capitalHash(assetId)%13)*.025;
           const medium=Math.sin(hours/3.7+capitalHash(assetId+'m')%9)*.009;
           const wave=Math.sin(hours/0.9+capitalHash(assetId+'w')%7)*.0035;
           let impact=ev.impact;
@@ -7828,7 +7828,7 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           if(ev.id==='calm')impact*=.25;
           const eventWave=impact*Math.sin((ts-ev.slot*21600000)/21600000*Math.PI);
           const noise=capitalNoise(seed)*.0022;
-          return Math.max(1,a.base*(1+long+medium+wave+eventWave+noise));
+          return Math.max(1,a.base*growth*(1+long+medium+wave+eventWave+noise));
         }
         function capitalMoney(n){return Math.floor(Number(n)||0).toLocaleString('es-AR')}
         function capitalGetWallet(){
@@ -7929,12 +7929,21 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           const rows=capitalContracts(),active=rows.filter(x=>x.status==='active'),hist=capitalHistory(),wins=hist.filter(x=>x.status==='won').length,losses=hist.filter(x=>x.status==='lost').length;
           const sum=active.reduce((n,x)=>n+x.stake,0),box=document.getElementById('capitalPortfolioSummary'),list=document.getElementById('capitalPortfolioRows');
           if(box)box.innerHTML='<div class="rounded-xl bg-white/5 p-3"><div class="capital-muted">CONTRATOS ABIERTOS</div><b class="mt-1 block text-xl">'+active.length+'</b></div><div class="rounded-xl bg-white/5 p-3"><div class="capital-muted">CAPITAL BLOQUEADO</div><b class="mt-1 block text-xl">'+capitalMoney(sum)+'</b></div><div class="rounded-xl bg-white/5 p-3"><div class="capital-muted">VICTORIAS / DERROTAS</div><b class="mt-1 block text-xl">'+wins+' / '+losses+'</b></div>';
-          if(list)list.innerHTML=active.length?active.map(c=>'<div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 p-3"><div><b class="text-xs">'+CAPITAL_ASSETS[c.asset].name+'</b><div class="text-[10px] text-slate-400">'+(c.direction==='up'?'Posición alcista':'Posición bajista')+' · '+capitalMoney(c.stake)+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'</div></div><div class="text-right text-[10px] text-amber-200">Vence '+new Date(c.expiresAt).toLocaleString('es-AR')+'</div></div>').join(''):'<div class="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-slate-500">Tu portafolio está vacío. Abrí un contrato para empezar.</div>';
+          if(list){list.innerHTML=active.length?active.map(c=>'<div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 p-3"><div><b class="text-xs">'+CAPITAL_ASSETS[c.asset].name+'</b><div class="text-[10px] text-slate-400">'+(c.direction==='up'?'Posición alcista':'Posición bajista')+' · '+capitalMoney(c.stake)+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'</div></div><div class="flex items-center gap-3"><div class="text-right text-[10px] text-amber-200">Vence '+new Date(c.expiresAt).toLocaleString('es-AR')+'</div><button type="button" data-capital-close="'+c.id+'" class="rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-[10px] font-black text-amber-100">RETIRAR</button></div></div>').join(''):'<div class="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-slate-500">Tu portafolio está vacío. Abrí un contrato para empezar.</div>';list.querySelectorAll('[data-capital-close]').forEach(b=>b.addEventListener('click',()=>capitalCloseContract(b.dataset.capitalClose)));}
+        }
+        function capitalCloseContract(id){
+          const rows=capitalContracts(),c=rows.find(x=>x.id===id&&x.status==='active');if(!c){showToast('Esta posición ya no está activa.','warn');return}
+          const fee=Math.max(1,Math.ceil(c.stake*.02)),refund=Math.max(0,c.stake-fee);
+          if(!confirm('¿Retirar esta posición ahora? Recuperás '+capitalMoney(refund)+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'. Comisión de cierre: '+capitalMoney(fee)+'.'))return;
+          const wallet=capitalGetWallet();wallet[c.currency]+=refund;capitalSetWallet(c.currency,wallet[c.currency]);
+          c.status='closed';c.exitPrice=capitalPrice(c.asset);c.settledAt=Date.now();c.payout=refund;c.profit=-fee;
+          capitalSaveContracts(rows);const history=capitalHistory();history.unshift({id:c.id,asset:c.asset,currency:c.currency,stake:c.stake,direction:c.direction,status:'closed',payout:refund,profit:-fee,entryPrice:c.entryPrice,exitPrice:c.exitPrice,createdAt:c.createdAt,settledAt:c.settledAt});capitalSaveHistory(history);
+          capitalRenderAll();showToast('Retiro completado. Se aplicó una comisión del 2%.','success');
         }
         function capitalRenderHistory(){
           const host=document.getElementById('capitalHistoryRows'),rows=capitalHistory();
           if(!host)return;
-          host.innerHTML=rows.length?rows.map(c=>'<div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 p-3"><div><b class="text-xs">'+CAPITAL_ASSETS[c.asset].name+' · '+(c.direction==='up'?'SUBE':'BAJA')+'</b><div class="text-[10px] text-slate-500">'+new Date(c.createdAt).toLocaleString('es-AR')+' · '+capitalMoney(c.stake)+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'</div></div><div class="text-right"><b class="text-xs '+(c.status==='won'?'text-emerald-300':'text-rose-300')+'">'+(c.status==='won'?'GANADO':'PERDIDO')+'</b><div class="text-[10px] text-slate-400">'+(c.status==='won'?'+'+capitalMoney(c.profit):'-'+capitalMoney(c.stake))+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'</div></div></div>').join(''):'<div class="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-slate-500">Todavía no hay operaciones cerradas.</div>';
+          host.innerHTML=rows.length?rows.map(c=>'<div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 p-3"><div><b class="text-xs">'+CAPITAL_ASSETS[c.asset].name+' · '+(c.direction==='up'?'SUBE':'BAJA')+'</b><div class="text-[10px] text-slate-500">'+new Date(c.createdAt).toLocaleString('es-AR')+' · '+capitalMoney(c.stake)+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'</div></div><div class="text-right"><b class="text-xs '+(c.status==='won'?'text-emerald-300':'text-rose-300')+'">'+(c.status==='won'?'GANADO':c.status==='closed'?'RETIRADO':'PERDIDO')+'</b><div class="text-[10px] text-slate-400">'+(c.status==='won'?'+'+capitalMoney(c.profit):c.status==='closed'?'-'+capitalMoney(Math.abs(c.profit)):'-'+capitalMoney(c.stake))+' '+CAPITAL_CURRENCY_NAMES[c.currency]+'</div></div></div>').join(''):'<div class="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-slate-500">Todavía no hay operaciones cerradas.</div>';
         }
         function capitalSwitchTab(tab){
           capitalTab=tab;
