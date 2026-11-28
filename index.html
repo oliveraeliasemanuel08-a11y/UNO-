@@ -7816,19 +7816,69 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           const idx=capitalHash('uno-capital-event-'+slot)%events.length;
           return {...events[idx],slot,nextAt:(slot+1)*21600000};
         }
+        // Motor de mercado global UNO CAPITAL: oferta, demanda, volumen y volatilidad.
+        // La decisión de precios se guarda en Firestore para que todos los jugadores vean el mismo mercado.
+        const CAPITAL_MARKET_DOC_PATH=['artifacts',appId,'public','data','uno_market','capital_global'];
+        let capitalMarketState=null,capitalMarketSyncBusy=false,capitalMarketLastSync=0;
+        const CAPITAL_FLOW_KEY='uno_capital_pending_flows';
+        function capitalLoadPendingFlows(){const f=capitalRead(CAPITAL_FLOW_KEY,{});return f&&typeof f==='object'?f:{}}
+        function capitalQueueFlow(currency,delta){
+          const flows=capitalLoadPendingFlows();flows[currency]=(Number(flows[currency])||0)+Number(delta||0);
+          localStorage.setItem(CAPITAL_FLOW_KEY,JSON.stringify(flows));
+        }
         function capitalPrice(assetId,ts=Date.now()){
-          const a=CAPITAL_ASSETS[assetId]||CAPITAL_ASSETS.coins,ev=capitalEventAt(ts),hours=ts/3600000,seed=capitalHash(assetId+'-'+Math.floor(ts/900000));
-          const daysSinceLaunch=(ts-Date.UTC(2026,0,1))/86400000;const growth=Math.pow(1.004,daysSinceLaunch);const long=Math.sin(hours/17+capitalHash(assetId)%13)*.025;
-          const medium=Math.sin(hours/3.7+capitalHash(assetId+'m')%9)*.009;
-          const wave=Math.sin(hours/0.9+capitalHash(assetId+'w')%7)*.0035;
-          let impact=ev.impact;
-          if(ev.id==='diamond'&&assetId==='diamonds')impact*=2.4;
-          if(ev.id==='token'&&assetId==='tokens')impact*=2.4;
-          if(ev.id==='nebula'&&(assetId==='ether'||assetId==='nebula'))impact*=2.2;
-          if(ev.id==='calm')impact*=.25;
-          const eventWave=impact*Math.sin((ts-ev.slot*21600000)/21600000*Math.PI);
-          const noise=capitalNoise(seed)*.0022;
-          return Math.max(1,a.base*growth*(1+long+medium+wave+eventWave+noise));
+          const a=CAPITAL_ASSETS[assetId]||CAPITAL_ASSETS.coins;
+          const shared=capitalMarketState?.prices?.[assetId];
+          if(Number.isFinite(Number(shared))&&Number(shared)>0)return Number(shared);
+          const ev=capitalEventAt(ts),hours=ts/3600000,seed=capitalHash(assetId+'-'+Math.floor(ts/900000));
+          const daysSinceLaunch=(ts-Date.UTC(2026,0,1))/86400000,growth=Math.pow(1.004,daysSinceLaunch);
+          const long=Math.sin(hours/17+capitalHash(assetId)%13)*.025,medium=Math.sin(hours/3.7+capitalHash(assetId+'m')%9)*.009,wave=Math.sin(hours/.9+capitalHash(assetId+'w')%7)*.0035;
+          let impact=ev.impact;if(ev.id==='diamond'&&assetId==='diamonds')impact*=2.4;if(ev.id==='token'&&assetId==='tokens')impact*=2.4;if(ev.id==='nebula'&&(assetId==='ether'||assetId==='nebula'))impact*=2.2;if(ev.id==='calm')impact*=.25;
+          return Math.max(1,a.base*growth*(1+long+medium+wave+impact*Math.sin((ts-ev.slot*21600000)/21600000*Math.PI)+capitalNoise(seed)*.0022));
+        }
+        function capitalMarketSeed(){
+          const prices={};Object.keys(CAPITAL_ASSETS).forEach(k=>prices[k]=CAPITAL_ASSETS[k].base);
+          return {prices,changes:{},flows:{},volume:{},history:{},lastTick:Date.now(),headline:'La IA está analizando el mercado...',mood:'neutral',version:1};
+        }
+        async function capitalSyncGlobalMarket(force=false){
+          if(capitalMarketSyncBusy||!db)return;
+          if(!force&&Date.now()-capitalMarketLastSync<12000)return;
+          capitalMarketSyncBusy=true;capitalMarketLastSync=Date.now();
+          try{
+            const marketRef=doc(db,...CAPITAL_MARKET_DOC_PATH);
+            const pending=capitalLoadPendingFlows();
+            await runTransaction(db,async tx=>{
+              const snap=await tx.get(marketRef),state=snap.exists()?snap.data():capitalMarketSeed(),now=Date.now();
+              state.prices=state.prices||{};state.changes=state.changes||{};state.flows=state.flows||{};state.volume=state.volume||{};state.history=state.history||{};
+              Object.keys(CAPITAL_ASSETS).forEach(k=>{if(!Number.isFinite(Number(state.prices[k]))||Number(state.prices[k])<=0)state.prices[k]=CAPITAL_ASSETS[k].base});
+              const elapsed=Math.max(0,Math.min(12,Math.floor((now-(Number(state.lastTick)||now))/15000)));
+              if(elapsed>0){
+                const assetToCurrency={coins:'coins',diamonds:'diamonds',tokens:'tokens',ether:'ether',nebula:'nebula'};
+                let strongest='MERCADO EN EQUILIBRIO',strongestScore=0,marketMood=0;
+                Object.keys(CAPITAL_ASSETS).forEach(asset=>{
+                  const cur=assetToCurrency[asset],flow=Number(state.flows[cur])||0,price=Number(state.prices[asset])||CAPITAL_ASSETS[asset].base;
+                  const scale=Math.max(500,price*2),demand=Math.max(-.006,Math.min(.006,flow/scale*.0018));
+                  const seed=capitalHash(asset+'-'+Math.floor(now/15000)),cycle=Math.sin(now/3600000+seed%31)*.0011;
+                  const event=capitalEventAt(now),eventBias=event.impact*(asset==='diamonds'&&event.id==='diamond'?1.6:asset==='tokens'&&event.id==='token'?1.6:asset==='nebula'&&event.id==='nebula'?1.7:1);
+                  const drift=Math.max(-.009,Math.min(.009,demand+cycle+eventBias/Math.max(1,elapsed)));
+                  state.prices[asset]=Math.max(.01,price*Math.pow(1+drift,elapsed));
+                  state.changes[asset]=drift*100;state.volume[cur]=(Number(state.volume[cur])||0)+Math.abs(flow);
+                  state.history[asset]=Array.isArray(state.history[asset])?state.history[asset]:[];
+                  state.history[asset].push({t:now,p:state.prices[asset]});state.history[asset]=state.history[asset].slice(-192);
+                  state.flows[cur]=0;
+                  if(Math.abs(drift)>strongestScore){strongestScore=Math.abs(drift);strongest=drift>0?'DEMANDA EN ALZA':'PRESIÓN DE VENTA';}
+                  marketMood+=drift;
+                });
+                const ev=capitalEventAt(now);state.headline=strongestScore<.00025?'MERCADO EN EQUILIBRIO':strongest+' · '+ev.name;
+                state.mood=marketMood>.001?'bull':marketMood<-.001?'bear':'neutral';state.lastTick=now;
+              }
+              Object.keys(pending).forEach(k=>{state.flows[k]=(Number(state.flows[k])||0)+Number(pending[k]||0)});
+              tx.set(marketRef,state);
+            });
+            localStorage.setItem(CAPITAL_FLOW_KEY,'{}');
+            const snap=await getDoc(marketRef);if(snap.exists())capitalMarketState=snap.data();
+          }catch(e){console.warn('UNO CAPITAL: no se pudo sincronizar el mercado global:',e);if(!capitalMarketState)capitalMarketState=capitalMarketSeed();}
+          finally{capitalMarketSyncBusy=false}
         }
         function capitalMoney(n){return Math.floor(Number(n)||0).toLocaleString('es-AR')}
         function capitalGetWallet(){
@@ -7841,13 +7891,13 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
           };
         }
         function capitalSetWallet(currency,value){
-          const n=Math.max(0,Math.floor(Number(value)||0));
+          const n=Math.max(0,Math.floor(Number(value)||0)),before=capitalGetWallet()[currency]||0;
           if(currency==='coins'){localStorage.setItem('uno_club_points',String(n));updateClubWalletUI?.()}
           else if(currency==='diamonds'){setUnoPlus(n)}
           else if(currency==='tokens')localStorage.setItem('uno_card_evolution_tokens',String(n));
           else if(currency==='ether')localStorage.setItem('uno_capital_ether',String(n));
           else if(currency==='nebula')localStorage.setItem('uno_capital_nebula',String(n));
-          scheduleClubProfileCloudSync?.();
+          scheduleClubProfileCloudSync?.();capitalQueueFlow(currency,n-before);
         }
         function capitalRead(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'')??fallback}catch(_){return fallback}}
         function capitalSaveContracts(rows){localStorage.setItem('uno_capital_contracts',JSON.stringify(rows));scheduleClubProfileCloudSync?.()}
@@ -7883,7 +7933,8 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
         }
         function capitalRenderMarket(){
           const ev=capitalEventAt(),eventName=document.getElementById('capitalEventName'),eventDesc=document.getElementById('capitalEventDesc');
-          if(eventName)eventName.textContent=ev.name;if(eventDesc)eventDesc.textContent=ev.desc;
+          if(eventName)eventName.textContent=capitalMarketState?.headline||ev.name;
+          if(eventDesc)eventDesc.textContent=capitalMarketState?'IA de mercado: analiza compras, ventas, flujos y volatilidad para ajustar los índices de todos.':ev.desc;
           const list=document.getElementById('capitalAssetList'),table=document.getElementById('capitalMarketTable');
           const keys=Object.keys(CAPITAL_ASSETS);
           if(list)list.innerHTML=keys.map(id=>{const a=CAPITAL_ASSETS[id],now=capitalPrice(id),prev=capitalPrice(id,Date.now()-86400000),pct=(now/prev-1)*100;return '<button class="capital-asset-row '+(capitalSelectedAsset===id?'selected':'')+'" data-capital-asset="'+id+'"><span class="min-w-0 text-left"><b class="block text-xs text-slate-100">'+a.name+'</b><small class="text-[9px] text-slate-500">'+a.ticker+'</small></span><span class="text-right"><b class="block text-xs">'+now.toLocaleString('es-AR',{maximumFractionDigits:2})+'</b><small class="text-[10px] '+(pct>=0?'capital-up':'capital-down')+'">'+(pct>=0?'+':'')+pct.toFixed(2)+'%</small></span></button>'}).join('');
@@ -7956,9 +8007,10 @@ document.querySelectorAll('[data-standalone-game]').forEach(b=>b.addEventListene
         async function openUnoCapital(){
           document.getElementById('unoCapitalScreen')?.classList.remove('hidden');
           if(typeof initFirebase==='function')await initFirebase().catch(()=>false);
+          await capitalSyncGlobalMarket(true);
           capitalSettleExpired();capitalSwitchTab('market');capitalRenderAll();
           if(capitalTickTimer)clearInterval(capitalTickTimer);
-          capitalTickTimer=setInterval(()=>{if(!document.getElementById('unoCapitalScreen')?.classList.contains('hidden')){capitalSettleExpired();capitalRenderAll()}},10000);
+          capitalTickTimer=setInterval(async()=>{if(!document.getElementById('unoCapitalScreen')?.classList.contains('hidden')){await capitalSyncGlobalMarket();capitalSettleExpired();capitalRenderAll()}},15000);
         }
         function closeUnoCapital(){document.getElementById('unoCapitalScreen')?.classList.add('hidden');if(capitalTickTimer){clearInterval(capitalTickTimer);capitalTickTimer=null}}
         document.getElementById('btnOpenCapital')?.addEventListener('click',openUnoCapital);
